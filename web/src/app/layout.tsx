@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import localFont from "next/font/local";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const dmSans = localFont({
+  src: "../assets/fonts/DMSans-VariableFont_opsz,wght.ttf",
+  variable: "--font-dm-sans",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const chewy = localFont({
+  src: "../assets/fonts/Chewy-Regular.ttf",
+  variable: "--font-chewy",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -25,7 +27,7 @@ export default function EntryLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${dmSans.variable} ${chewy.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>

@@ -21,15 +21,15 @@ export function Header() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 flex justify-center px-4 py-3 sm:px-6 sm:py-4 md:px-8 md:py-4">
-      <div className="flex items-center w-full max-w-[1440px] gap-3 lg:gap-4">
+      <div className="flex items-center w-full max-w-360 gap-3 lg:gap-4">
         {/* Brand Logo */}
         <Link href="/" className="flex items-center shrink-0 group">
           <Image
             src="/logo.png"
             alt="Meawland"
             width={160}
-            height={64}
-            className="h-12 sm:h-14 md:h-16 w-auto object-contain hover:opacity-80 transition-opacity"
+            height={160}
+            className="h-14 sm:h-16 md:h-18 w-auto object-contain hover:opacity-80 transition-opacity"
             priority
           />
         </Link>
@@ -40,7 +40,7 @@ export function Header() {
             <Link
               key={item.href}
               href={item.href}
-              className="text-sm xl:text-base font-bold text-gray-800 hover:text-[#56C8D8] whitespace-nowrap transition-colors"
+              className="text-sm font-bold text-gray-800 hover:text-[#56C8D8] whitespace-nowrap transition-colors"
             >
               {item.label}
             </Link>
@@ -89,7 +89,7 @@ export function Header() {
           {/* Login Button */}
           <Link
             href="/login"
-            className="flex items-center justify-center rounded-full bg-[#B2E2FF] hover:bg-[#56C8D8] text-white font-black text-sm h-11 px-5 md:h-12 md:px-7 transition-all hover:scale-105 active:scale-95 shadow-md whitespace-nowrap"
+            className="flex items-center justify-center rounded-full bg-white/30 backdrop-blur-md border border-white/30 shadow-md hover:bg-white/50 transition-all text-gray-700 cursor-pointer font-black text-sm h-11 px-5 md:h-12 md:px-7 hover:scale-105 active:scale-95 whitespace-nowrap"
             title="Login"
           >
             <User className="w-5 h-5 md:hidden" />

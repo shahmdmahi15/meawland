@@ -12,6 +12,7 @@ import { cookies } from "next/headers";
 
 export async function loginWithOtpAction(
   input: LoginOtpInput,
+  userId: string,
 ): Promise<{ success: boolean; message?: string; errors?: LoginOtpError }> {
   try {
     const validate = await loginOtpSchema.safeParseAsync(input);
@@ -28,10 +29,17 @@ export async function loginWithOtpAction(
       .digest("hex");
 
     const userExists = await db.user.findUnique({
-      where: { otpHash: otpHash },
+      where: { id: userId },
     });
 
     if (!userExists) {
+      return {
+        success: false,
+        message: "Invalid OTP",
+      };
+    }
+
+    if (userExists.otpHash !== otpHash) {
       return {
         success: false,
         message: "Invalid OTP",

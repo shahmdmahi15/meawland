@@ -6,9 +6,12 @@ import { sendEmail } from "@/lib/mail";
 import { LoginError, LoginInput, loginSchema } from "@/schemas/auth/login";
 import crypto from "crypto";
 
-export async function sendLoginOtpAction(
-  input: LoginInput,
-): Promise<{ success: boolean; message?: string; errors?: LoginError }> {
+export async function sendLoginOtpAction(input: LoginInput): Promise<{
+  success: boolean;
+  message?: string;
+  errors?: LoginError;
+  userId?: string;
+}> {
   try {
     const validate = await loginSchema.safeParseAsync(input);
     if (!validate.success) {
@@ -46,10 +49,14 @@ export async function sendLoginOtpAction(
         htmlContent: `<p>Hello ${user.name},</p><p>Your OTP for login is: <strong>${otp}</strong></p><p>This OTP will expire in 5 minutes.</p>`,
       });
 
-      return { success: true, message: "OTP sent to your email" };
+      return {
+        success: true,
+        message: "OTP sent to your email",
+        userId: user.id,
+      };
     }
 
-    await db.user.update({
+    const user = await db.user.update({
       where: { email: validate.data.email },
       data: {
         name: validate.data.name,
@@ -58,9 +65,16 @@ export async function sendLoginOtpAction(
       },
     });
 
+    await sendEmail({
+      to: user.email,
+      subject: "Your Login OTP",
+      htmlContent: `<p>Hello ${user.name},</p><p>Your OTP for login is: <strong>${otp}</strong></p><p>This OTP will expire in 5 minutes.</p>`,
+    });
+
     return {
       success: true,
       message: "OTP sent to your email",
+      userId: user.id,
     };
   } catch (error) {
     console.error("[Actions.Auth.SendLoginOTP]:", error);
