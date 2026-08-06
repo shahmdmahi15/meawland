@@ -52,7 +52,7 @@ export async function loginWithOtpAction(
       .digest("hex");
 
     await db.$transaction(async (tx) => {
-      const user = await db.user.update({
+      const user = await tx.user.update({
         where: { id: userExists.id },
         data: {
           otpHash: null,
