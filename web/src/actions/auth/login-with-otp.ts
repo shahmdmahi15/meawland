@@ -59,7 +59,7 @@ export async function loginWithOtpAction(
       .update(sessionToken)
       .digest("hex");
 
-    await db.$transaction(async (tx) => {
+    const session = await db.$transaction(async (tx) => {
       const user = await tx.user.update({
         where: { id: userExists.id },
         data: {
@@ -67,7 +67,7 @@ export async function loginWithOtpAction(
           otpExpiresAt: null,
         },
       });
-      await tx.session.create({
+      return await tx.session.create({
         data: {
           userId: user.id,
           tokenHash: sessionTokenHash,
@@ -79,7 +79,7 @@ export async function loginWithOtpAction(
     const cookieStore = await cookies();
 
     cookieStore.set("__Host-SESSION_TOKEN", sessionToken, {
-      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+      expires: session.expiresAt,
       sameSite: "lax",
       secure: true,
       httpOnly: true,

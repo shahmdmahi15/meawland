@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { Search, Heart, ShoppingCart, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { NavbarAccount } from "@/actions/auth/get-navbar-account";
 
 const navItems = [
   { label: "Pet Accessorice", href: "/category/pet-accessorice" },
@@ -16,7 +17,7 @@ const navItems = [
   { label: "Pet Litter", href: "/category/pet-litter" },
 ];
 
-export function Header() {
+export function Header({ user }: { user: NavbarAccount | null }) {
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
@@ -85,16 +86,36 @@ export function Header() {
               0
             </span>
           </Button>
-
-          {/* Login Button */}
-          <Link
-            href="/login"
-            className="flex items-center justify-center rounded-full bg-white/30 backdrop-blur-md border border-white/30 shadow-md hover:bg-white/50 transition-all text-gray-700 cursor-pointer font-black text-sm h-11 px-5 md:h-12 md:px-7 hover:scale-105 active:scale-95 whitespace-nowrap"
-            title="Login"
-          >
-            <User className="w-5 h-5 md:hidden" />
-            <span className="hidden md:inline">Login</span>
-          </Link>
+          {user ? (
+            <Link href="/account" className="flex items-center">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full bg-white/30 backdrop-blur-md h-11 w-11 md:h-12 md:w-12 border border-white/30 shadow-md hover:bg-white/50 transition-all text-gray-700 cursor-pointer"
+                aria-label="Account"
+              >
+                {user.avatar ? (
+                  <Image
+                    src={user.avatar}
+                    alt={user.name || "User Avatar"}
+                    fill
+                    className="w-5 h-5 rounded-full object-cover"
+                  />
+                ) : (
+                  <User className="w-5 h-5" />
+                )}
+              </Button>
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="flex items-center justify-center rounded-full bg-white/30 backdrop-blur-md border border-white/30 shadow-md hover:bg-white/50 transition-all text-gray-700 cursor-pointer font-black text-sm h-11 px-5 md:h-12 md:px-7 hover:scale-105 active:scale-95 whitespace-nowrap"
+              title="Login"
+            >
+              <User className="w-5 h-5 md:hidden" />
+              <span className="hidden md:inline">Login</span>
+            </Link>
+          )}
         </div>
       </div>
     </header>

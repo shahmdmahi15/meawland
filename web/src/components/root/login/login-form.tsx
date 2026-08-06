@@ -17,6 +17,7 @@ import { loginWithOtpAction } from "@/actions/auth/login-with-otp";
 import { loginSchema, type LoginInput } from "@/schemas/auth/login";
 import { loginOtpSchema, type LoginOtpInput } from "@/schemas/auth/login-otp";
 import { useRouter } from "next/navigation";
+import { loginWithGoogleAction } from "@/actions/auth/login-with-google";
 
 type FormStatus = {
   status: "idle" | "success" | "error";
@@ -111,6 +112,7 @@ export function LoginForm() {
         <Button
           type="button"
           variant="outline"
+          onClick={async () => await loginWithGoogleAction()}
           className="w-full justify-center gap-2 h-12 bg-gray-800 text-white hover:bg-gray-700 focus:ring-gray-500"
         >
           <svg

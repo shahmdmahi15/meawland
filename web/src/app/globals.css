@@ -148,7 +148,7 @@
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background-color: rgb(var(--muted-foreground)/0.5);
+    background-color: rgb(var(--muted-foreground) / 0.5);
   }
 
   ::-webkit-scrollbar-corner {
