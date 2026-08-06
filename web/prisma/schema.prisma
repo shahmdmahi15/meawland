@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Counter {
+  id    String @id
+  value Int    @default(0)
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  USER
+}
+
+model User {
+  // Primary Key
+  id String @id @default(cuid())
+
+  // Fields
+  code     String  @unique
+  name     String
+  email    String  @unique
+  googleId String? @unique
+  otpHash  String? @unique
+  avatar   String?
+  role     Role    @default(USER)
+
+  // Forgin Keys
+
+  // Parent Relations
+
+  // Child Relations
+  sessions Session[]
+
+  // Timestamps
+  otpExpiresAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Indexes and Constraints
+}
+
+model Session {
+  // Primary Key
+  id String @id @default(cuid())
+
+  // Fields
+  tokenHash String @unique
+
+  // Forgin Keys
+  userId String
+
+  // Parent Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Child Relations
+
+  // Timestamps
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes and Constraints
+}
