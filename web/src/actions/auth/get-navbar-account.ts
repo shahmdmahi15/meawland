@@ -3,12 +3,14 @@
 import { cookies } from "next/headers";
 import crypto from "crypto";
 import db from "@/lib/db";
+import { Role } from "@/generated/prisma/enums";
 
 export type NavbarAccount = {
   avatar: string | null;
   email: string;
   id: string;
   name: string;
+  role: Role;
 };
 
 export async function getNavbarAccountAction(): Promise<NavbarAccount | null> {
@@ -33,6 +35,7 @@ export async function getNavbarAccountAction(): Promise<NavbarAccount | null> {
             name: true,
             email: true,
             avatar: true,
+            role: true,
           },
         },
       },

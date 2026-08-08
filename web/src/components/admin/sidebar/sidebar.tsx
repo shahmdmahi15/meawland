@@ -8,7 +8,7 @@ export function AdminSidebar({ user }: { user: NavbarAccount }) {
   return (
     <Sidebar collapsible="icon" variant="inset">
       <AdminSidebarHeader />
-      <AdminSidebarContent />
+      <AdminSidebarContent user={user} />
       <AdminSidebarFooter user={user} />
       <SidebarRail />
     </Sidebar>

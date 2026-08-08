@@ -1,5 +1,4 @@
 import { getNavbarAccountAction } from "@/actions/auth/get-navbar-account";
-import { isAdminAction } from "@/actions/auth/is-admin";
 import { AccountSidebar } from "@/components/root/account/account-sidebar";
 
 export default async function AccountLayout({
@@ -7,10 +6,7 @@ export default async function AccountLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [user, isAdmin] = await Promise.all([
-    await getNavbarAccountAction(),
-    await isAdminAction(),
-  ]);
+  const user = await getNavbarAccountAction();
 
   return (
     <div className="min-h-screen bg-[#EDF5FA] pt-24 pb-12 px-4 sm:px-6 lg:px-8">
@@ -18,7 +14,7 @@ export default async function AccountLayout({
         <div className="flex gap-4 items-start">
           {/* Sidebar */}
           <div className="hidden sm:block shrink-0 bg-[#EDF5FA] rounded-2xl">
-            <AccountSidebar user={user} isAdmin={isAdmin} />
+            <AccountSidebar user={user} />
           </div>
 
           {/* Main Content */}

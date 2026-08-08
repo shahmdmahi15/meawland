@@ -30,6 +30,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
+import { Role } from "@/generated/prisma/enums";
 
 const navLinks = [
   { label: "Dashboard", href: "/account", icon: LayoutDashboard },
@@ -41,10 +42,9 @@ const navLinks = [
 
 interface AccountSidebarProps {
   user: NavbarAccount | null;
-  isAdmin: boolean;
 }
 
-export function AccountSidebar({ user, isAdmin }: AccountSidebarProps) {
+export function AccountSidebar({ user }: AccountSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [logoutOpen, setLogoutOpen] = useState(false);
@@ -106,7 +106,7 @@ export function AccountSidebar({ user, isAdmin }: AccountSidebarProps) {
 
       {/* Navigation */}
       <nav className="flex flex-col gap-1 flex-1">
-        {isAdmin && (
+        {(user?.role === Role.OWNER || user?.role === Role.ADMIN) && (
           <Link
             href="/admin"
             className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 bg-orange-400/80 ring-orange-600 text-white hover:bg-orange-400"
