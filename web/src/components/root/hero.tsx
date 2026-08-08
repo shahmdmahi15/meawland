@@ -38,7 +38,10 @@ export function Hero() {
   useEffect(() => {
     if (!emblaApi) return;
     emblaApi.on("select", onSelect);
-    onSelect();
+
+    return () => {
+      emblaApi.off("select", onSelect);
+    };
   }, [emblaApi, onSelect]);
 
   // Auto-play every 5 seconds
@@ -78,14 +81,17 @@ export function Hero() {
 
       {/* Hero Content */}
       <div className="absolute inset-0 z-20 flex items-center justify-start text-left px-6 sm:px-12 md:px-18 lg:px-26">
-        <div className="space-y-4 md:space-y-5 animate-in fade-in slide-in-from-left-16 duration-700">
+        <div
+          key={slides[selectedIndex].id}
+          className="space-y-4 md:space-y-5 animate-in fade-in slide-in-from-left-16 duration-700"
+        >
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-white leading-none tracking-tight drop-shadow-[0_4px_24px_rgba(0,0,0,0.5)]">
-            Meawland
+            {slides[selectedIndex].text}
           </h1>
           <div>
-            <Link href="/category/pet-food">
+            <Link href={slides[selectedIndex].url}>
               <Button className="bg-[#B2E2FF]/90 hover:bg-[#56C8D8] text-white font-black text-sm md:text-md lg:text-lg xl:text-xl py-5 md:py-6 lg:py-7 px-7 md:px-8 lg:px-9 xl:px-10 rounded-full transition-all active:scale-95 shadow-2xl border-0 cursor-pointer backdrop-blur-sm">
-                Shop Now
+                {slides[selectedIndex].button}
               </Button>
             </Link>
           </div>

@@ -11,7 +11,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { NavbarAccount } from "@/actions/auth/get-navbar-account";
+import { NavbarAccount } from "@/actions/auth/get-me";
 
 const categories = [
   { name: "Pet Accessorice", href: "/category/pet-accessorice" },

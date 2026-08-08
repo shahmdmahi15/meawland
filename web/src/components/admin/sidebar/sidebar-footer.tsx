@@ -33,7 +33,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { logoutAction } from "@/actions/auth/logout";
-import { NavbarAccount } from "@/actions/auth/get-navbar-account";
+import { NavbarAccount } from "@/actions/auth/get-me";
 
 export function AdminSidebarFooter({ user }: { user: NavbarAccount }) {
   const name = user.name;

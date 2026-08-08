@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -46,10 +46,11 @@ const categoryList = [
 ];
 
 export function Categories() {
+  const directionRef = useRef<1 | -1>(1);
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: "start",
+    loop: true,
     slidesToScroll: 1,
-    containScroll: "trimSnaps",
   });
 
   const scrollPrev = useCallback(() => {
@@ -60,11 +61,31 @@ export function Categories() {
     if (emblaApi) emblaApi.scrollNext();
   }, [emblaApi]);
 
+  useEffect(() => {
+    if (!emblaApi) return;
+
+    const autoplayId = window.setInterval(() => {
+      const lastSnap = emblaApi.scrollSnapList().length - 1;
+      const currentSnap = emblaApi.selectedScrollSnap();
+
+      if (currentSnap >= lastSnap) directionRef.current = -1;
+      if (currentSnap <= 0) directionRef.current = 1;
+
+      if (directionRef.current === 1) {
+        emblaApi.scrollNext();
+      } else {
+        emblaApi.scrollPrev();
+      }
+    }, 3500);
+
+    return () => window.clearInterval(autoplayId);
+  }, [emblaApi]);
+
   return (
     <section className="py-14 md:py-20 bg-white">
-      <div className="container max-w-[1440px] px-4 sm:px-6 md:px-8 mx-auto">
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-center text-gray-900 mb-12 md:mb-16 tracking-tight">
-          Shop By Categories
+      <div className="container max-w-360 px-4 sm:px-6 md:px-8 mx-auto">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl text-center text-gray-900 mb-12 md:mb-16">
+          Shop By <span className="font-chewy">Categories</span>
         </h2>
 
         <div className="relative max-w-7xl mx-auto px-6 sm:px-12 md:px-16">
@@ -81,23 +102,23 @@ export function Categories() {
 
           {/* Embla Carousel Viewport */}
           <div className="overflow-hidden" ref={emblaRef}>
-            <div className="flex gap-6 sm:gap-8 md:gap-12 py-3">
+            <div className="flex gap-4 md:gap-5 py-3">
               {categoryList.map((cat) => (
                 <div
                   key={cat.slug}
-                  className="flex-none basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 min-w-0 flex justify-center"
+                  className="shrink-0 basis-[calc((100%-2rem)/3)] md:basis-[calc((100%-3.75rem)/4)] lg:basis-[calc((100%-5rem)/5)] min-w-0"
                 >
                   <Link
                     href={`/category/${cat.slug}`}
-                    className="flex flex-col items-center gap-4 group shrink-0 w-36 sm:w-44 md:w-52"
+                    className="flex w-full flex-col items-center gap-3 group"
                   >
-                    <div className="relative w-32 sm:w-40 md:w-48 h-32 sm:h-40 md:h-48 rounded-3xl overflow-hidden transition-all duration-500 group-hover:scale-110 group-hover:shadow-xl bg-gray-50 flex items-center justify-center border border-gray-100 p-3">
+                    <div className="relative aspect-square w-full max-w-48 rounded-3xl overflow-hidden transition-all duration-500 group-hover:scale-105 flex items-center justify-center">
                       <Image
                         src={cat.image}
                         alt={cat.name}
                         fill
-                        sizes="200px"
-                        className="object-contain p-2"
+                        sizes="(max-width: 767px) 33vw, (max-width: 1023px) 25vw, 20vw"
+                        className="object-contain"
                       />
                     </div>
                     <h3 className="text-sm sm:text-base md:text-lg font-black text-gray-900 group-hover:text-[#56C8D8] text-center transition-colors">

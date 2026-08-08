@@ -5,14 +5,14 @@ import {
 } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { AdminSidebar } from "@/components/admin/sidebar/sidebar";
-import { getNavbarAccountAction } from "@/actions/auth/get-navbar-account";
+import { getMeAction } from "@/actions/auth/get-me";
 
 export default async function AdminLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const user = await getNavbarAccountAction();
+  const user = await getMeAction();
   if (!user) return null;
   return (
     <div className="flex min-h-screen w-full">

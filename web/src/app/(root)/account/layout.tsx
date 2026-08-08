@@ -1,4 +1,4 @@
-import { getNavbarAccountAction } from "@/actions/auth/get-navbar-account";
+import { getMeAction } from "@/actions/auth/get-me";
 import { AccountSidebar } from "@/components/root/account/account-sidebar";
 
 export default async function AccountLayout({
@@ -6,14 +6,14 @@ export default async function AccountLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getNavbarAccountAction();
+  const user = await getMeAction();
 
   return (
-    <div className="min-h-screen bg-[#EDF5FA] pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
-        <div className="flex gap-4 items-start">
+        <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-start">
           {/* Sidebar */}
-          <div className="hidden sm:block shrink-0 bg-[#EDF5FA] rounded-2xl">
+          <div className="w-full md:w-auto shrink-0 bg-[#EDF5FA] rounded-2xl">
             <AccountSidebar user={user} />
           </div>
 

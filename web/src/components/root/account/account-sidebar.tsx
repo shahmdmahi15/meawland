@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { NavbarAccount } from "@/actions/auth/get-navbar-account";
+import { NavbarAccount } from "@/actions/auth/get-me";
 import { logoutAction } from "@/actions/auth/logout";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -76,7 +76,7 @@ export function AccountSidebar({ user }: AccountSidebarProps) {
   };
 
   return (
-    <aside className="flex flex-col w-55 min-w-50 shrink-0 py-6 px-3 gap-1">
+    <aside className="flex flex-col w-full md:w-55 min-w-50 shrink-0 py-6 px-3 gap-1">
       {/* User Profile */}
       <div className="flex flex-col items-center gap-2 mb-6 px-2">
         <div className="relative">
@@ -99,6 +99,9 @@ export function AccountSidebar({ user }: AccountSidebarProps) {
         <div className="text-center">
           <p className="font-bold text-gray-900 text-sm leading-tight">
             {user?.name || "Guest User"}
+          </p>
+          <p className="text-gray-500 text-xs mt-0.5">
+            Code: {user?.code || ""}
           </p>
           <p className="text-gray-500 text-xs mt-0.5">{user?.email || ""}</p>
         </div>

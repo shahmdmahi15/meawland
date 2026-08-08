@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { Search, Heart, ShoppingCart, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { NavbarAccount } from "@/actions/auth/get-navbar-account";
+import { NavbarAccount } from "@/actions/auth/get-me";
 
 const navItems = [
   { label: "Pet Accessorice", href: "/category/pet-accessorice" },

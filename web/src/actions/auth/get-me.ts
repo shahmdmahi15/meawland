@@ -11,9 +11,10 @@ export type NavbarAccount = {
   id: string;
   name: string;
   role: Role;
+  code: string;
 };
 
-export async function getNavbarAccountAction(): Promise<NavbarAccount | null> {
+export async function getMeAction(): Promise<NavbarAccount | null> {
   try {
     const cookieStore = await cookies();
     const rawToken = cookieStore.get("__Host-SESSION_TOKEN")?.value;
@@ -36,6 +37,7 @@ export async function getNavbarAccountAction(): Promise<NavbarAccount | null> {
             email: true,
             avatar: true,
             role: true,
+            code: true,
           },
         },
       },

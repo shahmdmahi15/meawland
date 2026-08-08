@@ -1,4 +1,4 @@
-import { NavbarAccount } from "@/actions/auth/get-navbar-account";
+import { NavbarAccount } from "@/actions/auth/get-me";
 import {
   Collapsible,
   CollapsibleContent,
