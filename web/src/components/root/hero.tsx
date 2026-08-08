@@ -12,6 +12,17 @@ const slides = [
     id: 1,
     src: "/fallback-slider.webp",
     alt: "Meawland Products",
+    text: "Meawland",
+    button: "Shop Now",
+    url: "/product",
+  },
+  {
+    id: 2,
+    src: "/fallback-slider.webp",
+    alt: "Meawland Products",
+    text: "RoyalMotion",
+    button: "Subscribe",
+    url: "/product",
   },
 ];
 
@@ -40,7 +51,7 @@ export function Hero() {
   }, [emblaApi]);
 
   return (
-    <section className="relative w-full h-[90vh] min-h-[540px] overflow-hidden rounded-b-[2.5rem] md:rounded-b-[4rem] shadow-2xl">
+    <section className="relative w-full h-[40vh] md:h-[60vh] lg:h-[80vh] xl:h-[90vh] overflow-hidden rounded-b-[2.5rem] md:rounded-b-[4rem] shadow-2xl">
       {/* Embla Carousel */}
       <div className="absolute inset-0 overflow-hidden" ref={emblaRef}>
         <div className="flex h-full">
@@ -63,17 +74,17 @@ export function Hero() {
       </div>
 
       {/* Gradient overlay – stronger on the left like the original */}
-      <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-r from-black/60 via-black/20 to-transparent" />
+      <div className="absolute inset-0 z-10 pointer-events-none bg-linear-to-r from-black/40 via-black/20 to-transparent" />
 
       {/* Hero Content */}
-      <div className="absolute inset-0 z-20 flex items-center justify-start text-left px-8 sm:px-14 md:px-20 lg:px-28">
-        <div className="space-y-6 md:space-y-8 animate-in fade-in slide-in-from-left-16 duration-700">
-          <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-[96px] xl:text-[110px] font-black text-white leading-none tracking-tight drop-shadow-[0_4px_24px_rgba(0,0,0,0.5)]">
+      <div className="absolute inset-0 z-20 flex items-center justify-start text-left px-6 sm:px-12 md:px-18 lg:px-26">
+        <div className="space-y-4 md:space-y-5 animate-in fade-in slide-in-from-left-16 duration-700">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-white leading-none tracking-tight drop-shadow-[0_4px_24px_rgba(0,0,0,0.5)]">
             Meawland
           </h1>
           <div>
             <Link href="/category/pet-food">
-              <Button className="bg-[#B2E2FF]/90 hover:bg-[#56C8D8] text-white font-black text-xl sm:text-2xl md:text-[1.6rem] py-6 sm:py-7 md:py-8 px-10 sm:px-14 md:px-16 rounded-full transition-all active:scale-95 shadow-2xl border-0 cursor-pointer backdrop-blur-sm">
+              <Button className="bg-[#B2E2FF]/90 hover:bg-[#56C8D8] text-white font-black text-sm md:text-md lg:text-lg xl:text-xl py-5 md:py-6 lg:py-7 px-7 md:px-8 lg:px-9 xl:px-10 rounded-full transition-all active:scale-95 shadow-2xl border-0 cursor-pointer backdrop-blur-sm">
                 Shop Now
               </Button>
             </Link>

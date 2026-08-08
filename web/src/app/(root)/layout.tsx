@@ -16,7 +16,7 @@ export default async function RootLayout({
       <main className="flex-1 w-full overflow-hidden">{children}</main>
 
       <Footer />
-      <MobileBottomNav />
+      <MobileBottomNav user={user} />
     </div>
   );
 }

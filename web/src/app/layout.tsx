@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import localFont from "next/font/local";
+import { Toaster } from "@/components/ui/sonner";
 
 const dmSans = localFont({
   src: "../assets/fonts/DMSans-VariableFont_opsz,wght.ttf",
@@ -26,10 +27,14 @@ export default function EntryLayout({
 }) {
   return (
     <html
+      suppressHydrationWarning
       lang="en"
       className={`${dmSans.variable} ${chewy.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <Toaster richColors />
+      </body>
     </html>
   );
 }

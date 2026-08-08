@@ -18,6 +18,7 @@ import { loginSchema, type LoginInput } from "@/schemas/auth/login";
 import { loginOtpSchema, type LoginOtpInput } from "@/schemas/auth/login-otp";
 import { useRouter } from "next/navigation";
 import { loginWithGoogleAction } from "@/actions/auth/login-with-google";
+import { toast } from "sonner";
 
 type FormStatus = {
   status: "idle" | "success" | "error";
@@ -72,6 +73,7 @@ export function LoginForm() {
     if (response.success) {
       setOtpStage(true);
       setUserId(response.userId || null);
+      toast.success(response.message);
     }
   }
 
@@ -91,6 +93,7 @@ export function LoginForm() {
 
     if (response.success) {
       router.replace("/account");
+      toast.success(response.message);
     }
   }
 

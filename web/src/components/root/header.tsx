@@ -98,8 +98,9 @@ export function Header({ user }: { user: NavbarAccount | null }) {
                   <Image
                     src={user.avatar}
                     alt={user.name || "User Avatar"}
-                    fill
-                    className="w-5 h-5 rounded-full object-cover"
+                    height={64}
+                    width={64}
+                    className="w-full h-full rounded-full object-cover"
                   />
                 ) : (
                   <User className="w-5 h-5" />

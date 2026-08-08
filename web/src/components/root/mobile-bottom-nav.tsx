@@ -11,9 +11,10 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { NavbarAccount } from "@/actions/auth/get-navbar-account";
 
 const categories = [
-  { name: "Pet Accesorice", href: "/category/pet-accesorice" },
+  { name: "Pet Accessorice", href: "/category/pet-accessorice" },
   { name: "Pet Care", href: "/category/pet-care" },
   { name: "Pet Food", href: "/category/pet-food" },
   { name: "Pet Medicine", href: "/category/pet-medicine" },
@@ -22,7 +23,7 @@ const categories = [
   { name: "Pet Litter", href: "/category/pet-litter" },
 ];
 
-export function MobileBottomNav() {
+export function MobileBottomNav({ user }: { user: NavbarAccount | null }) {
   const pathname = usePathname();
   const [openMenu, setOpenMenu] = useState(false);
 
@@ -31,7 +32,9 @@ export function MobileBottomNav() {
     { label: "Search", href: "/search", icon: Search },
     { label: "Wishlist", href: "/wishlist", icon: Heart },
     { label: "Cart", href: "/cart", icon: ShoppingCart },
-    { label: "Login", href: "/login", icon: User },
+    user
+      ? { label: "Account", href: "/account", icon: User }
+      : { label: "Login", href: "/login", icon: User },
   ];
 
   return (

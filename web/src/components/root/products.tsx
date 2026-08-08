@@ -71,7 +71,7 @@ export function Products() {
 
   return (
     <section className="py-14 md:py-20 bg-white">
-      <div className="container max-w-[1440px] px-4 sm:px-6 md:px-8 mx-auto">
+      <div className="container max-w-360 px-4 sm:px-6 md:px-8 mx-auto">
         {/* Section Header */}
         <div className="text-center mb-12 space-y-3">
           <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 tracking-tight">
@@ -88,7 +88,7 @@ export function Products() {
             variant="ghost"
             size="icon"
             onClick={scrollPrev}
-            className="hidden sm:flex absolute -left-2 sm:left-0 top-1/2 -translate-y-1/2 z-20 h-11 w-11 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 shadow-md flex items-center justify-center cursor-pointer transition-all"
+            className="hidden sm:flex absolute -left-2 sm:left-0 top-1/2 -translate-y-1/2 z-20 h-11 w-11 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 shadow-md items-center justify-center cursor-pointer transition-all"
             aria-label="Previous products"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -122,7 +122,7 @@ export function Products() {
                     </div>
 
                     {/* Product Title */}
-                    <h3 className="text-base sm:text-lg font-black text-gray-900 line-clamp-2 min-h-[52px] flex items-center justify-center text-center mb-3 leading-snug">
+                    <h3 className="text-base sm:text-lg font-black text-gray-900 line-clamp-2 min-h-13 flex items-center justify-center text-center mb-3 leading-snug">
                       {product.name}
                     </h3>
 
@@ -155,7 +155,7 @@ export function Products() {
             variant="ghost"
             size="icon"
             onClick={scrollNext}
-            className="hidden sm:flex absolute -right-2 sm:right-0 top-1/2 -translate-y-1/2 z-20 h-11 w-11 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 shadow-md flex items-center justify-center cursor-pointer transition-all"
+            className="hidden sm:flex absolute -right-2 sm:right-0 top-1/2 -translate-y-1/2 z-20 h-11 w-11 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 shadow-md items-center justify-center cursor-pointer transition-all"
             aria-label="Next products"
           >
             <ArrowRight className="w-5 h-5" />

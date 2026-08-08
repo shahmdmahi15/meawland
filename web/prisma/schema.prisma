@@ -29,6 +29,9 @@ model User {
   googleId String? @unique
   otpHash  String? @unique
   avatar   String?
+  phone    String?
+  district String?
+  address  String?
   role     Role    @default(USER)
 
   // Forgin Keys
