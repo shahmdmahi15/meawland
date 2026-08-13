@@ -1,10 +1,9 @@
-import { notFound } from "next/navigation";
 import { getSubCategoriesByCategoryAction } from "@/actions/store/sub-categories/get-by-category";
 import { getMockProducts } from "@/lib/mock-products";
 import { formatCategorySlugToTitle } from "@/lib/category-helpers";
-import { CategoryHeader } from "@/components/store/category-header";
-import { SubCategoryCarousel } from "@/components/store/sub-category-carousel";
-import { ProductGrid } from "@/components/store/product-grid";
+import { CategoryHeader } from "@/components/root/store/category-header";
+import { SubCategoryCarousel } from "@/components/root/store/sub-category-carousel";
+import { ProductGrid } from "@/components/root/store/product-grid";
 
 interface CategoryPageProps {
   params: Promise<{

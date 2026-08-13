@@ -1,7 +1,7 @@
 import { getMockProducts } from "@/lib/mock-products";
 import { formatCategorySlugToTitle } from "@/lib/category-helpers";
-import { CategoryHeader } from "@/components/store/category-header";
-import { ProductGrid } from "@/components/store/product-grid";
+import { CategoryHeader } from "@/components/root/store/category-header";
+import { ProductGrid } from "@/components/root/store/product-grid";
 
 interface SubCategoryPageProps {
   params: Promise<{

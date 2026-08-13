@@ -65,7 +65,7 @@ export function CreateSubCategoryDialog({
     handleSubmit,
     formState: { errors },
     setValue,
-    getValues,
+    watch,
     reset,
   } = useForm<CreateSubCategoryInput>({
     resolver: zodResolver(createSubCategorySchema),
@@ -75,6 +75,8 @@ export function CreateSubCategoryDialog({
       category: Category.PET_ACCESSORIES,
     },
   });
+
+  const selectedCategory = watch("category");
 
   // Auto-generate slug from name
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -221,13 +223,16 @@ export function CreateSubCategoryDialog({
             <FieldLabel htmlFor="category">Category</FieldLabel>
             <FieldContent>
               <Select
-                value={getValues("category")}
+                value={selectedCategory}
                 onValueChange={(value) =>
                   setValue("category", value as Category)
                 }
               >
                 <SelectTrigger id="category">
-                  <SelectValue placeholder="Select a category" />
+                  <SelectValue>
+                    {CATEGORY_OPTIONS.find((o) => o.value === selectedCategory)
+                      ?.label ?? "Select a category"}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {CATEGORY_OPTIONS.map((option) => (
