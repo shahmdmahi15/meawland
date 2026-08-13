@@ -17,23 +17,23 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
-import { deleteSubCategoryAction } from "@/actions/admin/management/store/sub-categories/delete";
+import { deleteBrandAction } from "@/actions/admin/management/store/brands/delete";
 import { toast } from "sonner";
 import { Trash2, Loader2 } from "lucide-react";
 
-interface DeleteSubCategoryButtonProps {
-  subCategoryId: string;
-  subCategoryName: string;
+interface DeleteBrandButtonProps {
+  brandId: string;
+  brandName: string;
   productCount: number;
   onSuccess?: () => void;
 }
 
-export function DeleteSubCategoryButton({
-  subCategoryId,
-  subCategoryName,
+export function DeleteBrandButton({
+  brandId,
+  brandName,
   productCount,
   onSuccess,
-}: DeleteSubCategoryButtonProps) {
+}: DeleteBrandButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -43,14 +43,14 @@ export function DeleteSubCategoryButton({
     setIsDeleting(true);
 
     try {
-      const result = await deleteSubCategoryAction(subCategoryId);
+      const result = await deleteBrandAction(brandId);
 
       if (result.success) {
-        toast.success(result.message || "Sub-category deleted successfully");
+        toast.success(result.message || "Brand deleted successfully");
         setIsOpen(false);
         onSuccess?.();
       } else {
-        toast.error(result.message || "Failed to delete sub-category");
+        toast.error(result.message || "Failed to delete brand");
       }
     } catch (error) {
       toast.error("An error occurred. Please try again.");
@@ -78,7 +78,7 @@ export function DeleteSubCategoryButton({
               title={
                 hasProducts
                   ? `Cannot delete — ${productCount} product${productCount === 1 ? "" : "s"} assigned`
-                  : `Delete ${subCategoryName}`
+                  : `Delete ${brandName}`
               }
               aria-disabled={hasProducts}
             >
@@ -99,11 +99,11 @@ export function DeleteSubCategoryButton({
       <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Sub-Category</AlertDialogTitle>
+            <AlertDialogTitle>Delete Brand</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete <strong>{subCategoryName}</strong>
-              ? This action cannot be undone. The associated image will also be
-              removed from storage.
+              Are you sure you want to delete <strong>{brandName}</strong>? This
+              action cannot be undone. The associated image will also be removed
+              from storage.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex gap-3 justify-end">

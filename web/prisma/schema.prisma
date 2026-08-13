@@ -97,6 +97,7 @@ model SubCategory {
   // Parent Relations
 
   // Child Relations
+  products Product[]
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -119,6 +120,7 @@ model Brand {
   // Parent Relations
 
   // Child Relations
+  products Product[]
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -140,6 +142,29 @@ model Slider {
   // Forign Keys
 
   // Parent Relations
+
+  // Child Relations
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes and Constraints
+}
+
+model Product {
+  // Primary Key
+  id String @id @default(cuid())
+
+  // Fields
+
+  // Forign Keys
+  subCategoryId String
+  brandId       String?
+
+  // Parent Relations
+  subCategory SubCategory @relation(fields: [subCategoryId], references: [id], onDelete: Cascade)
+  brand       Brand?      @relation(fields: [brandId], references: [id], onDelete: SetNull)
 
   // Child Relations
 

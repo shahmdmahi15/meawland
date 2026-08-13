@@ -18,11 +18,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, X, ChevronDown } from "lucide-react";
+import { Search, X, ChevronDown, Package } from "lucide-react";
 import { SubCategory } from "@/generated/prisma/client";
 import { Category } from "@/generated/prisma/enums";
 import { DeleteSubCategoryButton } from "./delete-sub-category-button";
 import { formatCategory } from "@/lib/utils";
+import type { SubCategoryWithCount } from "@/actions/admin/management/store/sub-categories/get-all";
 
 // Map category enum to display names
 const CATEGORY_DISPLAY_NAMES: Record<Category, string> = {
@@ -52,12 +53,12 @@ const getCategoryBadgeVariant = (category: Category) => {
   return variants[category];
 };
 
-type GroupedSubCategories = Partial<Record<Category, SubCategory[]>>;
+type GroupedSubCategories = Partial<Record<Category, SubCategoryWithCount[]>>;
 
 export function SubCategoriesTable({
   subCategories,
 }: {
-  subCategories: SubCategory[];
+  subCategories: SubCategoryWithCount[];
 }) {
   const [search, setSearch] = useState("");
   const [expandedCategories, setExpandedCategories] = useState<Set<Category>>(
@@ -84,7 +85,7 @@ export function SubCategoriesTable({
   const normalizedSearch = search.trim().toLowerCase();
 
   // Filter sub-categories based on search
-  const filterSubCategories = (subCats: SubCategory[]) => {
+  const filterSubCategories = (subCats: SubCategoryWithCount[]) => {
     if (!normalizedSearch) return subCats;
     return subCats.filter(
       (subCat) =>
@@ -229,6 +230,12 @@ export function SubCategoriesTable({
                         <TableHead>Slug</TableHead>
                         <TableHead>Category</TableHead>
                         <TableHead>Image</TableHead>
+                        <TableHead>
+                          <span className="flex items-center gap-1">
+                            <Package className="h-3.5 w-3.5" />
+                            Products
+                          </span>
+                        </TableHead>
                         <TableHead className="pr-4 text-right">
                           Actions
                         </TableHead>
@@ -238,7 +245,7 @@ export function SubCategoriesTable({
                       {filteredSubCats.length === 0 ? (
                         <TableRow>
                           <TableCell
-                            colSpan={5}
+                            colSpan={6}
                             className="text-center text-sm text-muted-foreground py-6"
                           >
                             No matching sub-categories in this category.
@@ -271,10 +278,25 @@ export function SubCategoriesTable({
                                 />
                               )}
                             </TableCell>
+                            <TableCell>
+                              {subCategory.productCount > 0 ? (
+                                <Badge
+                                  variant="secondary"
+                                  className="tabular-nums"
+                                >
+                                  {subCategory.productCount}
+                                </Badge>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">
+                                  0
+                                </span>
+                              )}
+                            </TableCell>
                             <TableCell className="pr-4 text-right">
                               <DeleteSubCategoryButton
                                 subCategoryId={subCategory.id}
                                 subCategoryName={subCategory.name}
+                                productCount={subCategory.productCount}
                               />
                             </TableCell>
                           </TableRow>

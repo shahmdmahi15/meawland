@@ -9,11 +9,15 @@ import { PetPurpose } from "@/components/root/pet-purpose";
 import { WhyBest } from "@/components/root/why-best";
 import { FAQ } from "@/components/root/faq";
 import { QualityFeatures } from "@/components/root/quality-features";
+import { getSlidersAction } from "@/actions/root/store/sliders/get-all";
 
-export default function Home() {
+export default async function Home() {
+  const slidersRes = await getSlidersAction();
+  const sliders = slidersRes.sliders ?? [];
+
   return (
     <>
-      <Hero />
+      <Hero sliders={sliders} />
 
       <Categories />
 

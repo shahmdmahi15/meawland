@@ -9,15 +9,28 @@ export async function deleteSubCategoryAction(subCategoryId: string): Promise<{
   message?: string;
 }> {
   try {
-    // Get the sub-category to retrieve the image key
+    // Get the sub-category to retrieve the image key and product count
     const subCategory = await db.subCategory.findUnique({
       where: { id: subCategoryId },
+      include: {
+        _count: {
+          select: { products: true },
+        },
+      },
     });
 
     if (!subCategory) {
       return {
         success: false,
         message: "Sub-category not found",
+      };
+    }
+
+    // Enforce: cannot delete if products are associated
+    if (subCategory._count.products > 0) {
+      return {
+        success: false,
+        message: `Cannot delete "${subCategory.name}" — it has ${subCategory._count.products} product${subCategory._count.products === 1 ? "" : "s"} assigned to it. Reassign or remove the products first.`,
       };
     }
 

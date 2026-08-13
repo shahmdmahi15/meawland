@@ -1,16 +1,24 @@
 "use server";
 
-import { SubCategory } from "@/generated/prisma/client";
 import db from "@/lib/db";
 import { getImageBase64 } from "@/lib/storage";
+import { SubCategory } from "@/generated/prisma/client";
+
+export type SubCategoryWithCount = SubCategory & { productCount: number };
 
 export async function getAllSubCategoriesAdminAction(): Promise<{
   success: boolean;
   message: string;
-  subCategories?: SubCategory[];
+  subCategories?: SubCategoryWithCount[];
 }> {
   try {
-    const subCategories = await db.subCategory.findMany();
+    const subCategories = await db.subCategory.findMany({
+      include: {
+        _count: {
+          select: { products: true },
+        },
+      },
+    });
 
     const subCategoriesWithImageBase64 = await Promise.all(
       subCategories.map(async (subCategory) => {
@@ -18,6 +26,7 @@ export async function getAllSubCategoriesAdminAction(): Promise<{
         return {
           ...subCategory,
           image: base64,
+          productCount: subCategory._count.products,
         };
       }),
     );

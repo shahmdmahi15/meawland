@@ -1,4 +1,7 @@
-import { getAllSubCategoriesAdminAction } from "@/actions/admin/management/store/sub-categories/get-all";
+import {
+  getAllSubCategoriesAdminAction,
+  type SubCategoryWithCount,
+} from "@/actions/admin/management/store/sub-categories/get-all";
 import {
   Card,
   CardContent,
@@ -10,7 +13,6 @@ import { SubCategoriesTable } from "@/components/admin/management/store/sub-cate
 import { SubCategoriesActions } from "@/components/admin/management/store/sub-categories/sub-categories-actions";
 import { AlertCircle, Layers } from "lucide-react";
 import { Category } from "@/generated/prisma/enums";
-import { SubCategory } from "@/generated/prisma/client";
 
 // Map category enum to display names
 const CATEGORY_DISPLAY_NAMES: Record<Category, string> = {
@@ -55,7 +57,7 @@ export default async function SubCategoriesPage() {
       acc[subCategory.category]!.push(subCategory);
       return acc;
     },
-    {} as Record<Category, SubCategory[]>,
+    {} as Record<Category, SubCategoryWithCount[]>,
   );
 
   const categories = (Object.keys(Category) as Category[]).filter(
