@@ -32,6 +32,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { createProductAction } from "@/actions/admin/management/inventory/create-product";
 import {
   createProductSchema,
@@ -40,6 +41,7 @@ import {
 import { AttributeType, Category } from "@/generated/prisma/enums";
 import { formatCategory } from "@/lib/utils";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 import {
   ArrowLeft,
@@ -53,6 +55,8 @@ import {
   Tag,
   FolderTree,
   Image as ImageIcon,
+  Package,
+  Layers3,
 } from "lucide-react";
 
 interface SubCategoryItem {
@@ -110,23 +114,8 @@ export function CreateProductForm({
       regularPrice: "",
       salePrice: "",
       stock: 0,
-      variants: [
-        {
-          sku: "",
-          image: undefined as unknown as File,
-          costPrice: "",
-          regularPrice: "",
-          salePrice: "",
-          stock: 0,
-          attributes: [
-            {
-              type: AttributeType.COLOR,
-              name: "White",
-              value: "#ffffff",
-            },
-          ],
-        },
-      ],
+      // Empty variants by default — populated when user selects Variable Product
+      variants: [],
     },
   });
 
@@ -170,7 +159,6 @@ export function CreateProductForm({
       toast.error("Image must be PNG, JPG, or WebP format");
       return;
     }
-
     if (file.size > 5 * 1024 * 1024) {
       toast.error("Main image size must be less than 5MB");
       return;
@@ -226,15 +214,54 @@ export function CreateProductForm({
     setValue("gallery", updatedFiles, { shouldValidate: true });
   };
 
+  // Handle product type switch
+  const handleProductTypeChange = (value: string) => {
+    const becomeVariable = value === "variable";
+    setValue("isVariable", becomeVariable, { shouldValidate: false });
+
+    if (becomeVariable && variantFields.length === 0) {
+      // Seed first variant when switching to variable
+      appendVariant({
+        sku: "",
+        image: undefined as unknown as File,
+        costPrice: "",
+        regularPrice: "",
+        salePrice: "",
+        stock: 0,
+        attributes: [
+          {
+            type: AttributeType.COLOR,
+            name: "White",
+            value: "#ffffff",
+          },
+        ],
+      });
+    }
+  };
+
   // Handle Form Submit
   const onSubmit = async (data: CreateProductInput) => {
     setIsSubmitting(true);
     try {
-      const result = await createProductAction(data);
+      // Strip irrelevant fields based on product type before sending to server
+      const cleanedData: CreateProductInput = data.isVariable
+        ? {
+            ...data,
+            costPrice: undefined,
+            regularPrice: undefined,
+            salePrice: undefined,
+            stock: undefined,
+          }
+        : {
+            ...data,
+            variants: [],
+          };
+
+      const result = await createProductAction(cleanedData);
 
       if (result.success) {
         toast.success(result.message || "Product created successfully!");
-        router.push("/admin/management/inventory");
+        router.push("/admin/management/inventory/all-products");
         router.refresh();
       } else {
         if (result.errors) {
@@ -262,12 +289,13 @@ export function CreateProductForm({
       {/* Header Bar */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b pb-4">
         <div className="flex items-center gap-3">
-          <Link href="/admin/management/inventory">
+          <Link href="#">
             <Button
               variant="outline"
               size="icon"
               type="button"
               className="h-9 w-9"
+              onClick={() => router.back()}
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
@@ -283,8 +311,12 @@ export function CreateProductForm({
         </div>
 
         <div className="flex items-center gap-3">
-          <Link href="/admin/management/inventory">
-            <Button variant="outline" type="button">
+          <Link href="#">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => router.back()}
+            >
               Cancel
             </Button>
           </Link>
@@ -342,7 +374,6 @@ export function CreateProductForm({
 
               {/* SKU & Slug Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* SKU */}
                 <Field>
                   <FieldLabel htmlFor="sku">Product SKU *</FieldLabel>
                   <FieldContent>
@@ -355,7 +386,6 @@ export function CreateProductForm({
                   </FieldContent>
                 </Field>
 
-                {/* Slug */}
                 <Field>
                   <FieldLabel htmlFor="slug">Slug *</FieldLabel>
                   <FieldContent>
@@ -371,7 +401,6 @@ export function CreateProductForm({
 
               {/* Category & Brand Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Sub Category */}
                 <Field>
                   <FieldLabel htmlFor="subCategoryId">
                     Sub-Category *
@@ -393,7 +422,6 @@ export function CreateProductForm({
                   </FieldContent>
                 </Field>
 
-                {/* Brand */}
                 <Field>
                   <FieldLabel htmlFor="brandId">Brand (Optional)</FieldLabel>
                   <FieldContent>
@@ -448,182 +476,248 @@ export function CreateProductForm({
             </CardContent>
           </Card>
 
-          {/* Pricing & Variants Card */}
+          {/* ── Product Type Selector Card ── */}
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-              <div>
-                <CardTitle className="text-base font-semibold flex items-center gap-2">
-                  <Layers className="h-4 w-4 text-primary" />
-                  Product Type & Pricing
-                </CardTitle>
-                <CardDescription>
-                  Configure product structure (Simple Product vs. Variable
-                  Product).
-                </CardDescription>
-              </div>
-              <div className="flex items-center gap-2 rounded-lg border bg-slate-50 p-1 dark:bg-slate-900">
-                <Button
-                  type="button"
-                  variant={!isVariable ? "default" : "ghost"}
-                  size="sm"
-                  className="h-7 text-xs"
-                  onClick={() => setValue("isVariable", false)}
-                >
-                  Simple Product
-                </Button>
-                <Button
-                  type="button"
-                  variant={isVariable ? "default" : "ghost"}
-                  size="sm"
-                  className="h-7 text-xs"
-                  onClick={() => setValue("isVariable", true)}
-                >
-                  Variable Product
-                </Button>
-              </div>
+            <CardHeader>
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <Layers className="h-4 w-4 text-primary" />
+                Product Type
+              </CardTitle>
+              <CardDescription>
+                Choose whether this product has a single price/stock (Simple) or
+                multiple variants with their own pricing and stock (Variable).
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              {!isVariable ? (
-                /* Simple Product Pricing & Stock */
-                <div className="space-y-4 rounded-lg border bg-slate-50/50 p-4 dark:bg-slate-900/50">
-                  <h4 className="text-sm font-medium text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-                    <Tag className="h-4 w-4 text-primary" />
-                    Simple Product Pricing & Stock
-                  </h4>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Field>
-                      <FieldLabel htmlFor="costPrice">
-                        Cost Price (৳) *
-                      </FieldLabel>
-                      <FieldContent>
-                        <Input
-                          id="costPrice"
-                          type="number"
-                          step="0.01"
-                          placeholder="e.g. 850"
-                          {...register("costPrice")}
-                        />
-                        <FieldError errors={[errors.costPrice]} />
-                      </FieldContent>
-                    </Field>
-
-                    <Field>
-                      <FieldLabel htmlFor="regularPrice">
-                        Regular Price (৳) *
-                      </FieldLabel>
-                      <FieldContent>
-                        <Input
-                          id="regularPrice"
-                          type="number"
-                          step="0.01"
-                          placeholder="e.g. 1200"
-                          {...register("regularPrice")}
-                        />
-                        <FieldError errors={[errors.regularPrice]} />
-                      </FieldContent>
-                    </Field>
-
-                    <Field>
-                      <FieldLabel htmlFor="salePrice">
-                        Sale Price (৳) *
-                      </FieldLabel>
-                      <FieldContent>
-                        <Input
-                          id="salePrice"
-                          type="number"
-                          step="0.01"
-                          placeholder="e.g. 1050"
-                          {...register("salePrice")}
-                        />
-                        <FieldError errors={[errors.salePrice]} />
-                      </FieldContent>
-                    </Field>
-
-                    <Field>
-                      <FieldLabel htmlFor="stock">
-                        Initial Stock Quantity *
-                      </FieldLabel>
-                      <FieldContent>
-                        <Input
-                          id="stock"
-                          type="number"
-                          placeholder="e.g. 50"
-                          {...register("stock")}
-                        />
-                        <FieldError errors={[errors.stock]} />
-                      </FieldContent>
-                    </Field>
-                  </div>
-                </div>
-              ) : (
-                /* Variable Product Variants Builder */
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                        Product Variants ({variantFields.length})
-                      </h4>
-                      <p className="text-xs text-muted-foreground">
-                        Each variant can have attributes (Color, Size, Weight),
-                        its own SKU, image, price, and stock.
-                      </p>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="gap-1.5"
-                      onClick={() =>
-                        appendVariant({
-                          sku: "",
-                          image: undefined as unknown as File,
-                          costPrice: "",
-                          regularPrice: "",
-                          salePrice: "",
-                          stock: 0,
-                          attributes: [
-                            {
-                              type: AttributeType.SIZE,
-                              name: "Small",
-                              value: "S",
-                            },
-                          ],
-                        })
-                      }
-                    >
-                      <Plus className="h-4 w-4" />
-                      Add Variant
-                    </Button>
-                  </div>
-
-                  {errors.variants?.root?.message && (
-                    <p className="text-sm text-destructive">
-                      {errors.variants.root.message}
-                    </p>
+            <CardContent>
+              <RadioGroup
+                value={isVariable ? "variable" : "simple"}
+                onValueChange={handleProductTypeChange}
+                className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+              >
+                {/* Simple Product Option */}
+                <label
+                  htmlFor="type-simple"
+                  className={cn(
+                    "flex cursor-pointer items-start gap-3 rounded-xl border-2 p-4 transition-all",
+                    !isVariable
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/40 hover:bg-muted/30",
                   )}
-
-                  <div className="space-y-4">
-                    {variantFields.map((vField, vIndex) => (
-                      <VariantItemCard
-                        key={vField.id}
-                        vIndex={vIndex}
-                        control={control}
-                        register={register}
-                        setValue={setValue}
-                        errors={errors}
-                        onRemove={() => removeVariant(vIndex)}
-                        canRemove={variantFields.length > 1}
-                      />
-                    ))}
+                >
+                  <RadioGroupItem
+                    id="type-simple"
+                    value="simple"
+                    className="mt-0.5 shrink-0"
+                  />
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Package className="h-4 w-4 text-primary" />
+                      <span className="font-semibold text-sm">
+                        Simple Product
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      A single product with one price, one SKU, and one stock
+                      count. Best for products with no variations.
+                    </p>
                   </div>
-                </div>
-              )}
+                </label>
+
+                {/* Variable Product Option */}
+                <label
+                  htmlFor="type-variable"
+                  className={cn(
+                    "flex cursor-pointer items-start gap-3 rounded-xl border-2 p-4 transition-all",
+                    isVariable
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/40 hover:bg-muted/30",
+                  )}
+                >
+                  <RadioGroupItem
+                    id="type-variable"
+                    value="variable"
+                    className="mt-0.5 shrink-0"
+                  />
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Layers3 className="h-4 w-4 text-primary" />
+                      <span className="font-semibold text-sm">
+                        Variable Product
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      A product with multiple variants (Color, Size, Weight),
+                      each with its own SKU, image, price, and stock.
+                    </p>
+                  </div>
+                </label>
+              </RadioGroup>
             </CardContent>
           </Card>
+
+          {/* ── Simple Product: Pricing & Stock ── */}
+          {!isVariable && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                  <Tag className="h-4 w-4 text-primary" />
+                  Pricing & Stock
+                </CardTitle>
+                <CardDescription>
+                  Set the cost price, selling prices, and initial stock quantity
+                  for this simple product.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Field>
+                    <FieldLabel htmlFor="costPrice">
+                      Cost Price (৳) *
+                    </FieldLabel>
+                    <FieldContent>
+                      <Input
+                        id="costPrice"
+                        type="number"
+                        step="0.01"
+                        placeholder="e.g. 850"
+                        {...register("costPrice")}
+                      />
+                      <FieldError errors={[errors.costPrice]} />
+                    </FieldContent>
+                  </Field>
+
+                  <Field>
+                    <FieldLabel htmlFor="regularPrice">
+                      Regular Price (৳) *
+                    </FieldLabel>
+                    <FieldContent>
+                      <Input
+                        id="regularPrice"
+                        type="number"
+                        step="0.01"
+                        placeholder="e.g. 1200"
+                        {...register("regularPrice")}
+                      />
+                      <FieldError errors={[errors.regularPrice]} />
+                    </FieldContent>
+                  </Field>
+
+                  <Field>
+                    <FieldLabel htmlFor="salePrice">
+                      Sale Price (৳) *
+                    </FieldLabel>
+                    <FieldContent>
+                      <Input
+                        id="salePrice"
+                        type="number"
+                        step="0.01"
+                        placeholder="e.g. 1050"
+                        {...register("salePrice")}
+                      />
+                      <FieldError errors={[errors.salePrice]} />
+                    </FieldContent>
+                  </Field>
+
+                  <Field>
+                    <FieldLabel htmlFor="stock">
+                      Initial Stock Quantity *
+                    </FieldLabel>
+                    <FieldContent>
+                      <Input
+                        id="stock"
+                        type="number"
+                        placeholder="e.g. 50"
+                        {...register("stock")}
+                      />
+                      <FieldError errors={[errors.stock]} />
+                    </FieldContent>
+                  </Field>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* ── Variable Product: Variants Builder ── */}
+          {isVariable && (
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <div>
+                  <CardTitle className="text-base font-semibold flex items-center gap-2">
+                    <Layers3 className="h-4 w-4 text-primary" />
+                    Product Variants ({variantFields.length})
+                  </CardTitle>
+                  <CardDescription className="mt-1">
+                    Each variant can have its own attributes (Color, Size,
+                    Weight), SKU, image, price, and stock.
+                  </CardDescription>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 shrink-0"
+                  onClick={() =>
+                    appendVariant({
+                      sku: "",
+                      image: undefined as unknown as File,
+                      costPrice: "",
+                      regularPrice: "",
+                      salePrice: "",
+                      stock: 0,
+                      attributes: [
+                        {
+                          type: AttributeType.SIZE,
+                          name: "Small",
+                          value: "S",
+                        },
+                      ],
+                    })
+                  }
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Variant
+                </Button>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Top-level variants error */}
+                {errors.variants?.root?.message && (
+                  <p className="text-sm text-destructive rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2">
+                    {errors.variants.root.message}
+                  </p>
+                )}
+
+                {variantFields.length === 0 && (
+                  <div className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-muted p-8 text-center">
+                    <Layers3 className="h-8 w-8 stroke-1 text-muted-foreground/50" />
+                    <p className="text-sm font-medium text-muted-foreground">
+                      No variants added yet
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Click &quot;Add Variant&quot; to create the first variant.
+                    </p>
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  {variantFields.map((vField, vIndex) => (
+                    <VariantItemCard
+                      key={vField.id}
+                      vIndex={vIndex}
+                      control={control}
+                      register={register}
+                      setValue={setValue}
+                      errors={errors}
+                      onRemove={() => removeVariant(vIndex)}
+                      canRemove={variantFields.length > 1}
+                    />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
-        {/* Sidebar Column (1 span) - Media & Quick Info */}
+        {/* Sidebar Column (1 span) - Media */}
         <div className="space-y-6">
           {/* Main Product Image Card */}
           <Card>
@@ -737,6 +831,33 @@ export function CreateProductForm({
               )}
             </CardContent>
           </Card>
+
+          {/* Quick Summary Card */}
+          <Card className="bg-muted/20">
+            <CardHeader>
+              <CardTitle className="text-sm font-semibold">
+                Product Summary
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-xs text-muted-foreground">
+              <div className="flex items-center justify-between">
+                <span>Type</span>
+                <Badge variant={isVariable ? "default" : "secondary"}>
+                  {isVariable ? "Variable" : "Simple"}
+                </Badge>
+              </div>
+              {isVariable && (
+                <div className="flex items-center justify-between">
+                  <span>Variants</span>
+                  <Badge variant="outline">{variantFields.length}</Badge>
+                </div>
+              )}
+              <div className="flex items-center justify-between">
+                <span>Gallery Images</span>
+                <Badge variant="outline">{galleryPreviews.length}</Badge>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </form>
@@ -801,7 +922,7 @@ function VariantItemCard({
   };
 
   return (
-    <div className="rounded-lg border bg-card p-4 space-y-4 relative shadow-2xs">
+    <div className="rounded-xl border bg-card p-4 space-y-4 relative shadow-xs">
       <div className="flex items-center justify-between border-b pb-3">
         <div className="flex items-center gap-2">
           <Badge
@@ -825,9 +946,8 @@ function VariantItemCard({
         )}
       </div>
 
-      {/* Variant SKU & Variant Image Header */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3 bg-slate-50 rounded-md dark:bg-slate-900/50">
-        {/* Variant SKU */}
+      {/* Variant SKU & Image */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3 bg-muted/30 rounded-lg">
         <Field>
           <FieldLabel className="text-xs">Variant SKU *</FieldLabel>
           <FieldContent>
@@ -844,11 +964,10 @@ function VariantItemCard({
           </FieldContent>
         </Field>
 
-        {/* Variant Image */}
         <Field>
           <FieldLabel className="text-xs">Variant Image *</FieldLabel>
           <FieldContent>
-            <label className="flex items-center gap-2 cursor-pointer border rounded-md px-3 py-1.5 bg-background hover:bg-slate-100 dark:hover:bg-slate-800 text-xs h-8">
+            <label className="flex items-center gap-2 cursor-pointer border rounded-md px-3 py-1.5 bg-background hover:bg-muted/60 text-xs h-8 transition-colors">
               {variantImagePreview ? (
                 <div className="relative h-5 w-5 rounded overflow-hidden border shrink-0">
                   <Image
@@ -884,11 +1003,10 @@ function VariantItemCard({
       </div>
 
       {/* Attributes Section */}
-      <div className="space-y-3 bg-slate-50 p-3 rounded-md dark:bg-slate-900/60">
+      <div className="space-y-3 bg-muted/20 p-3 rounded-lg border">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-            Attributes (e.g. Color: White / #ffffff, Size: Small / S, Weight:
-            500g)
+          <span className="text-xs font-semibold text-foreground/70">
+            Attributes
           </span>
           <Button
             type="button"
@@ -923,7 +1041,7 @@ function VariantItemCard({
       </div>
 
       {/* Variant Pricing & Stock Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Field>
           <FieldLabel className="text-xs">Cost Price (৳) *</FieldLabel>
           <FieldContent>
@@ -979,7 +1097,7 @@ function VariantItemCard({
         </Field>
 
         <Field>
-          <FieldLabel className="text-xs">Stock Quantity *</FieldLabel>
+          <FieldLabel className="text-xs">Stock Qty *</FieldLabel>
           <FieldContent>
             <Input
               type="number"
@@ -999,7 +1117,7 @@ function VariantItemCard({
   );
 }
 
-// Separate component for attribute row to reactively handle placeholder changes based on attribute type
+// Separate component for attribute row
 function AttributeRow({
   vIndex,
   aIndex,
@@ -1027,37 +1145,37 @@ function AttributeRow({
     register(`variants.${vIndex}.attributes.${aIndex}.type`).onChange(e);
 
     if (newType === AttributeType.COLOR) {
-      setValue(`variants.${vIndex}.attributes.${aIndex}.name`, "Color");
+      setValue(`variants.${vIndex}.attributes.${aIndex}.name`, "White");
       setValue(`variants.${vIndex}.attributes.${aIndex}.value`, "#ffffff");
     } else if (newType === AttributeType.SIZE) {
-      setValue(`variants.${vIndex}.attributes.${aIndex}.name`, "Size");
+      setValue(`variants.${vIndex}.attributes.${aIndex}.name`, "Small");
       setValue(`variants.${vIndex}.attributes.${aIndex}.value`, "S");
     } else if (newType === AttributeType.WEIGHT) {
-      setValue(`variants.${vIndex}.attributes.${aIndex}.name`, "Weight");
+      setValue(`variants.${vIndex}.attributes.${aIndex}.name`, "Half kg");
       setValue(`variants.${vIndex}.attributes.${aIndex}.value`, "500g");
     }
   };
 
   const namePlaceholder =
     currentType === AttributeType.COLOR
-      ? "Color (e.g. White)"
+      ? "e.g. White"
       : currentType === AttributeType.SIZE
-        ? "Size (e.g. Small)"
-        : "Weight (e.g. Net Wt)";
+        ? "e.g. Small"
+        : "e.g. Net Weight";
 
   const valuePlaceholder =
     currentType === AttributeType.COLOR
-      ? "Value (e.g. #ffffff)"
+      ? "e.g. #ffffff"
       : currentType === AttributeType.SIZE
-        ? "Value (e.g. S, M, L)"
-        : "Value (e.g. 500g, 1kg)";
+        ? "e.g. S, M, L, XL"
+        : "e.g. 500g, 1kg";
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
       {/* Attribute Type */}
       <div className="sm:col-span-3">
         <select
-          className="flex h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
+          className="flex h-8 w-full rounded-md border border-input bg-background px-2 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           {...register(`variants.${vIndex}.attributes.${aIndex}.type`)}
           onChange={handleTypeChange}
         >
@@ -1085,14 +1203,14 @@ function AttributeRow({
         />
       </div>
 
-      {/* Remove Attribute Button */}
+      {/* Remove Button */}
       <div className="sm:col-span-1 flex justify-end">
         {canRemove && (
           <Button
             type="button"
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-destructive"
+            className="h-7 w-7 text-destructive hover:bg-destructive/10"
             onClick={onRemove}
           >
             <X className="h-3.5 w-3.5" />

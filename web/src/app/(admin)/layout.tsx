@@ -28,7 +28,9 @@ export default async function AdminLayout({
               />
             </div>
           </header>
-          <main>{children}</main>
+          <main className="flex-1 min-w-0 w-full overflow-x-hidden">
+            {children}
+          </main>
         </SidebarInset>
       </SidebarProvider>
     </div>

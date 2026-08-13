@@ -14,7 +14,7 @@ import {
 import { NavbarAccount } from "@/actions/auth/get-me";
 
 const categories = [
-  { name: "Pet Accessorice", href: "/category/pet-accessorice" },
+  { name: "Pet Accessories", href: "/category/pet-accessories" },
   { name: "Pet Care", href: "/category/pet-care" },
   { name: "Pet Food", href: "/category/pet-food" },
   { name: "Pet Medicine", href: "/category/pet-medicine" },

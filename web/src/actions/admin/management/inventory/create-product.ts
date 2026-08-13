@@ -5,8 +5,10 @@ import { uploadFile } from "@/lib/storage";
 import { generateId } from "@/lib/generate-code";
 import {
   createProductSchema,
+  variantSchema,
   type CreateProductInput,
   type CreateProductError,
+  type VariantInput,
 } from "@/schemas/admin/management/inventory/create-product";
 import crypto from "crypto";
 import { revalidatePath } from "next/cache";
@@ -30,6 +32,23 @@ export async function createProductAction(input: CreateProductInput): Promise<{
     }
 
     const data = validate.data;
+    // Parse variants with variantSchema so v.stock is coerced to a number (Int) for Prisma DB insert
+    const typedVariants: VariantInput[] = (
+      (data.variants ?? []) as unknown[]
+    ).map((v) => {
+      const parsed = variantSchema.safeParse(v);
+      if (parsed.success) {
+        return parsed.data;
+      }
+      const raw = v as Record<string, unknown>;
+      return {
+        ...(v as VariantInput),
+        stock:
+          typeof raw.stock === "number"
+            ? raw.stock
+            : parseInt(String(raw.stock || "0"), 10),
+      };
+    });
 
     // 2. Upload main product image to S3
     const mainImageBuffer = await data.image.arrayBuffer();
@@ -76,9 +95,9 @@ export async function createProductAction(input: CreateProductInput): Promise<{
 
     // 4. Upload variant images to S3 if variable product
     const variantImageKeys: string[] = [];
-    if (data.isVariable && data.variants && data.variants.length > 0) {
-      for (let i = 0; i < data.variants.length; i++) {
-        const vImageFile = data.variants[i].image;
+    if (data.isVariable && typedVariants.length > 0) {
+      for (let i = 0; i < typedVariants.length; i++) {
+        const vImageFile = typedVariants[i].image;
         const vBuffer = await vImageFile.arrayBuffer();
         const vUint8Array = new Uint8Array(vBuffer);
         const vExt = vImageFile.name.split(".").pop() || "jpg";
@@ -125,8 +144,8 @@ export async function createProductAction(input: CreateProductInput): Promise<{
       }
 
       // Check variant SKUs uniqueness if variable product
-      if (data.isVariable && data.variants && data.variants.length > 0) {
-        for (const v of data.variants) {
+      if (data.isVariable && typedVariants.length > 0) {
+        for (const v of typedVariants) {
           const existingVariantSku = await tx.variant.findUnique({
             where: { sku: v.sku },
           });
@@ -170,15 +189,16 @@ export async function createProductAction(input: CreateProductInput): Promise<{
 
           // Variable product variants & attributes & initial stock events
           variants:
-            data.isVariable && data.variants && data.variants.length > 0
+            data.isVariable && typedVariants.length > 0
               ? {
-                  create: data.variants.map((v, index) => ({
+                  create: typedVariants.map((v, index) => ({
                     sku: v.sku,
                     image: variantImageKeys[index],
                     costPrice: v.costPrice,
                     regularPrice: v.regularPrice,
                     salePrice: v.salePrice,
-                    stock: v.stock,
+                    stock:
+                      typeof v.stock === "number" ? v.stock : Number(v.stock),
                     attributes: {
                       create: v.attributes.map((a) => ({
                         type: a.type,
@@ -214,6 +234,7 @@ export async function createProductAction(input: CreateProductInput): Promise<{
     // 6. Revalidate paths
     revalidatePath("/admin/management/inventory");
     revalidatePath("/admin/management/inventory/new-product");
+    revalidatePath("/admin/management/inventory/all-products");
 
     return {
       success: true,

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { NavbarAccount } from "@/actions/auth/get-me";
 
 const navItems = [
-  { label: "Pet Accessorice", href: "/category/pet-accessorice" },
+  { label: "Pet Accessories", href: "/category/pet-accessories" },
   { label: "Pet Care", href: "/category/pet-care" },
   { label: "Pet Food", href: "/category/pet-food" },
   { label: "Pet Medicine", href: "/category/pet-medicine" },
