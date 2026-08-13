@@ -18,6 +18,16 @@ enum Role {
   USER
 }
 
+enum Category {
+  PET_ACCESSORIES
+  PET_CARE
+  PET_FOOD
+  PET_MEDICINE
+  PET_DRESS
+  PET_TOY
+  PET_LITTER
+}
+
 model User {
   // Primary Key
   id String @id @default(cuid())
@@ -66,6 +76,74 @@ model Session {
 
   // Timestamps
   expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes and Constraints
+}
+
+model SubCategory {
+  // Primary Key
+  id String @id @default(cuid())
+
+  // Fields
+  name     String
+  slug     String   @unique
+  image    String
+  category Category
+
+  // Forign Keys
+
+  // Parent Relations
+
+  // Child Relations
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes and Constraints
+}
+
+model Brand {
+  // Primary Key
+  id String @id @default(cuid())
+
+  // Fields
+  name  String
+  slug  String @unique
+  image String
+
+  // Forign Keys
+
+  // Parent Relations
+
+  // Child Relations
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes and Constraints
+}
+
+model Slider {
+  // Primary Key
+  id String @id @default(cuid())
+
+  // Fields
+  image      String
+  text       String
+  buttonText String
+  buttonLink String
+
+  // Forign Keys
+
+  // Parent Relations
+
+  // Child Relations
+
+  // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

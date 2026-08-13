@@ -1,4 +1,4 @@
-import { Role } from "@/generated/prisma/enums";
+import { Category, Role } from "@/generated/prisma/enums";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -37,4 +37,12 @@ export function formatDate(date: Date) {
     minute: "2-digit",
     timeZone: "Asia/Dhaka",
   }).format(new Date(date));
+}
+
+export function formatCategory(category: Category) {
+  return category
+    .toLowerCase()
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 }

@@ -103,10 +103,6 @@ const adminNavigations = [
             title: "Sliders",
             url: "/admin/management/store/sliders",
           },
-          {
-            title: "Popups",
-            url: "/admin/management/store/popups",
-          },
         ],
       },
       {
@@ -275,10 +271,6 @@ const ownerNavigations = [
           {
             title: "Sliders",
             url: "/admin/management/store/sliders",
-          },
-          {
-            title: "Popups",
-            url: "/admin/management/store/popups",
           },
         ],
       },

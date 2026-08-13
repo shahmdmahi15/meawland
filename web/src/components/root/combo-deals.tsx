@@ -83,7 +83,7 @@ export function ComboDeals() {
 
   return (
     <section className="py-16 md:py-24 bg-white overflow-hidden">
-      <div className="container max-w-[1440px] px-4 sm:px-6 md:px-8 mx-auto">
+      <div className="container max-w-360 px-4 sm:px-6 md:px-8 mx-auto">
         {/* Title & Subtitle */}
         <div className="text-center mb-12 space-y-3">
           <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-gray-900 tracking-tight">
@@ -122,7 +122,7 @@ export function ComboDeals() {
                   key={combo.id}
                   className={`transition-all duration-500 ease-in-out border rounded-[2rem] p-6 bg-white shadow-xl flex flex-col justify-between items-center text-center ${
                     isCenter
-                      ? "z-20 scale-100 opacity-100 w-84 sm:w-100 md:w-[440px] border-[#D4EEFC] ring-4 ring-[#56C8D8]/20"
+                      ? "z-20 scale-100 opacity-100 w-84 sm:w-100 md:w-110 border-[#D4EEFC] ring-4 ring-[#56C8D8]/20"
                       : "z-10 scale-85 opacity-50 blur-[1px] hidden sm:flex w-72 border-gray-200"
                   } ${
                     isLeft ? "-translate-x-36 md:-translate-x-56" : ""
