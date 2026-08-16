@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, X, Package } from "lucide-react";
 import { DeleteBrandButton } from "./delete-brand-button";
+import { EditBrandButton } from "./edit-brand-button";
 import type { BrandWithCount } from "@/actions/admin/management/store/brands/get-all";
 
 export function BrandsTable({ brands }: { brands: BrandWithCount[] }) {
@@ -124,11 +125,21 @@ export function BrandsTable({ brands }: { brands: BrandWithCount[] }) {
                   )}
                 </TableCell>
                 <TableCell className="pr-6 text-right">
-                  <DeleteBrandButton
-                    brandId={brand.id}
-                    brandName={brand.name}
-                    productCount={brand.productCount}
-                  />
+                  <div className="flex items-center justify-end gap-1">
+                    <EditBrandButton
+                      brand={{
+                        id: brand.id,
+                        name: brand.name,
+                        slug: brand.slug,
+                        image: brand.image,
+                      }}
+                    />
+                    <DeleteBrandButton
+                      brandId={brand.id}
+                      brandName={brand.name}
+                      productCount={brand.productCount}
+                    />
+                  </div>
                 </TableCell>
               </TableRow>
             ))

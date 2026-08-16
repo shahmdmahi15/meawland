@@ -34,6 +34,19 @@ enum AttributeType {
   WEIGHT
 }
 
+enum StockEventType {
+  INITIAL
+  PURCHASE
+  RETURN
+  RESTOCK
+  DAMAGE
+  EXPIRED
+  LOSS
+  ADJUSTMENT
+  INCREASE
+  DECREASE
+}
+
 model User {
   // Primary Key
   id String @id @default(cuid())
@@ -186,8 +199,9 @@ model Product {
   brand       Brand?      @relation(fields: [brandId], references: [id], onDelete: SetNull)
 
   // Child Relations
-  variants    Variant[]
-  stockEvents StockEvent[]
+  variants      Variant[]
+  stockEvents   StockEvent[]
+  comboProducts ComboProduct[]
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -215,8 +229,9 @@ model Variant {
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   // Child Relations
-  attributes  Attribute[]
-  stockEvents StockEvent[]
+  attributes    Attribute[]
+  stockEvents   StockEvent[]
+  comboProducts ComboProduct[]
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -254,6 +269,12 @@ model StockEvent {
   id String @id @default(cuid())
 
   // Fields
+  type          StockEventType @default(INITIAL)
+  quantity      Int            @default(0)
+  previousStock Int?           @default(0)
+  newStock      Int?           @default(0)
+  reason        String?
+  note          String?
 
   // Forign Keys
   productId String?
@@ -262,6 +283,37 @@ model StockEvent {
   // Parent Relations
   product Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
   variant Variant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  // Child Relations
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes and Constraints
+}
+
+model ComboProduct {
+  // Primary Key
+  id String @id @default(cuid())
+
+  // Fields
+  name             String
+  code             String   @unique
+  slug             String   @unique
+  sku              String   @unique
+  shortDescription String
+  longDescription  String
+  image            String
+  gallery          String[]
+  regularPrice     String?
+  salePrice        String?
+
+  // Forign Keys
+
+  // Parent Relations
+  products Product[]
+  variants Variant[]
 
   // Child Relations
 

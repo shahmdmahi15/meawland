@@ -57,6 +57,9 @@ import {
   Image as ImageIcon,
   Package,
   Layers3,
+  Copy,
+  Percent,
+  Sparkles,
 } from "lucide-react";
 
 interface SubCategoryItem {
@@ -282,6 +285,31 @@ export function CreateProductForm({
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleDuplicateVariant = (vIndex: number) => {
+    const values = control._formValues?.variants?.[vIndex];
+    if (!values) return;
+
+    appendVariant({
+      sku: values.sku ? `${values.sku}-COPY` : "",
+      image: undefined as unknown as File,
+      costPrice: values.costPrice || "",
+      regularPrice: values.regularPrice || "",
+      salePrice: values.salePrice || "",
+      stock:
+        typeof values.stock === "number"
+          ? values.stock
+          : Number(values.stock) || 0,
+      attributes: (values.attributes || []).map(
+        (a: { type: AttributeType; name: string; value: string }) => ({
+          type: a.type,
+          name: a.name,
+          value: a.value,
+        }),
+      ),
+    });
+    toast.success(`Duplicated Variant #${vIndex + 1}`);
   };
 
   return (
@@ -568,7 +596,7 @@ export function CreateProductForm({
                   for this simple product.
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Field>
                     <FieldLabel htmlFor="costPrice">
@@ -633,6 +661,9 @@ export function CreateProductForm({
                     </FieldContent>
                   </Field>
                 </div>
+
+                {/* Live Profit Analytics for Simple Product */}
+                <SimpleProfitAnalytics control={control} />
               </CardContent>
             </Card>
           )}
@@ -708,6 +739,7 @@ export function CreateProductForm({
                       setValue={setValue}
                       errors={errors}
                       onRemove={() => removeVariant(vIndex)}
+                      onDuplicate={() => handleDuplicateVariant(vIndex)}
                       canRemove={variantFields.length > 1}
                     />
                   ))}
@@ -864,6 +896,81 @@ export function CreateProductForm({
   );
 }
 
+function SimpleProfitAnalytics({
+  control,
+}: {
+  control: Control<CreateProductInput>;
+}) {
+  const costPrice = useWatch({ control, name: "costPrice" });
+  const regularPrice = useWatch({ control, name: "regularPrice" });
+  const salePrice = useWatch({ control, name: "salePrice" });
+
+  const numCost = Number(costPrice) || 0;
+  const numSelling = Number(salePrice || regularPrice) || 0;
+
+  if (numCost <= 0 || numSelling <= 0) return null;
+
+  const profit = numSelling - numCost;
+  const marginPercent = Math.round((profit / numSelling) * 100);
+  const markupPercent = Math.round((profit / numCost) * 100);
+
+  return (
+    <div className="rounded-lg border bg-emerald-500/5 border-emerald-500/20 p-2.5 flex items-center justify-between text-xs sm:col-span-2">
+      <span className="text-muted-foreground flex items-center gap-1.5">
+        <Percent className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+        Estimated Margin:
+      </span>
+      <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+        Profit: ৳{profit.toFixed(2)} (Margin: {marginPercent}% | Markup:{" "}
+        {markupPercent}%)
+      </span>
+    </div>
+  );
+}
+
+function VariantProfitAnalytics({
+  vIndex,
+  control,
+}: {
+  vIndex: number;
+  control: Control<CreateProductInput>;
+}) {
+  const costPrice = useWatch({
+    control,
+    name: `variants.${vIndex}.costPrice` as `variants.${number}.costPrice`,
+  });
+  const regularPrice = useWatch({
+    control,
+    name: `variants.${vIndex}.regularPrice` as `variants.${number}.regularPrice`,
+  });
+  const salePrice = useWatch({
+    control,
+    name: `variants.${vIndex}.salePrice` as `variants.${number}.salePrice`,
+  });
+
+  const numCost = Number(costPrice) || 0;
+  const numSelling = Number(salePrice || regularPrice) || 0;
+
+  if (numCost <= 0 || numSelling <= 0) return null;
+
+  const profit = numSelling - numCost;
+  const marginPercent = Math.round((profit / numSelling) * 100);
+  const markupPercent = Math.round((profit / numCost) * 100);
+
+  return (
+    <div className="rounded-md bg-emerald-500/5 border border-emerald-500/20 px-2.5 py-1.5 flex items-center justify-between text-[11px]">
+      <span className="text-muted-foreground flex items-center gap-1">
+        <Percent className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+        Variant Margin:
+      </span>
+      <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+        Profit: ৳{profit.toFixed(2)} (Margin: {marginPercent}% | Markup:{" "}
+        {markupPercent}%)
+      </span>
+    </div>
+  );
+}
+
 interface VariantItemCardProps {
   vIndex: number;
   control: Control<CreateProductInput>;
@@ -871,6 +978,7 @@ interface VariantItemCardProps {
   setValue: UseFormSetValue<CreateProductInput>;
   errors: FieldErrors<CreateProductInput>;
   onRemove: () => void;
+  onDuplicate?: () => void;
   canRemove: boolean;
 }
 
@@ -882,6 +990,7 @@ function VariantItemCard({
   setValue,
   errors,
   onRemove,
+  onDuplicate,
   canRemove,
 }: VariantItemCardProps) {
   const [variantImagePreview, setVariantImagePreview] = useState<string | null>(
@@ -932,18 +1041,33 @@ function VariantItemCard({
             Variant #{vIndex + 1}
           </Badge>
         </div>
-        {canRemove && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 text-destructive hover:bg-destructive/10 hover:text-destructive gap-1 text-xs"
-            onClick={onRemove}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-            Remove Variant
-          </Button>
-        )}
+        <div className="flex items-center gap-1.5">
+          {onDuplicate && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs gap-1"
+              onClick={onDuplicate}
+              title="Duplicate this variant row"
+            >
+              <Copy className="h-3 w-3" />
+              Duplicate
+            </Button>
+          )}
+          {canRemove && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 text-destructive hover:bg-destructive/10 hover:text-destructive gap-1 text-xs"
+              onClick={onRemove}
+            >
+              <Trash2 className="h-3 w-3" />
+              Remove
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Variant SKU & Image */}
@@ -1041,77 +1165,82 @@ function VariantItemCard({
       </div>
 
       {/* Variant Pricing & Stock Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Field>
-          <FieldLabel className="text-xs">Cost Price (৳) *</FieldLabel>
-          <FieldContent>
-            <Input
-              type="number"
-              step="0.01"
-              placeholder="e.g. 500"
-              className="h-8 text-xs"
-              {...register(`variants.${vIndex}.costPrice`)}
-            />
-            {variantErrors?.costPrice && (
-              <p className="text-[11px] text-destructive">
-                {variantErrors.costPrice.message}
-              </p>
-            )}
-          </FieldContent>
-        </Field>
+      <div className="space-y-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <Field>
+            <FieldLabel className="text-xs">Cost Price (৳) *</FieldLabel>
+            <FieldContent>
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="e.g. 500"
+                className="h-8 text-xs"
+                {...register(`variants.${vIndex}.costPrice`)}
+              />
+              {variantErrors?.costPrice && (
+                <p className="text-[11px] text-destructive">
+                  {variantErrors.costPrice.message}
+                </p>
+              )}
+            </FieldContent>
+          </Field>
 
-        <Field>
-          <FieldLabel className="text-xs">Regular Price (৳) *</FieldLabel>
-          <FieldContent>
-            <Input
-              type="number"
-              step="0.01"
-              placeholder="e.g. 750"
-              className="h-8 text-xs"
-              {...register(`variants.${vIndex}.regularPrice`)}
-            />
-            {variantErrors?.regularPrice && (
-              <p className="text-[11px] text-destructive">
-                {variantErrors.regularPrice.message}
-              </p>
-            )}
-          </FieldContent>
-        </Field>
+          <Field>
+            <FieldLabel className="text-xs">Regular Price (৳) *</FieldLabel>
+            <FieldContent>
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="e.g. 750"
+                className="h-8 text-xs"
+                {...register(`variants.${vIndex}.regularPrice`)}
+              />
+              {variantErrors?.regularPrice && (
+                <p className="text-[11px] text-destructive">
+                  {variantErrors.regularPrice.message}
+                </p>
+              )}
+            </FieldContent>
+          </Field>
 
-        <Field>
-          <FieldLabel className="text-xs">Sale Price (৳) *</FieldLabel>
-          <FieldContent>
-            <Input
-              type="number"
-              step="0.01"
-              placeholder="e.g. 680"
-              className="h-8 text-xs"
-              {...register(`variants.${vIndex}.salePrice`)}
-            />
-            {variantErrors?.salePrice && (
-              <p className="text-[11px] text-destructive">
-                {variantErrors.salePrice.message}
-              </p>
-            )}
-          </FieldContent>
-        </Field>
+          <Field>
+            <FieldLabel className="text-xs">Sale Price (৳) *</FieldLabel>
+            <FieldContent>
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="e.g. 680"
+                className="h-8 text-xs"
+                {...register(`variants.${vIndex}.salePrice`)}
+              />
+              {variantErrors?.salePrice && (
+                <p className="text-[11px] text-destructive">
+                  {variantErrors.salePrice.message}
+                </p>
+              )}
+            </FieldContent>
+          </Field>
 
-        <Field>
-          <FieldLabel className="text-xs">Stock Qty *</FieldLabel>
-          <FieldContent>
-            <Input
-              type="number"
-              placeholder="e.g. 25"
-              className="h-8 text-xs"
-              {...register(`variants.${vIndex}.stock`)}
-            />
-            {variantErrors?.stock && (
-              <p className="text-[11px] text-destructive">
-                {variantErrors.stock.message}
-              </p>
-            )}
-          </FieldContent>
-        </Field>
+          <Field>
+            <FieldLabel className="text-xs">Stock Qty *</FieldLabel>
+            <FieldContent>
+              <Input
+                type="number"
+                placeholder="e.g. 25"
+                className="h-8 text-xs"
+                {...register(`variants.${vIndex}.stock`)}
+              />
+              {variantErrors?.stock && (
+                <p className="text-[11px] text-destructive">
+                  {variantErrors.stock.message}
+                </p>
+              )}
+            </FieldContent>
+          </Field>
+        </div>
+
+        {/* Live Variant Profit Analytics */}
+        <VariantProfitAnalytics vIndex={vIndex} control={control} />
       </div>
     </div>
   );

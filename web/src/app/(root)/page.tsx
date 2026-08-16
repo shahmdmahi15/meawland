@@ -10,10 +10,37 @@ import { WhyBest } from "@/components/root/why-best";
 import { FAQ } from "@/components/root/faq";
 import { QualityFeatures } from "@/components/root/quality-features";
 import { getSlidersAction } from "@/actions/root/store/sliders/get-all";
+import { getProductsByBrandSlugAction } from "@/actions/store/products/get-by-brand";
+import { getStoreComboProductsAction } from "@/actions/store/combo-products/get-all";
+import { getStoreReviewsAction } from "@/actions/store/reviews/get-all";
+import { getBestsellerProductsAction } from "@/actions/store/products/get-bestsellers";
+import { getProductsByPurposeAction } from "@/actions/store/products/get-by-purpose";
+
+export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const slidersRes = await getSlidersAction();
+  const [
+    slidersRes,
+    meawlandRes,
+    comboRes,
+    reviewsRes,
+    bestsellersRes,
+    purposeRes,
+  ] = await Promise.all([
+    getSlidersAction(),
+    getProductsByBrandSlugAction("meawland"),
+    getStoreComboProductsAction(),
+    getStoreReviewsAction(),
+    getBestsellerProductsAction(),
+    getProductsByPurposeAction(),
+  ]);
+
   const sliders = slidersRes.sliders ?? [];
+  const meawlandProducts = meawlandRes.products ?? [];
+  const comboProducts = comboRes.combos ?? [];
+  const customerReviews = reviewsRes.reviews ?? [];
+  const bestsellerProducts = bestsellersRes.products ?? [];
+  const purposeProducts = purposeRes.products ?? [];
 
   return (
     <>
@@ -21,17 +48,17 @@ export default async function Home() {
 
       <Categories />
 
-      <Products />
+      <Products products={meawlandProducts} />
 
-      <ComboDeals />
+      <ComboDeals combos={comboProducts} />
 
-      <Reviews />
+      <Reviews reviews={customerReviews} />
 
-      <Bestsellers />
+      <Bestsellers products={bestsellerProducts} />
 
       <MiddleBanner />
 
-      <PetPurpose />
+      <PetPurpose products={purposeProducts} />
 
       <WhyBest />
 

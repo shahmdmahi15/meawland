@@ -82,7 +82,11 @@ const adminNavigations = [
           },
           {
             title: "Combo Products",
-            url: "/admin/management/inventory/Combo-products",
+            url: "/admin/management/inventory/combo-products",
+          },
+          {
+            title: "Modify Stock",
+            url: "/admin/management/inventory/modify-stock",
           },
         ],
       },
@@ -251,7 +255,11 @@ const ownerNavigations = [
           },
           {
             title: "Combo Products",
-            url: "/admin/management/inventory/Combo-products",
+            url: "/admin/management/inventory/combo-products",
+          },
+          {
+            title: "Modify Stock",
+            url: "/admin/management/inventory/modify-stock",
           },
         ],
       },

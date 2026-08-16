@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getAllProductsAdminAction } from "@/actions/admin/management/inventory/get-all-products";
+import { getNewProductFormDataAction } from "@/actions/admin/management/inventory/get-form-data";
 import {
   Card,
   CardContent,
@@ -22,7 +23,10 @@ import { cn } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
 export default async function AllProductsPage() {
-  const res = await getAllProductsAdminAction();
+  const [res, formData] = await Promise.all([
+    getAllProductsAdminAction(),
+    getNewProductFormDataAction(),
+  ]);
 
   if (!res?.success) {
     return (
@@ -44,6 +48,8 @@ export default async function AllProductsPage() {
   }
 
   const products = res.products ?? [];
+  const subCategories = formData.subCategories ?? [];
+  const brands = formData.brands ?? [];
   const metrics = res.metrics ?? {
     totalProducts: 0,
     simpleCount: 0,
@@ -185,7 +191,11 @@ export default async function AllProductsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-3 sm:p-4 min-w-0 w-full overflow-hidden">
-          <AllProductsTable products={products} />
+          <AllProductsTable
+            products={products}
+            subCategories={subCategories}
+            brands={brands}
+          />
         </CardContent>
       </Card>
     </div>

@@ -73,7 +73,7 @@ export function DeleteProductButton({
             <AlertDialogTitle className="text-destructive flex items-center gap-2">
               <Trash2 className="h-5 w-5" /> Delete Product
             </AlertDialogTitle>
-            <AlertDialogDescription asChild>
+            <AlertDialogDescription>
               <div className="space-y-2 text-sm text-muted-foreground mt-2">
                 <p>
                   Are you sure you want to delete product{" "}

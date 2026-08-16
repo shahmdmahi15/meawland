@@ -4,6 +4,7 @@ import prisma from "@/lib/db";
 const CONFIG = {
   CUSTOMER: { prefix: "MEAWCUS", padding: 5 },
   PRODUCT: { prefix: "MEAWPDT", padding: 5 },
+  COMBO: { prefix: "MEAWCBP", padding: 5 },
   ORDER: { prefix: "MEAWORD", padding: 6 },
   INVOICE: { prefix: "MEAWINV", padding: 6 },
   PAYMENT: { prefix: "MEAWPAY", padding: 6 },

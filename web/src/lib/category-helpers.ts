@@ -12,11 +12,6 @@ export const CATEGORY_MAP: Record<string, CategoryInfo> = {
     title: "Pet Accessories",
     slug: "pet-accessories",
   },
-  "pet-accessories": {
-    enumValue: Category.PET_ACCESSORIES,
-    title: "Pet Accessories",
-    slug: "pet-accessories",
-  },
   "pet-care": {
     enumValue: Category.PET_CARE,
     title: "Pet Care",

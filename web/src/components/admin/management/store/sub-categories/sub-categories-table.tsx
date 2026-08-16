@@ -19,9 +19,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, X, ChevronDown, Package } from "lucide-react";
-import { SubCategory } from "@/generated/prisma/client";
 import { Category } from "@/generated/prisma/enums";
 import { DeleteSubCategoryButton } from "./delete-sub-category-button";
+import { EditSubCategoryButton } from "./edit-sub-category-button";
 import { formatCategory } from "@/lib/utils";
 import type { SubCategoryWithCount } from "@/actions/admin/management/store/sub-categories/get-all";
 
@@ -293,11 +293,22 @@ export function SubCategoriesTable({
                               )}
                             </TableCell>
                             <TableCell className="pr-4 text-right">
-                              <DeleteSubCategoryButton
-                                subCategoryId={subCategory.id}
-                                subCategoryName={subCategory.name}
-                                productCount={subCategory.productCount}
-                              />
+                              <div className="flex items-center justify-end gap-1">
+                                <EditSubCategoryButton
+                                  subCategory={{
+                                    id: subCategory.id,
+                                    name: subCategory.name,
+                                    slug: subCategory.slug,
+                                    category: subCategory.category,
+                                    image: subCategory.image,
+                                  }}
+                                />
+                                <DeleteSubCategoryButton
+                                  subCategoryId={subCategory.id}
+                                  subCategoryName={subCategory.name}
+                                  productCount={subCategory.productCount}
+                                />
+                              </div>
                             </TableCell>
                           </TableRow>
                         ))

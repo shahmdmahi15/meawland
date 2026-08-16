@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import {
   Dialog,
@@ -47,6 +47,18 @@ export function ProductDetailModal({ product }: ProductDetailModalProps) {
     product.imageBase64 || "",
   );
 
+  useEffect(() => {
+    const nextImages = Array.from(
+      new Set(
+        [product.imageBase64, ...(product.galleryBase64 ?? [])].filter(Boolean),
+      ),
+    );
+    setSelectedImage((current) => {
+      if (current && nextImages.includes(current)) return current;
+      return nextImages[0] ?? "";
+    });
+  }, [product]);
+
   // Calculate stock status
   const totalStock = product.isVariable
     ? product.variants.reduce((acc, v) => acc + (v.stock || 0), 0)
@@ -83,9 +95,44 @@ export function ProductDetailModal({ product }: ProductDetailModalProps) {
   };
 
   // Gallery items including main image
-  const allImages = [
-    ...(product.imageBase64 ? [product.imageBase64] : []),
-    ...(product.galleryBase64 ? product.galleryBase64.filter(Boolean) : []),
+  const allImages = Array.from(
+    new Set(
+      [
+        ...(product.imageBase64 ? [product.imageBase64] : []),
+        ...(product.galleryBase64 ? product.galleryBase64.filter(Boolean) : []),
+      ].filter(Boolean),
+    ),
+  );
+
+  const stockEventsCount = product.stockEvents?.length ?? 0;
+  const formatCurrency = (value?: string | number | null) => {
+    if (value === undefined || value === null || value === "") return "—";
+    const parsed = Number(value);
+    if (Number.isNaN(parsed)) return "—";
+    return `৳${parsed.toLocaleString()}`;
+  };
+
+  const summaryCards = [
+    {
+      label: "Product Type",
+      value: product.isVariable ? "Variable" : "Simple",
+      icon: Layers3,
+    },
+    {
+      label: "Stock Events",
+      value: `${stockEventsCount}`,
+      icon: Package,
+    },
+    {
+      label: "Created",
+      value: formatDate(product.createdAt),
+      icon: Calendar,
+    },
+    {
+      label: "Updated",
+      value: formatDate(product.updatedAt),
+      icon: Calendar,
+    },
   ];
 
   return (
@@ -104,20 +151,23 @@ export function ProductDetailModal({ product }: ProductDetailModalProps) {
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-6">
+        <DialogContent className="sm:max-w-[1180px] w-[min(96vw,1180px)] max-w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
             <div className="flex flex-wrap items-center justify-between gap-2 pr-6">
               <div className="flex items-center gap-2">
-                <DialogTitle className="text-xl font-bold">
+                <DialogTitle className="text-lg font-bold sm:text-xl">
                   {product.name}
                 </DialogTitle>
-                <Badge variant={product.isVariable ? "default" : "secondary"}>
+                <Badge
+                  variant={product.isVariable ? "default" : "secondary"}
+                  className="text-[10px] sm:text-xs"
+                >
                   {product.isVariable ? "Variable Product" : "Simple Product"}
                 </Badge>
               </div>
               <div>{getStockBadge()}</div>
             </div>
-            <DialogDescription className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+            <DialogDescription className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground mt-1 sm:gap-3">
               <span>
                 Code:{" "}
                 <code className="font-mono text-foreground font-semibold">
@@ -141,7 +191,7 @@ export function ProductDetailModal({ product }: ProductDetailModalProps) {
           <Separator className="my-4" />
 
           {/* Main Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
             {/* Left Column: Image Preview & Gallery */}
             <div className="md:col-span-5 space-y-3">
               <div className="relative aspect-square w-full rounded-xl border bg-muted/30 overflow-hidden flex items-center justify-center">
@@ -188,7 +238,7 @@ export function ProductDetailModal({ product }: ProductDetailModalProps) {
             {/* Right Column: Key Details */}
             <div className="md:col-span-7 space-y-5">
               {/* Category, Subcategory, Brand */}
-              <div className="grid grid-cols-2 gap-4 rounded-lg bg-muted/40 p-4 border text-sm">
+              <div className="grid grid-cols-1 gap-3 rounded-lg bg-muted/40 p-4 border text-sm sm:grid-cols-2">
                 <div>
                   <span className="text-xs text-muted-foreground flex items-center gap-1">
                     <Layers className="h-3.5 w-3.5" /> Category & Subcategory
@@ -208,21 +258,35 @@ export function ProductDetailModal({ product }: ProductDetailModalProps) {
                 </div>
               </div>
 
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {summaryCards.map(({ label, value, icon: Icon }) => (
+                  <div
+                    key={label}
+                    className="rounded-lg border bg-muted/20 p-3 text-left"
+                  >
+                    <div className="flex items-center gap-2 text-[11px] text-muted-foreground uppercase tracking-wider">
+                      <Icon className="h-3.5 w-3.5" /> {label}
+                    </div>
+                    <div className="mt-2 text-sm font-semibold text-foreground">
+                      {value}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
               {/* Pricing Breakdown for Simple Product */}
               {!product.isVariable && (
                 <div className="rounded-lg border p-4 space-y-3">
                   <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                     <DollarSign className="h-4 w-4" /> Pricing & Financials
                   </h4>
-                  <div className="grid grid-cols-3 gap-3 text-center">
+                  <div className="grid grid-cols-1 gap-3 text-center sm:grid-cols-3">
                     <div className="p-2.5 rounded-lg bg-muted/30 border">
                       <span className="text-xs text-muted-foreground block">
                         Regular Price
                       </span>
                       <span className="text-lg font-bold">
-                        {product.regularPrice
-                          ? `৳${product.regularPrice}`
-                          : "—"}
+                        {formatCurrency(product.regularPrice)}
                       </span>
                     </div>
                     <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
@@ -230,7 +294,7 @@ export function ProductDetailModal({ product }: ProductDetailModalProps) {
                         Sale Price
                       </span>
                       <span className="text-lg font-bold text-emerald-700">
-                        {product.salePrice ? `৳${product.salePrice}` : "—"}
+                        {formatCurrency(product.salePrice)}
                       </span>
                     </div>
                     <div className="p-2.5 rounded-lg bg-muted/30 border">
@@ -238,7 +302,7 @@ export function ProductDetailModal({ product }: ProductDetailModalProps) {
                         Cost Price
                       </span>
                       <span className="text-lg font-semibold text-muted-foreground">
-                        {product.costPrice ? `৳${product.costPrice}` : "—"}
+                        {formatCurrency(product.costPrice)}
                       </span>
                     </div>
                   </div>
@@ -268,7 +332,7 @@ export function ProductDetailModal({ product }: ProductDetailModalProps) {
                 </div>
               )}
 
-              {/* Description */}
+              {/* Short Description */}
               <div className="space-y-2">
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Short Description
@@ -308,8 +372,8 @@ export function ProductDetailModal({ product }: ProductDetailModalProps) {
                 <Box className="h-4 w-4 text-primary" /> Product Variants (
                 {product.variants.length})
               </h4>
-              <div className="rounded-lg border overflow-hidden">
-                <Table>
+              <div className="overflow-x-auto rounded-lg border">
+                <Table className="min-w-[720px]">
                   <TableHeader>
                     <TableRow>
                       <TableHead>Image</TableHead>

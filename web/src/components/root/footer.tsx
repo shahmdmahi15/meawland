@@ -1,27 +1,53 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import {
+  Send,
+  Sparkles,
+  Phone,
+  Mail,
+  MapPin,
+  Heart,
+  ShieldCheck,
+  CheckCircle2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export function Footer() {
+  const [email, setEmail] = useState("");
+  const [isSubscribed, setIsSubscribed] = useState(false);
+
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !email.includes("@")) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+    setIsSubscribed(true);
+    toast.success("Thank you for subscribing to Meawland VIP updates! 🐾");
+    setEmail("");
+  };
+
   return (
     <footer className="bg-white pt-8 text-gray-800">
       <div className="mx-auto">
         {/* Large Rounded Light-Blue Box */}
-        <div className="bg-[#F0F8FF] border border-[#D4EEFC] rounded-tl-3xl rounded-tr-3xl p-6 sm:p-10 lg:p-14 shadow-xs space-y-12">
+        <div className="bg-linear-to-b from-[#F0F8FF] to-[#E5F4FD] border-t border-x border-[#D4EEFC] rounded-tl-[2.5rem] rounded-tr-[2.5rem] sm:rounded-tl-[3.5rem] sm:rounded-tr-[3.5rem] p-6 sm:p-10 lg:p-14 shadow-xs space-y-12">
           {/* Top Brand Banner Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center border-b border-gray-200/60 pb-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center border-b border-[#D4EEFC] pb-10">
             {/* Left Animated Sleeping Cat GIF */}
             <div className="lg:col-span-4 flex justify-center lg:justify-start">
-              <div className="relative w-48 sm:w-56 h-48 sm:h-56">
+              <div className="relative w-56 sm:w-68 md:w-76 lg:w-84 h-56 sm:h-68 md:h-76 lg:h-84">
                 <Image
                   src="/footer-cat.gif"
                   alt="Footer cat animation"
                   fill
                   unoptimized
-                  sizes="224px"
-                  className="object-contain"
+                  sizes="340px"
+                  className="object-contain drop-shadow-md"
                 />
               </div>
             </div>
@@ -38,12 +64,23 @@ export function Footer() {
                 />
               </Link>
               <p className="text-xs sm:text-sm text-gray-600 font-medium leading-relaxed max-w-2xl">
-                Meawland is your trusted destination for high-quality pet
-                products. From nutritious food to premium accessories, we cater
-                to all your furry friend&apos;s needs. Our mission is to provide
-                the best for your pets, ensuring their happiness and health
-                every day.
+                Meawland is Bangladesh&apos;s premier destination for genuine
+                pet nutrition, anti-fungal grooming care, handcrafted fashion,
+                and playful accessories. Committed to 100% pet wellness,
+                transparent pricing, and ultra-fast nationwide doorstep
+                delivery.
               </p>
+
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2 text-xs font-bold text-gray-700">
+                <span className="inline-flex items-center gap-1.5 bg-white/80 px-3 py-1.5 rounded-full border border-[#D4EEFC] shadow-2xs">
+                  <ShieldCheck className="w-4 h-4 text-[#56C8D8]" />
+                  100% Genuine Pet Essentials
+                </span>
+                <span className="inline-flex items-center gap-1.5 bg-white/80 px-3 py-1.5 rounded-full border border-[#D4EEFC] shadow-2xs">
+                  <Sparkles className="w-4 h-4 text-emerald-500" />
+                  Fast Nationwide Express Delivery
+                </span>
+              </div>
             </div>
           </div>
 
@@ -51,33 +88,68 @@ export function Footer() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
             {/* Left Newsletter Subscribe */}
             <div className="lg:col-span-5 space-y-4">
-              <h3 className="text-2xl font-black text-gray-900">
-                Stay in the Loop
-              </h3>
-              <p className="text-xs text-gray-600 font-medium max-w-sm leading-relaxed">
-                Be the first to know about new arrivals, exclusive offers, and
-                behind-the-scenes stories.
-              </p>
-              <form
-                onSubmit={(e) => e.preventDefault()}
-                className="flex items-center gap-2 max-w-md pt-1"
-              >
-                <input
-                  type="email"
-                  placeholder="Enter your mail"
-                  className="flex-1 bg-white border border-gray-200 rounded-full px-5 py-2.5 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#56C8D8]/50 shadow-xs"
-                />
-                <Button
-                  type="submit"
-                  className="bg-[#56C8D8] hover:bg-[#38bdf8] text-white font-extrabold text-xs px-6 py-2.5 rounded-full shadow-md cursor-pointer border-0 shrink-0"
-                >
-                  Subscribe
-                </Button>
-              </form>
-              <p className="text-[10px] text-gray-400 font-medium">
-                By subscribing, you agree to our Privacy Policy. Unsubscribe
-                anytime.
-              </p>
+              <div className="space-y-1">
+                <h3 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
+                  Stay in the Loop 🐾
+                </h3>
+                <p className="text-xs text-gray-600 font-medium max-w-sm leading-relaxed">
+                  Join our VIP pet parent club for exclusive discounts, new
+                  product drops, and vet-backed grooming tips.
+                </p>
+              </div>
+
+              {isSubscribed ? (
+                <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-2xl p-4 flex items-center gap-2 text-xs font-bold shadow-2xs">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>You&apos;re subscribed to Meawland updates!</span>
+                </div>
+              ) : (
+                <form onSubmit={handleSubscribe} className="space-y-2">
+                  <div className="flex items-center gap-2 max-w-md">
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Enter your email address..."
+                      required
+                      className="flex-1 bg-white border border-gray-200 rounded-full px-5 py-2.5 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#56C8D8]/50 shadow-xs"
+                    />
+                    <Button
+                      type="submit"
+                      className="bg-[#56C8D8] hover:bg-[#38bdf8] text-white font-black text-xs px-5 py-2.5 rounded-full shadow-md cursor-pointer border-0 shrink-0 gap-1.5"
+                    >
+                      <span>Subscribe</span>
+                      <Send className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                  <p className="text-[10px] text-gray-400 font-medium">
+                    By subscribing you agree to our{" "}
+                    <Link
+                      href="/privacy"
+                      className="text-[#56C8D8] hover:underline"
+                    >
+                      Privacy Policy
+                    </Link>
+                    . Unsubscribe anytime.
+                  </p>
+                </form>
+              )}
+
+              {/* Contact Mini Strip */}
+              <div className="pt-2 space-y-1.5 text-xs font-semibold text-gray-600">
+                <div className="flex items-center gap-2">
+                  <Phone className="w-3.5 h-3.5 text-[#56C8D8]" />
+                  <span>+880 1886-070809 (Helpline & WhatsApp)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Mail className="w-3.5 h-3.5 text-[#56C8D8]" />
+                  <span>support@meawland.com</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-3.5 h-3.5 text-[#56C8D8]" />
+                  <span>Dhaka, Bangladesh</span>
+                </div>
+              </div>
             </div>
 
             {/* Right Links Grid */}
@@ -90,8 +162,8 @@ export function Footer() {
                 <ul className="space-y-2 text-gray-700 font-medium">
                   <li>
                     <Link
-                      href="/category/pet-accesorice"
-                      className="hover:text-[#56C8D8]"
+                      href="/category/pet-accessories"
+                      className="hover:text-[#56C8D8] transition-colors"
                     >
                       Pet Accessories
                     </Link>
@@ -99,49 +171,49 @@ export function Footer() {
                   <li>
                     <Link
                       href="/category/pet-care"
-                      className="hover:text-[#56C8D8]"
+                      className="hover:text-[#56C8D8] transition-colors"
                     >
-                      Pet Care
+                      Pet Care & Grooming
                     </Link>
                   </li>
                   <li>
                     <Link
                       href="/category/pet-food"
-                      className="hover:text-[#56C8D8]"
+                      className="hover:text-[#56C8D8] transition-colors"
                     >
-                      Pet Food
+                      Pet Food & Treats
                     </Link>
                   </li>
                   <li>
                     <Link
                       href="/category/pet-medicine"
-                      className="hover:text-[#56C8D8]"
+                      className="hover:text-[#56C8D8] transition-colors"
                     >
-                      Pet Medicine
+                      Pet Medicine & Health
                     </Link>
                   </li>
                   <li>
                     <Link
                       href="/category/pet-dress"
-                      className="hover:text-[#56C8D8]"
+                      className="hover:text-[#56C8D8] transition-colors"
                     >
-                      Pet Dresses
+                      Pet Dresses & Costumes
                     </Link>
                   </li>
                   <li>
                     <Link
                       href="/category/pet-toy"
-                      className="hover:text-[#56C8D8]"
+                      className="hover:text-[#56C8D8] transition-colors"
                     >
-                      Pet Toy
+                      Pet Toys & Play
                     </Link>
                   </li>
                   <li>
                     <Link
                       href="/category/pet-litter"
-                      className="hover:text-[#56C8D8]"
+                      className="hover:text-[#56C8D8] transition-colors"
                     >
-                      Pet Litter
+                      Pet Litter & Hygiene
                     </Link>
                   </li>
                 </ul>
@@ -150,36 +222,62 @@ export function Footer() {
               {/* Column 2: USEFUL LINKS */}
               <div className="space-y-3">
                 <h4 className="text-gray-400 uppercase tracking-widest text-[10px] font-black">
-                  USEFUL LINKS
+                  QUICK LINKS
                 </h4>
                 <ul className="space-y-2 text-gray-700 font-medium">
                   <li>
-                    <Link href="/" className="hover:text-[#56C8D8]">
-                      Shop
+                    <Link
+                      href="/products"
+                      className="hover:text-[#56C8D8] transition-colors"
+                    >
+                      All Products
                     </Link>
                   </li>
                   <li>
-                    <Link href="/account" className="hover:text-[#56C8D8]">
+                    <Link
+                      href="/"
+                      className="hover:text-[#56C8D8] transition-colors"
+                    >
+                      Home Shop
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/account"
+                      className="hover:text-[#56C8D8] transition-colors"
+                    >
                       My Account
                     </Link>
                   </li>
                   <li>
-                    <Link href="/cart" className="hover:text-[#56C8D8]">
-                      Cart
+                    <Link
+                      href="/cart"
+                      className="hover:text-[#56C8D8] transition-colors"
+                    >
+                      Shopping Cart
                     </Link>
                   </li>
                   <li>
-                    <Link href="/wishlist" className="hover:text-[#56C8D8]">
-                      Wishlist
+                    <Link
+                      href="/wishlist"
+                      className="hover:text-[#56C8D8] transition-colors"
+                    >
+                      Saved Wishlist
                     </Link>
                   </li>
                   <li>
-                    <Link href="/track" className="hover:text-[#56C8D8]">
-                      Track Order
+                    <Link
+                      href="/track"
+                      className="hover:text-[#56C8D8] transition-colors"
+                    >
+                      Track My Order
                     </Link>
                   </li>
                   <li>
-                    <Link href="/support" className="hover:text-[#56C8D8]">
+                    <Link
+                      href="/support"
+                      className="hover:text-[#56C8D8] transition-colors"
+                    >
                       Support Ticket
                     </Link>
                   </li>
@@ -193,62 +291,100 @@ export function Footer() {
                 </h4>
                 <ul className="space-y-2 text-gray-700 font-medium">
                   <li>
-                    <Link href="/about" className="hover:text-[#56C8D8]">
+                    <Link
+                      href="/about"
+                      className="hover:text-[#56C8D8] transition-colors"
+                    >
                       About Us
                     </Link>
                   </li>
                   <li>
-                    <Link href="/contact" className="hover:text-[#56C8D8]">
+                    <Link
+                      href="/contact"
+                      className="hover:text-[#56C8D8] transition-colors"
+                    >
                       Contact Us
                     </Link>
                   </li>
                   <li>
-                    <Link href="/faq" className="hover:text-[#56C8D8]">
+                    <Link
+                      href="/faq"
+                      className="hover:text-[#56C8D8] transition-colors"
+                    >
                       FAQ
                     </Link>
                   </li>
                   <li>
-                    <Link href="/returns" className="hover:text-[#56C8D8]">
+                    <Link
+                      href="/returns"
+                      className="hover:text-[#56C8D8] transition-colors"
+                    >
                       Returns & Refund
                     </Link>
                   </li>
                   <li>
-                    <Link href="/privacy" className="hover:text-[#56C8D8]">
+                    <Link
+                      href="/privacy"
+                      className="hover:text-[#56C8D8] transition-colors"
+                    >
                       Privacy Policy
                     </Link>
                   </li>
                   <li>
-                    <Link href="/terms" className="hover:text-[#56C8D8]">
+                    <Link
+                      href="/terms"
+                      className="hover:text-[#56C8D8] transition-colors"
+                    >
                       Terms & Conditions
                     </Link>
                   </li>
                 </ul>
               </div>
 
-              {/* Column 4: SOCIAL LINKS */}
+              {/* Column 4: SOCIAL LINKS & PAYMENTS */}
               <div className="space-y-3">
                 <h4 className="text-gray-400 uppercase tracking-widest text-[10px] font-black">
-                  SOCIAL LINKS
+                  CONNECT WITH US
                 </h4>
                 <ul className="space-y-2 text-gray-700 font-medium">
                   <li>
-                    <a href="#" className="hover:text-[#56C8D8]">
-                      Instagram
+                    <a
+                      href="https://facebook.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-[#56C8D8] transition-colors flex items-center gap-1.5"
+                    >
+                      <span>Facebook Community</span>
                     </a>
                   </li>
                   <li>
-                    <a href="#" className="hover:text-[#56C8D8]">
-                      Facebook
+                    <a
+                      href="https://instagram.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-[#56C8D8] transition-colors flex items-center gap-1.5"
+                    >
+                      <span>Instagram</span>
                     </a>
                   </li>
                   <li>
-                    <a href="#" className="hover:text-[#56C8D8]">
-                      Tiktok
+                    <a
+                      href="https://tiktok.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-[#56C8D8] transition-colors flex items-center gap-1.5"
+                    >
+                      <span>TikTok</span>
                     </a>
                   </li>
                   <li>
-                    <a href="#" className="hover:text-[#56C8D8]">
-                      Whatsapp
+                    <a
+                      href="https://wa.me/8801886070809"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-emerald-600 transition-colors flex items-center gap-1.5"
+                    >
+                      <span>WhatsApp Support</span>
                     </a>
                   </li>
                 </ul>
@@ -257,17 +393,18 @@ export function Footer() {
           </div>
 
           {/* Bottom Copyright & Login Link */}
-          <div className="pt-6 border-t border-gray-200/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-gray-500 font-bold">
+          <div className="pt-6 border-t border-[#D4EEFC] flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-gray-500 font-bold">
             <p>
-              © 2026 Meawland. All rights reserved. A product of RoyalMotionIT.
+              © {new Date().getFullYear()} Meawland Pet Store. All rights
+              reserved. A product of RoyalMotionIT.
             </p>
             <div className="flex items-center gap-1">
-              <span>Already a member?</span>
+              <span>Looking for admin portal?</span>
               <Link
                 href="/login"
-                className="text-gray-900 font-black hover:text-[#56C8D8]"
+                className="text-gray-900 font-black hover:text-[#56C8D8] transition-colors"
               >
-                Log in to your account →
+                Log in here →
               </Link>
             </div>
           </div>

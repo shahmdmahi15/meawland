@@ -8,10 +8,12 @@ import {
   Brand,
   Variant,
   Attribute,
+  StockEvent,
 } from "@/generated/prisma/client";
 
 export type ProductVariantWithAttributes = Variant & {
   attributes: Attribute[];
+  stockEvents: StockEvent[];
   imageBase64?: string;
 };
 
@@ -19,6 +21,7 @@ export type FullProduct = Product & {
   subCategory: SubCategory;
   brand: Brand | null;
   variants: ProductVariantWithAttributes[];
+  stockEvents: StockEvent[];
   imageBase64?: string;
   galleryBase64?: string[];
   _count: {
@@ -66,10 +69,21 @@ export async function getAllProductsAdminAction(): Promise<GetAllProductsResult>
         variants: {
           include: {
             attributes: true,
+            stockEvents: {
+              orderBy: {
+                createdAt: "desc",
+              },
+            },
           },
           orderBy: {
             createdAt: "asc",
           },
+        },
+        stockEvents: {
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: 25,
         },
         _count: {
           select: {
@@ -134,6 +148,7 @@ export async function getAllProductsAdminAction(): Promise<GetAllProductsResult>
               return {
                 ...variant,
                 imageBase64: vBase64,
+                stockEvents: variant.stockEvents ?? [],
               };
             }),
           );
@@ -143,6 +158,7 @@ export async function getAllProductsAdminAction(): Promise<GetAllProductsResult>
           imageBase64,
           galleryBase64,
           variants: variantsWithImages,
+          stockEvents: product.stockEvents ?? [],
         };
       }),
     );

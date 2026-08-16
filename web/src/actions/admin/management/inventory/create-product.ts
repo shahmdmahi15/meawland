@@ -183,7 +183,16 @@ export async function createProductAction(input: CreateProductInput): Promise<{
           stockEvents:
             !data.isVariable && data.stock !== undefined && data.stock !== null
               ? {
-                  create: [{}],
+                  create: [
+                    {
+                      type: "INITIAL",
+                      quantity: Number(data.stock),
+                      previousStock: 0,
+                      newStock: Number(data.stock),
+                      reason: "INITIAL_STOCK",
+                      note: "Initial stock entry for simple product",
+                    },
+                  ],
                 }
               : undefined,
 
@@ -207,7 +216,16 @@ export async function createProductAction(input: CreateProductInput): Promise<{
                       })),
                     },
                     stockEvents: {
-                      create: [{}],
+                      create: [
+                        {
+                          type: "INITIAL",
+                          quantity: Number(v.stock),
+                          previousStock: 0,
+                          newStock: Number(v.stock),
+                          reason: "INITIAL_STOCK",
+                          note: `Initial stock entry for variant ${v.sku}`,
+                        },
+                      ],
                     },
                   })),
                 }

@@ -12,8 +12,12 @@ export type CategoryStoreProduct = {
   sku: string;
   price: string;
   originalPrice?: string;
+  numericPrice: number;
+  numericOriginalPrice?: number;
   image: string;
   isVariable: boolean;
+  stock: number;
+  shortDescription?: string;
   subCategoryName: string;
   subCategorySlug: string;
   categorySlug: string;
@@ -42,6 +46,7 @@ export async function getProductsByCategoryAction(
   success: boolean;
   message: string;
   categoryTitle?: string;
+  subCategoryTitle?: string;
   products: CategoryStoreProduct[];
 }> {
   try {
@@ -55,7 +60,12 @@ export async function getProductsByCategoryAction(
     }
 
     const whereCondition = subCategorySlug
-      ? { subCategory: { slug: subCategorySlug } }
+      ? {
+          subCategory: {
+            slug: subCategorySlug,
+            category: categoryInfo.enumValue,
+          },
+        }
       : { subCategory: { category: categoryInfo.enumValue } };
 
     const dbProducts = await db.product.findMany({
@@ -74,34 +84,60 @@ export async function getProductsByCategoryAction(
       },
     });
 
+    let foundSubCategoryTitle: string | undefined = undefined;
+    if (subCategorySlug && dbProducts.length > 0) {
+      foundSubCategoryTitle = dbProducts[0].subCategory.name;
+    } else if (subCategorySlug) {
+      const sc = await db.subCategory.findFirst({
+        where: { slug: subCategorySlug, category: categoryInfo.enumValue },
+        select: { name: true },
+      });
+      foundSubCategoryTitle = sc?.name;
+    }
+
     const products: CategoryStoreProduct[] = await Promise.all(
       dbProducts.map(async (p) => {
         const base64Image = await safeGetImageBase64(p.image);
 
         let price = "0 tk";
         let originalPrice: string | undefined = undefined;
+        let numericPrice = 0;
+        let numericOriginalPrice: number | undefined = undefined;
 
         if (p.isVariable && p.variants.length > 0) {
           const firstVariant = p.variants[0];
-          if (
+          const hasSale =
             firstVariant.salePrice &&
-            firstVariant.salePrice !== firstVariant.regularPrice
-          ) {
+            firstVariant.salePrice !== firstVariant.regularPrice;
+
+          if (hasSale) {
             price = `${firstVariant.salePrice} tk`;
             originalPrice = `${firstVariant.regularPrice} tk`;
+            numericPrice = parseFloat(firstVariant.salePrice || "0");
+            numericOriginalPrice = parseFloat(firstVariant.regularPrice || "0");
           } else if (firstVariant.regularPrice) {
             price = `${firstVariant.regularPrice} tk`;
+            numericPrice = parseFloat(firstVariant.regularPrice || "0");
           }
         } else {
-          if (p.salePrice && p.salePrice !== p.regularPrice) {
+          const hasSale = p.salePrice && p.salePrice !== p.regularPrice;
+
+          if (hasSale) {
             price = `${p.salePrice} tk`;
+            numericPrice = parseFloat(p.salePrice || "0");
             if (p.regularPrice) {
               originalPrice = `${p.regularPrice} tk`;
+              numericOriginalPrice = parseFloat(p.regularPrice || "0");
             }
           } else if (p.regularPrice) {
             price = `${p.regularPrice} tk`;
+            numericPrice = parseFloat(p.regularPrice || "0");
           }
         }
+
+        const stock = p.isVariable
+          ? p.variants.reduce((acc, v) => acc + (v.stock || 0), 0)
+          : (p.stock ?? 0);
 
         return {
           id: p.id,
@@ -111,8 +147,12 @@ export async function getProductsByCategoryAction(
           sku: p.sku,
           price,
           originalPrice,
+          numericPrice,
+          numericOriginalPrice,
           image: base64Image,
           isVariable: p.isVariable,
+          stock,
+          shortDescription: p.shortDescription,
           subCategoryName: p.subCategory.name,
           subCategorySlug: p.subCategory.slug,
           categorySlug,
@@ -125,6 +165,7 @@ export async function getProductsByCategoryAction(
       success: true,
       message: "Successfully fetched products",
       categoryTitle: categoryInfo.title,
+      subCategoryTitle: foundSubCategoryTitle,
       products,
     };
   } catch (error) {

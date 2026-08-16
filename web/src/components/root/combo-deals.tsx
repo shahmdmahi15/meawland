@@ -2,181 +2,211 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
-import { ArrowLeft, ArrowRight, Heart } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import useEmblaCarousel from "embla-carousel-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Heart,
+  Package,
+  Sparkles,
+  Flame,
+  Layers,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import type { StoreComboProduct } from "@/actions/store/combo-products/get-all";
 
-interface ComboItem {
-  id: string;
-  name: string;
-  description: string;
-  originalPrice?: string;
-  price: string;
-  image: string;
+interface ComboDealsProps {
+  combos?: StoreComboProduct[];
 }
 
-const comboList: ComboItem[] = [
-  {
-    id: "combo-1",
-    name: "Meawland Complete Skin & Coat Solution",
-    description:
-      "Get ultimate 360-degree skin and coat care bundle for your cat.",
-    originalPrice: "৳1500",
-    price: "৳1450",
-    image: "/combo-skin-coat-solution.png",
-  },
-  {
-    id: "combo-2",
-    name: "Meawland Premium Healthy Snacks Combo",
-    description:
-      "Ultimate premium cat treat bundle with nutritious sticks & cakes.",
-    originalPrice: "৳1199",
-    price: "৳1149",
-    image: "/combo-healthy-snacks.png",
-  },
-  {
-    id: "combo-3",
-    name: "Meawland Essential Grooming & Hygiene Combo",
-    description: "Anti-fungal shower gel, flea free spray & ear cleaner set.",
-    originalPrice: "৳1600",
-    price: "৳1500",
-    image: "/combo-grooming-hygiene.png",
-  },
-  {
-    id: "combo-4",
-    name: "Meawland Essential Grooming & Hygiene Combo",
-    description: "Anti-fungal shower gel, flea free spray & ear cleaner set.",
-    originalPrice: "৳1600",
-    price: "৳1500",
-    image: "/combo-grooming-hygiene.png",
-  },
-  {
-    id: "combo-5",
-    name: "Meawland Essential Grooming & Hygiene Combo",
-    description: "Anti-fungal shower gel, flea free spray & ear cleaner set.",
-    originalPrice: "৳1600",
-    price: "৳1500",
-    image: "/combo-grooming-hygiene.png",
-  },
-  {
-    id: "combo-6",
-    name: "Meawland Essential Grooming & Hygiene Combo",
-    description: "Anti-fungal shower gel, flea free spray & ear cleaner set.",
-    originalPrice: "৳1600",
-    price: "৳1500",
-    image: "/combo-grooming-hygiene.png",
-  },
-];
-
-export function ComboDeals() {
+export function ComboDeals({ combos = [] }: ComboDealsProps) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
-  const prevSlide = () => {
-    setActiveIndex((prev) => (prev === 0 ? comboList.length - 1 : prev - 1));
-  };
+  // Mobile Embla Carousel (2 in a row on phones)
+  const [emblaMobileRef, emblaMobileApi] = useEmblaCarousel({
+    align: "start",
+    slidesToScroll: 1,
+    loop: true,
+    containScroll: "trimSnaps",
+  });
 
-  const nextSlide = () => {
-    setActiveIndex((prev) => (prev === comboList.length - 1 ? 0 : prev + 1));
-  };
+  const prevSlide = useCallback(() => {
+    setActiveIndex((prev) => (prev === 0 ? combos.length - 1 : prev - 1));
+  }, [combos.length]);
 
-  const activeCombo = comboList[activeIndex];
+  const nextSlide = useCallback(() => {
+    setActiveIndex((prev) => (prev === combos.length - 1 ? 0 : prev + 1));
+  }, [combos.length]);
+
+  // Autoplay functionality for 3D Desktop and Mobile
+  useEffect(() => {
+    if (!isAutoPlaying || combos.length <= 1) return;
+    const interval = setInterval(() => {
+      nextSlide();
+      if (emblaMobileApi) emblaMobileApi.scrollNext();
+    }, 3800);
+    return () => clearInterval(interval);
+  }, [isAutoPlaying, combos.length, nextSlide, emblaMobileApi]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") prevSlide();
+      if (e.key === "ArrowRight") nextSlide();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [prevSlide, nextSlide]);
+
+  // If there are no combo products, do not show the section
+  if (!combos || combos.length === 0) {
+    return null;
+  }
 
   return (
-    <section className="py-16 md:py-24 bg-white overflow-hidden">
-      <div className="container max-w-360 px-4 sm:px-6 md:px-8 mx-auto">
+    <section className="py-16 md:py-24 bg-linear-to-b from-white via-[#F0F8FF]/50 to-white overflow-hidden relative">
+      {/* Decorative Glows */}
+      <div className="absolute top-1/2 -left-32 w-80 h-80 bg-[#56C8D8]/10 rounded-full blur-3xl pointer-events-none -translate-y-1/2" />
+      <div className="absolute top-1/2 -right-32 w-80 h-80 bg-orange-400/10 rounded-full blur-3xl pointer-events-none -translate-y-1/2" />
+
+      <div className="container max-w-7xl px-4 sm:px-6 md:px-8 mx-auto relative z-10">
         {/* Title & Subtitle */}
-        <div className="text-center mb-12 space-y-3">
-          <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-gray-900 tracking-tight">
-            Combo <span className="text-[#56C8D8]">Deals</span>
+        <div className="text-center mb-10 sm:mb-16 space-y-3 max-w-2xl mx-auto">
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-orange-500/10 text-orange-600 text-xs font-black uppercase tracking-wider shadow-2xs">
+            <Flame className="h-3.5 w-3.5 text-orange-500" />
+            Curated Savings Bundles
+          </div>
+
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 tracking-tight leading-tight">
+            Combo{" "}
+            <span
+              className="text-[#56C8D8] font-[family-name:var(--font-chewy)] tracking-wider inline-block text-4xl sm:text-5xl md:text-6xl lg:text-7xl"
+              style={{ fontFamily: "var(--font-chewy), cursive" }}
+            >
+              Deals
+            </span>
           </h2>
-          <p className="text-[#F97316] font-black text-sm sm:text-base md:text-lg uppercase tracking-widest">
-            BEST VALUE BUNDLES FOR YOUR FURRY FRIENDS
+
+          <p className="text-gray-500 font-semibold text-xs sm:text-sm md:text-base">
+            Get more and save big with hand-picked bundles of our best-selling
+            care, grooming & treats.
           </p>
         </div>
 
-        {/* 3D Stacked Coverflow Showcase */}
-        <div className="relative max-w-5xl mx-auto flex items-center justify-center min-h-135">
+        {/* Mobile View (< sm): 2 Products in a Row Carousel */}
+        <div
+          className="block sm:hidden relative px-1"
+          onMouseEnter={() => setIsAutoPlaying(false)}
+          onMouseLeave={() => setIsAutoPlaying(true)}
+        >
+          <div className="overflow-hidden px-1" ref={emblaMobileRef}>
+            <div className="flex -ml-2.5 py-3">
+              {combos.map((combo) => (
+                <div
+                  key={`mobile-${combo.id}`}
+                  className="flex-none pl-2.5 basis-1/2 min-w-0"
+                >
+                  <MobileComboProductCard combo={combo} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Tablet & Desktop View (>= sm): 3D Coverflow Showcase */}
+        <div
+          className="hidden sm:flex relative max-w-5xl mx-auto items-center justify-center min-h-[540px] sm:min-h-[580px] perspective-[1200px]"
+          onMouseEnter={() => setIsAutoPlaying(false)}
+          onMouseLeave={() => setIsAutoPlaying(true)}
+        >
           {/* Left Navigation Arrow */}
           <Button
-            variant="ghost"
+            variant="outline"
             size="icon"
             onClick={prevSlide}
-            className="absolute left-2 sm:left-4 z-30 h-12 w-12 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 shadow-md flex items-center justify-center cursor-pointer"
+            className="absolute left-2 sm:left-4 z-30 h-12 w-12 rounded-full bg-white/95 backdrop-blur-md hover:bg-[#56C8D8] hover:text-white border-gray-200 text-gray-800 shadow-lg flex items-center justify-center cursor-pointer transition-all hover:scale-110"
             aria-label="Previous combo"
           >
-            <ArrowLeft className="w-6 h-6" />
+            <ArrowLeft className="w-5 h-5" />
           </Button>
 
-          {/* Stacked Cards Container */}
-          <div className="relative w-full flex items-center justify-center">
-            {comboList.map((combo, idx) => {
-              const isCenter = idx === activeIndex;
-              const isLeft =
-                idx === (activeIndex - 1 + comboList.length) % comboList.length;
-              const isRight = idx === (activeIndex + 1) % comboList.length;
+          {/* 3D Stacked Tile Cards */}
+          <div className="relative w-full h-[520px] sm:h-[560px] flex items-center justify-center [transform-style:preserve-3d]">
+            {combos.map((combo, idx) => {
+              const count = combos.length;
+              let offset = (idx - activeIndex + count) % count;
+              if (offset > count / 2) {
+                offset -= count;
+              }
 
-              if (!isCenter && !isLeft && !isRight) return null;
+              const isCenter = offset === 0;
+              const isPrev = offset === -1;
+              const isNext = offset === 1;
+              const isFarLeft = offset === -2;
+              const isFarRight = offset === 2;
+
+              if (
+                !isCenter &&
+                !isPrev &&
+                !isNext &&
+                !isFarLeft &&
+                !isFarRight
+              ) {
+                return null;
+              }
+
+              let transformStyles = "";
+              let zIndex = 10;
+              let opacity = 1;
+
+              if (isCenter) {
+                transformStyles = "translate3d(0, 0, 0) scale(1) rotateY(0deg)";
+                zIndex = 30;
+                opacity = 1;
+              } else if (isPrev) {
+                transformStyles =
+                  "translate3d(-240px, 0, -120px) scale(0.88) rotateY(16deg)";
+                zIndex = 20;
+                opacity = 0.75;
+              } else if (isNext) {
+                transformStyles =
+                  "translate3d(240px, 0, -120px) scale(0.88) rotateY(-16deg)";
+                zIndex = 20;
+                opacity = 0.75;
+              } else if (isFarLeft) {
+                transformStyles =
+                  "translate3d(-420px, 0, -240px) scale(0.75) rotateY(24deg)";
+                zIndex = 10;
+                opacity = 0.35;
+              } else if (isFarRight) {
+                transformStyles =
+                  "translate3d(420px, 0, -240px) scale(0.75) rotateY(-24deg)";
+                zIndex = 10;
+                opacity = 0.35;
+              }
 
               return (
                 <div
                   key={combo.id}
-                  className={`transition-all duration-500 ease-in-out border rounded-[2rem] p-6 bg-white shadow-xl flex flex-col justify-between items-center text-center ${
+                  onClick={() => !isCenter && setActiveIndex(idx)}
+                  style={{
+                    transform: transformStyles,
+                    zIndex,
+                    opacity,
+                  }}
+                  className={cn(
+                    "absolute transition-all duration-600 ease-out border rounded-[2.2rem] p-5 sm:p-6 bg-white shadow-2xl flex flex-col justify-between items-center text-center select-none",
                     isCenter
-                      ? "z-20 scale-100 opacity-100 w-84 sm:w-100 md:w-110 border-[#D4EEFC] ring-4 ring-[#56C8D8]/20"
-                      : "z-10 scale-85 opacity-50 blur-[1px] hidden sm:flex w-72 border-gray-200"
-                  } ${
-                    isLeft ? "-translate-x-36 md:-translate-x-56" : ""
-                  } ${isRight ? "translate-x-36 md:translate-x-56" : ""}`}
+                      ? "w-[320px] sm:w-[380px] md:w-[420px] border-[#D4EEFC] ring-4 ring-[#56C8D8]/20 shadow-[#56C8D8]/15 cursor-default"
+                      : "w-[290px] sm:w-[340px] border-gray-200 cursor-pointer hover:opacity-90 flex",
+                  )}
                 >
-                  {/* Top Badge */}
-                  <div className="w-full flex items-center justify-between mb-4">
-                    <span className="bg-[#56C8D8] text-white text-xs font-black uppercase px-4 py-1.5 rounded-full tracking-wider">
-                      COMBO
-                    </span>
-                    <button className="text-gray-400 hover:text-red-500 transition-colors p-1">
-                      <Heart className="w-5 h-5" />
-                    </button>
-                  </div>
-
-                  {/* Combo Product Image */}
-                  <div className="relative w-full h-56 sm:h-64 rounded-2xl overflow-hidden bg-gray-50 border border-gray-100 mb-5 flex items-center justify-center">
-                    <Image
-                      src={combo.image}
-                      alt={combo.name}
-                      fill
-                      sizes="440px"
-                      className="object-contain p-3"
-                    />
-                  </div>
-
-                  {/* Title & Description */}
-                  <div className="space-y-2 mb-5">
-                    <h3 className="text-lg sm:text-xl font-black text-gray-900 line-clamp-1">
-                      {combo.name}
-                    </h3>
-                    <p className="text-xs sm:text-sm text-gray-500 font-bold line-clamp-2 leading-relaxed">
-                      {combo.description}
-                    </p>
-                  </div>
-
-                  {/* Pricing */}
-                  <div className="flex items-center justify-center gap-3 mb-5">
-                    {combo.originalPrice && (
-                      <span className="text-sm text-gray-400 font-bold line-through">
-                        {combo.originalPrice}
-                      </span>
-                    )}
-                    <span className="text-xl sm:text-2xl text-[#56C8D8] font-black">
-                      {combo.price}
-                    </span>
-                  </div>
-
-                  {/* CTA Button */}
-                  <Link href={`/product/${combo.id}`} className="w-full">
-                    <Button className="w-full bg-[#56C8D8] hover:bg-[#38bdf8] text-white font-black text-xs sm:text-sm uppercase tracking-wider rounded-2xl py-3.5 shadow-md cursor-pointer border-0">
-                      VIEW COMBO
-                    </Button>
-                  </Link>
+                  <ComboProductTileCard combo={combo} isCenter={isCenter} />
                 </div>
               );
             })}
@@ -184,32 +214,268 @@ export function ComboDeals() {
 
           {/* Right Navigation Arrow */}
           <Button
-            variant="ghost"
+            variant="outline"
             size="icon"
             onClick={nextSlide}
-            className="absolute right-2 sm:right-4 z-30 h-12 w-12 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 shadow-md flex items-center justify-center cursor-pointer"
+            className="absolute right-2 sm:right-4 z-30 h-12 w-12 rounded-full bg-white/95 backdrop-blur-md hover:bg-[#56C8D8] hover:text-white border-gray-200 text-gray-800 shadow-lg flex items-center justify-center cursor-pointer transition-all hover:scale-110"
             aria-label="Next combo"
           >
-            <ArrowRight className="w-6 h-6" />
+            <ArrowRight className="w-5 h-5" />
           </Button>
         </div>
 
         {/* Pagination Indicator Dots */}
-        <div className="flex justify-center items-center gap-2.5 mt-10">
-          {comboList.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => setActiveIndex(idx)}
-              className={`h-3 rounded-full transition-all cursor-pointer ${
-                idx === activeIndex
-                  ? "w-10 bg-[#56C8D8]"
-                  : "w-3 bg-gray-200 hover:bg-gray-300"
-              }`}
-              aria-label={`Go to slide ${idx + 1}`}
-            />
-          ))}
-        </div>
+        {combos.length > 1 && (
+          <div className="flex justify-center items-center gap-2 mt-8">
+            {combos.map((_, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => {
+                  setActiveIndex(idx);
+                  if (emblaMobileApi) emblaMobileApi.scrollTo(idx);
+                }}
+                className={cn(
+                  "h-2.5 rounded-full transition-all duration-300 cursor-pointer",
+                  idx === activeIndex
+                    ? "w-8 bg-[#56C8D8]"
+                    : "w-2.5 bg-gray-200 hover:bg-gray-300",
+                )}
+                aria-label={`Go to slide ${idx + 1}`}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
+  );
+}
+
+// 3D Tile Card for Desktop / Tablet
+function ComboProductTileCard({
+  combo,
+  isCenter,
+}: {
+  combo: StoreComboProduct;
+  isCenter: boolean;
+}) {
+  const [imageError, setImageError] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+
+  const handleWishlist = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const next = !isWishlisted;
+    setIsWishlisted(next);
+    if (next) {
+      toast.success(`Added ${combo.name} to Wishlist! ❤️`);
+    } else {
+      toast.info(`Removed from Wishlist`);
+    }
+  };
+
+  const comboSlug = combo.slug || combo.id;
+
+  return (
+    <div className="w-full h-full flex flex-col justify-between">
+      {/* Top Header Tags */}
+      <div className="w-full flex items-center justify-between gap-2 mb-3">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <Badge className="bg-[#56C8D8] hover:bg-[#56C8D8] text-white text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full tracking-wider shadow-2xs">
+            COMBO DEAL
+          </Badge>
+
+          {combo.discountPercent && combo.discountPercent > 0 && (
+            <Badge className="bg-rose-500 hover:bg-rose-500 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-full shadow-2xs gap-0.5">
+              <Flame className="h-3 w-3" />
+              {combo.discountPercent}% OFF
+            </Badge>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={handleWishlist}
+          className={cn(
+            "p-1.5 rounded-full bg-gray-50 hover:bg-rose-50 transition-colors cursor-pointer",
+            isWishlisted
+              ? "text-rose-500"
+              : "text-gray-400 hover:text-rose-500",
+          )}
+          aria-label="Add combo to wishlist"
+        >
+          <Heart
+            className={cn(
+              "w-4 h-4 sm:w-5 sm:h-5",
+              isWishlisted ? "fill-rose-500 text-rose-500" : "",
+            )}
+          />
+        </button>
+      </div>
+
+      {/* Combo Product Image */}
+      <div className="relative w-full h-44 sm:h-52 rounded-2xl overflow-hidden bg-radial from-[#F0F8FF] to-white border border-gray-100 mb-3.5 flex items-center justify-center shadow-inner group">
+        {!imageError && combo.image ? (
+          <Image
+            src={combo.image}
+            alt={combo.name}
+            fill
+            sizes="400px"
+            className="object-contain p-2 group-hover:scale-105 transition-transform duration-500"
+            onError={() => setImageError(true)}
+            unoptimized={combo.image.startsWith("data:")}
+          />
+        ) : (
+          <div className="flex flex-col items-center justify-center text-gray-300 p-4">
+            <Package className="w-12 h-12 stroke-1 mb-1 text-[#56C8D8]" />
+            <span className="text-xs font-bold text-gray-400">
+              Meawland Combo
+            </span>
+          </div>
+        )}
+
+        {/* Included Items Count Tag */}
+        <div className="absolute bottom-2 left-2">
+          <span className="inline-flex items-center gap-1 rounded-full bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 shadow-xs">
+            <Layers className="h-3 w-3 text-[#56C8D8]" />
+            {combo.itemsCount} Bundled Items
+          </span>
+        </div>
+      </div>
+
+      {/* Title & Description */}
+      <div className="space-y-1 mb-3 text-center">
+        <h3 className="text-sm sm:text-base md:text-lg font-black text-gray-900 line-clamp-1">
+          {combo.name}
+        </h3>
+        <p className="text-[11px] sm:text-xs text-gray-500 font-medium line-clamp-2 leading-relaxed">
+          {combo.description || "Premium bundled value deal for your pets."}
+        </p>
+      </div>
+
+      {/* Pricing Breakdown & Savings */}
+      <div className="bg-[#F0F8FF]/80 rounded-xl p-2 sm:p-2.5 border border-[#D4EEFC]/60 mb-3.5 flex items-center justify-between">
+        <div className="text-left">
+          <span className="text-[10px] font-bold text-gray-400 block uppercase">
+            Bundle Price
+          </span>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-base sm:text-xl text-[#56C8D8] font-black">
+              {combo.price}
+            </span>
+            {combo.originalPrice && (
+              <span className="text-xs text-gray-400 font-bold line-through">
+                {combo.originalPrice}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {combo.savingsAmount && combo.savingsAmount > 0 && (
+          <span className="inline-flex items-center gap-0.5 rounded-lg bg-emerald-500/10 text-emerald-600 text-[10px] sm:text-[11px] font-black px-2 py-1 border border-emerald-500/20">
+            <Sparkles className="h-3 w-3" />
+            Save ৳{combo.savingsAmount}
+          </span>
+        )}
+      </div>
+
+      {/* CTA Button */}
+      <Link href={`/product/${comboSlug}`} className="w-full">
+        <Button
+          className="w-full bg-[#56C8D8] hover:bg-[#38bdf8] text-white font-black text-xs sm:text-sm uppercase tracking-wider rounded-2xl py-3 shadow-md cursor-pointer border-0 transition-all hover:shadow-lg"
+          tabIndex={isCenter ? 0 : -1}
+        >
+          VIEW COMBO DEAL
+        </Button>
+      </Link>
+    </div>
+  );
+}
+
+// Mobile 2-in-a-Row Card Component
+function MobileComboProductCard({ combo }: { combo: StoreComboProduct }) {
+  const [imageError, setImageError] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+
+  const handleWishlist = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const next = !isWishlisted;
+    setIsWishlisted(next);
+    if (next) {
+      toast.success(`Added to Wishlist! ❤️`);
+    }
+  };
+
+  const comboSlug = combo.slug || combo.id;
+
+  return (
+    <Link
+      href={`/product/${comboSlug}`}
+      className="block h-full group select-none"
+    >
+      <div className="w-full h-full bg-[#F0F8FF] border border-[#D4EEFC] rounded-2xl p-2.5 flex flex-col justify-between items-center text-center shadow-xs hover:shadow-md transition-all cursor-pointer">
+        {/* Image Frame */}
+        <div className="relative w-full aspect-square rounded-xl bg-white p-2 border border-gray-100 flex items-center justify-center mb-2 overflow-hidden">
+          {!imageError && combo.image ? (
+            <Image
+              src={combo.image}
+              alt={combo.name}
+              fill
+              sizes="50vw"
+              className="object-contain p-1 group-hover:scale-105 transition-transform duration-300"
+              onError={() => setImageError(true)}
+              unoptimized={combo.image.startsWith("data:")}
+            />
+          ) : (
+            <Package className="w-8 h-8 text-gray-300 stroke-1" />
+          )}
+
+          {combo.discountPercent && combo.discountPercent > 0 && (
+            <span className="absolute top-1.5 left-1.5 inline-flex items-center gap-0.5 rounded-full bg-rose-500 text-white font-black text-[9px] px-1.5 py-0.2 uppercase">
+              <Flame className="h-2.5 w-2.5" />
+              {combo.discountPercent}%
+            </span>
+          )}
+
+          <button
+            type="button"
+            onClick={handleWishlist}
+            className="absolute top-1.5 right-1.5 p-1 rounded-full bg-white/90 shadow-2xs text-gray-400 hover:text-rose-500 cursor-pointer"
+          >
+            <Heart
+              className={cn(
+                "w-3.5 h-3.5",
+                isWishlisted ? "fill-rose-500 text-rose-500" : "",
+              )}
+            />
+          </button>
+        </div>
+
+        {/* Combo Title */}
+        <h3 className="text-xs font-black text-gray-900 line-clamp-2 min-h-8 mb-1 leading-snug">
+          {combo.name}
+        </h3>
+
+        {/* Pricing */}
+        <div className="flex items-center justify-center gap-1.5 mb-2">
+          {combo.originalPrice && (
+            <span className="text-[10px] text-gray-400 font-bold line-through">
+              {combo.originalPrice}
+            </span>
+          )}
+          <span className="text-xs font-black text-[#56C8D8]">
+            {combo.price}
+          </span>
+        </div>
+
+        {/* CTA */}
+        <div className="w-full mt-auto">
+          <div className="w-full bg-[#56C8D8] text-white font-black text-[10px] tracking-wider uppercase rounded-xl py-1.5 px-2 text-center shadow-2xs">
+            VIEW DEAL
+          </div>
+        </div>
+      </div>
+    </Link>
   );
 }
