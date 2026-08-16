@@ -33,9 +33,8 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { CategoryStoreProduct } from "@/actions/store/products/get-by-category";
-import type { MockProduct } from "@/lib/mock-products";
 
-export type ProductGridItem = CategoryStoreProduct | MockProduct;
+export type ProductGridItem = CategoryStoreProduct;
 
 type SortOption =
   "featured" | "price_asc" | "price_desc" | "name_asc" | "discount";
@@ -438,15 +437,24 @@ export function ProductGrid({
               We couldn&apos;t find any items matching your active search or
               filters. Try clearing your filters to explore more items.
             </p>
-            {hasActiveFilters && (
+            {hasActiveFilters ? (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={resetFilters}
-                className="mt-2 rounded-full font-bold border-[#56C8D8] text-[#56C8D8] hover:bg-[#56C8D8] hover:text-white"
+                className="mt-2 rounded-full font-bold border-[#56C8D8] text-[#56C8D8] hover:bg-[#56C8D8] hover:text-white cursor-pointer"
               >
                 Clear All Filters
               </Button>
+            ) : (
+              <Link href="/products">
+                <Button
+                  size="sm"
+                  className="mt-2 rounded-full font-bold bg-[#56C8D8] hover:bg-[#38bdf8] text-white border-0 cursor-pointer shadow-xs"
+                >
+                  Explore All Products
+                </Button>
+              </Link>
             )}
           </div>
         ) : viewMode === "GRID" ? (

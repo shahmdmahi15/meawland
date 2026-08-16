@@ -5,6 +5,15 @@ export const metadata: Metadata = {
   title: "Privacy Policy | Meawland",
   description:
     "Learn how Meawland collects, protects, and handles your personal information with full transparency and top security standards.",
+  alternates: {
+    canonical: "/privacy",
+  },
+  openGraph: {
+    title: "Privacy Policy | Meawland",
+    description:
+      "Learn how Meawland collects, protects, and handles your personal information with full transparency and top security standards.",
+    url: "/privacy",
+  },
 };
 
 export default function PrivacyPage() {

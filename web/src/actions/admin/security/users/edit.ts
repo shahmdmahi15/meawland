@@ -31,6 +31,8 @@ export async function editUserAction(id: string, input: UserEditInput) {
     });
 
     revalidatePath("/admin/security/users");
+    revalidatePath(`/admin/security/users/${user.code}`);
+    revalidatePath("/admin");
 
     return {
       success: true,

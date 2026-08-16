@@ -16,8 +16,72 @@ const chewy = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Meawland - Pet Accessories & E-Commerce",
-  description: "A pet accessory e-commerce website.",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL || "https://meawland.com",
+  ),
+  title: {
+    default:
+      "Meawland | The Ultimate Pet Care & Accessories Store in Bangladesh",
+    template: "%s | Meawland",
+  },
+  description:
+    "Shop authentic feline & canine nutrition, gentle grooming care, anti-fungal medicine, handcrafted dresses, collars, and engaging toys with fast nationwide delivery in Bangladesh.",
+  keywords: [
+    "pet store Bangladesh",
+    "cat food Dhaka",
+    "cat accessories",
+    "kitten nutrition",
+    "pet medicine",
+    "cat grooming shampoo",
+    "cat litter sand",
+    "royal cat dress",
+    "pet toys",
+    "Meawland",
+  ],
+  authors: [{ name: "Meawland Pet Care" }],
+  creator: "Meawland",
+  publisher: "Meawland",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_BD",
+    url: "/",
+    siteName: "Meawland",
+    title: "Meawland | The Ultimate Pet Care & Accessories Store in Bangladesh",
+    description:
+      "Shop 100% genuine pet food, grooming care, anti-fungal medicine, dresses, and toys with fast nationwide delivery.",
+    images: [
+      {
+        url: "/og-banner.png",
+        width: 1200,
+        height: 630,
+        alt: "Meawland - The Ultimate Pet Store",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Meawland | The Ultimate Pet Care & Accessories Store",
+    description:
+      "Shop 100% genuine pet food, grooming care, dresses, and toys with fast nationwide delivery in Bangladesh.",
+    images: ["/og-banner.png"],
+    creator: "@meawland",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
 
 export default function EntryLayout({

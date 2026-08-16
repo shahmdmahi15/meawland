@@ -82,8 +82,14 @@ export async function createSubCategoryAction(
       },
     });
 
-    // Revalidate the sub-categories page
+    // Revalidate paths for admin and store
     revalidatePath("/admin/management/store/sub-categories");
+    revalidatePath("/admin/management/inventory/new-product");
+    revalidatePath("/admin/management/inventory/all-products");
+    revalidatePath("/admin/management/inventory");
+    revalidatePath("/");
+    revalidatePath("/products");
+    revalidatePath("/category", "layout");
 
     return {
       success: true,

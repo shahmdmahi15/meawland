@@ -68,8 +68,9 @@ export async function createSliderAction(input: CreateSliderInput): Promise<{
       },
     });
 
-    // Revalidate the sliders page
+    // Revalidate paths for admin and homepage
     revalidatePath("/admin/management/store/sliders");
+    revalidatePath("/");
 
     return {
       success: true,

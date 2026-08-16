@@ -16,6 +16,15 @@ export const metadata: Metadata = {
   title: "Returns & Refund Policy | Meawland",
   description:
     "Review Meawland's 7-Day hassle-free return, replacement, and refund policy for all pet food, grooming care, clothing, and accessories.",
+  alternates: {
+    canonical: "/returns",
+  },
+  openGraph: {
+    title: "Returns & Refund Policy | Meawland",
+    description:
+      "Review Meawland's 7-Day hassle-free return, replacement, and refund policy for all pet food, grooming care, clothing, and accessories.",
+    url: "/returns",
+  },
 };
 
 const STEPS = [

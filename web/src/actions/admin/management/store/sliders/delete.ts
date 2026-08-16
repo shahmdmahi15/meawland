@@ -40,8 +40,9 @@ export async function deleteSliderAction(sliderId: string): Promise<{
       where: { id: sliderId },
     });
 
-    // Revalidate the sliders page
+    // Revalidate paths for admin and homepage
     revalidatePath("/admin/management/store/sliders");
+    revalidatePath("/");
 
     return {
       success: true,

@@ -249,10 +249,16 @@ export async function createProductAction(input: CreateProductInput): Promise<{
       return createdProduct;
     });
 
-    // 6. Revalidate paths
+    // 6. Revalidate paths for admin and storefront
     revalidatePath("/admin/management/inventory");
     revalidatePath("/admin/management/inventory/new-product");
     revalidatePath("/admin/management/inventory/all-products");
+    revalidatePath("/admin/management/inventory/modify-stock");
+    revalidatePath("/admin/management/inventory/combo-products");
+    revalidatePath("/");
+    revalidatePath("/products");
+    revalidatePath("/category", "layout");
+    revalidatePath("/product", "layout");
 
     return {
       success: true,

@@ -531,6 +531,10 @@ export async function createComboProductAction(
 
     revalidatePath("/admin/management/inventory/combo-products");
     revalidatePath("/admin/management/inventory/all-products");
+    revalidatePath("/admin/management/inventory");
+    revalidatePath("/");
+    revalidatePath("/products");
+    revalidatePath("/product", "layout");
 
     return {
       success: true,
@@ -569,6 +573,11 @@ export async function deleteComboProductAction(comboId: string): Promise<{
     });
 
     revalidatePath("/admin/management/inventory/combo-products");
+    revalidatePath("/admin/management/inventory/all-products");
+    revalidatePath("/admin/management/inventory");
+    revalidatePath("/");
+    revalidatePath("/products");
+    revalidatePath("/product", "layout");
 
     return {
       success: true,
@@ -737,6 +746,11 @@ export async function updateComboProductAction(
     });
 
     revalidatePath("/admin/management/inventory/combo-products");
+    revalidatePath("/admin/management/inventory/all-products");
+    revalidatePath("/admin/management/inventory");
+    revalidatePath("/");
+    revalidatePath("/products");
+    revalidatePath("/product", "layout");
 
     return {
       success: true,

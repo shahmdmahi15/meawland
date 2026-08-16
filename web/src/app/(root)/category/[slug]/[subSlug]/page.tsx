@@ -1,7 +1,6 @@
 import { Metadata } from "next";
 import { getProductsByCategoryAction } from "@/actions/store/products/get-by-category";
 import { getSubCategoriesByCategoryAction } from "@/actions/store/sub-categories/get-by-category";
-import { getMockProducts } from "@/lib/mock-products";
 import { formatCategorySlugToTitle } from "@/lib/category-helpers";
 import { CategoryHeader } from "@/components/root/store/category-header";
 import { SubCategoryPills } from "@/components/root/store/sub-category-pills";
@@ -26,6 +25,14 @@ export async function generateMetadata({
   return {
     title: `${subCategoryTitle} - ${categoryTitle} | Meawland`,
     description: `Shop the finest ${subCategoryTitle.toLowerCase()} under ${categoryTitle} with premium quality and best prices at Meawland.`,
+    alternates: {
+      canonical: `/category/${slug}/${subSlug}`,
+    },
+    openGraph: {
+      title: `${subCategoryTitle} - ${categoryTitle} | Meawland`,
+      description: `Shop the finest ${subCategoryTitle.toLowerCase()} under ${categoryTitle} with premium quality and best prices at Meawland.`,
+      url: `/category/${slug}/${subSlug}`,
+    },
   };
 }
 
@@ -46,17 +53,13 @@ export default async function SubCategoryPage({
   const subCategoryTitle =
     productsRes.subCategoryTitle ?? formatCategorySlugToTitle(subSlug);
 
-  // Use real DB products if available, fallback to mock products if 0 items in DB yet
-  const displayProducts =
-    realProducts.length > 0 ? realProducts : getMockProducts(slug, subSlug);
-
   return (
     <main className="min-h-screen bg-white pb-20">
       {/* Sub-Category Header Banner */}
       <CategoryHeader
         title={subCategoryTitle}
         subtitle={`Explore our hand-picked selection of ${subCategoryTitle.toLowerCase()} under ${categoryTitle}.`}
-        totalProducts={displayProducts.length}
+        totalProducts={realProducts.length}
         parentCategory={{
           title: categoryTitle,
           slug,
@@ -74,7 +77,7 @@ export default async function SubCategoryPage({
 
       {/* Real DB Products Grid & Interactive Explorer */}
       <ProductGrid
-        products={displayProducts}
+        products={realProducts}
         categoryTitle={subCategoryTitle}
         emptyMessage={`No products found under ${subCategoryTitle}.`}
       />

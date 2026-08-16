@@ -450,6 +450,11 @@ export async function modifyStockAction(data: ModifyStockInput): Promise<{
     revalidatePath("/admin/management/inventory/modify-stock");
     revalidatePath("/admin/management/inventory/all-products");
     revalidatePath("/admin/management/inventory");
+    revalidatePath("/admin/management/inventory/combo-products");
+    revalidatePath("/");
+    revalidatePath("/products");
+    revalidatePath("/category", "layout");
+    revalidatePath("/product", "layout");
 
     return {
       success: true,

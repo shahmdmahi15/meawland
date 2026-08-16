@@ -5,6 +5,15 @@ export const metadata: Metadata = {
   title: "Frequently Asked Questions | Meawland Pet Store",
   description:
     "Find fast answers to common questions about orders, payments, delivery timelines, product sizing, and 7-day returns at Meawland.",
+  alternates: {
+    canonical: "/faq",
+  },
+  openGraph: {
+    title: "Frequently Asked Questions | Meawland Pet Store",
+    description:
+      "Find fast answers to common questions about orders, payments, delivery timelines, product sizing, and 7-day returns at Meawland.",
+    url: "/faq",
+  },
 };
 
 export default function FAQPage() {

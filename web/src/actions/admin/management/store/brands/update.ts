@@ -96,6 +96,11 @@ export async function updateBrandAction(input: UpdateBrandInput): Promise<{
     }
 
     revalidatePath("/admin/management/store/brands");
+    revalidatePath("/admin/management/inventory/new-product");
+    revalidatePath("/admin/management/inventory/all-products");
+    revalidatePath("/admin/management/inventory");
+    revalidatePath("/");
+    revalidatePath("/products");
 
     return {
       success: true,

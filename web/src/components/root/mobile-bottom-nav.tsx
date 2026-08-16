@@ -29,7 +29,7 @@ export function MobileBottomNav({ user }: { user: NavbarAccount | null }) {
 
   const navItems = [
     { label: "Home", href: "/", icon: Home },
-    { label: "Search", href: "/search", icon: Search },
+    { label: "Search", href: "/products", icon: Search },
     { label: "Wishlist", href: "/wishlist", icon: Heart },
     { label: "Cart", href: "/cart", icon: ShoppingCart },
     user

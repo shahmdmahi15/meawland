@@ -17,6 +17,15 @@ export const metadata: Metadata = {
   title: "About Us | Meawland - Dedicated Pet Wellness & Essentials",
   description:
     "Learn about Meawland's journey to bring 100% genuine pet food, soothing grooming care, and handcrafted fashion to pet lovers across Bangladesh.",
+  alternates: {
+    canonical: "/about",
+  },
+  openGraph: {
+    title: "About Us | Meawland - Dedicated Pet Wellness & Essentials",
+    description:
+      "Learn about Meawland's journey to bring 100% genuine pet food, soothing grooming care, and handcrafted fashion to pet lovers across Bangladesh.",
+    url: "/about",
+  },
 };
 
 const VALUES = [

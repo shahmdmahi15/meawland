@@ -4,6 +4,10 @@ export const metadata: Metadata = {
   title: "My Account — Dashboard | Meawland",
   description:
     "Manage your Meawland account — view orders, track shipments, get support, and update your settings.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 // Mock stats — replace with real data when wired up

@@ -53,8 +53,13 @@ export async function deleteBrandAction(brandId: string): Promise<{
       where: { id: brandId },
     });
 
-    // Revalidate the brands page
+    // Revalidate paths for admin and store
     revalidatePath("/admin/management/store/brands");
+    revalidatePath("/admin/management/inventory/new-product");
+    revalidatePath("/admin/management/inventory/all-products");
+    revalidatePath("/admin/management/inventory");
+    revalidatePath("/");
+    revalidatePath("/products");
 
     return {
       success: true,

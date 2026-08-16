@@ -6,6 +6,15 @@ export const metadata: Metadata = {
   title: "Terms & Conditions | Meawland",
   description:
     "Read Meawland's Terms and Conditions regarding store purchases, nationwide deliveries, returns, warranties, and account policies.",
+  alternates: {
+    canonical: "/terms",
+  },
+  openGraph: {
+    title: "Terms & Conditions | Meawland",
+    description:
+      "Read Meawland's Terms and Conditions regarding store purchases, nationwide deliveries, returns, warranties, and account policies.",
+    url: "/terms",
+  },
 };
 
 export default function TermsPage() {

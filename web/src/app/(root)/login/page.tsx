@@ -1,6 +1,19 @@
 import Image from "next/image";
-
+import type { Metadata } from "next";
 import { LoginForm } from "@/components/root/login/login-form";
+
+export const metadata: Metadata = {
+  title: "Account Login & Sign Up | Meawland",
+  description:
+    "Log into your Meawland account with secure instant OTP or Google login to manage your pet orders, addresses, and wishlist.",
+  alternates: {
+    canonical: "/login",
+  },
+  robots: {
+    index: false,
+    follow: true,
+  },
+};
 
 export default function LoginPage() {
   return (

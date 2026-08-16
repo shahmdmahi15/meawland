@@ -14,7 +14,23 @@ import { getProductsByBrandSlugAction } from "@/actions/store/products/get-by-br
 import { getStoreComboProductsAction } from "@/actions/store/combo-products/get-all";
 import { getStoreReviewsAction } from "@/actions/store/reviews/get-all";
 import { getBestsellerProductsAction } from "@/actions/store/products/get-bestsellers";
+import type { Metadata } from "next";
 import { getProductsByPurposeAction } from "@/actions/store/products/get-by-purpose";
+
+export const metadata: Metadata = {
+  title: "Meawland | Premium Pet Care, Food, Toys & Royal Accessories",
+  description:
+    "Explore Bangladesh's #1 trusted pet shop for veterinary-grade kitten & cat food, anti-fungal hygiene, royal dresses, and engaging toys with doorstep delivery.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "Meawland | Premium Pet Care, Food, Toys & Royal Accessories",
+    description:
+      "Explore Bangladesh's #1 trusted pet shop for veterinary-grade kitten & cat food, anti-fungal hygiene, royal dresses, and engaging toys with doorstep delivery.",
+    url: "/",
+  },
+};
 
 export const dynamic = "force-dynamic";
 

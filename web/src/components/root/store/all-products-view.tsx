@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -50,18 +50,55 @@ type SortOption =
   | "NAME_DESC"
   | "DISCOUNT_DESC";
 
+import { useSearchParams } from "next/navigation";
+
 interface AllProductsViewProps {
   initialProducts: FilterableStoreProduct[];
   filterMeta: StoreFilterMeta;
+  initialSearchQuery?: string;
+  initialCategory?: string;
 }
 
 export function AllProductsView({
   initialProducts,
   filterMeta,
+  initialSearchQuery = "",
+  initialCategory = "ALL",
 }: AllProductsViewProps) {
+  const searchParams = useSearchParams();
+  const urlQ = searchParams?.get("q") || searchParams?.get("search") || "";
+  const urlCategory = searchParams?.get("category") || "";
+
   // Filter States
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
+  const [searchQuery, setSearchQuery] = useState(initialSearchQuery || urlQ);
+  const [selectedCategory, setSelectedCategory] = useState<string>(
+    initialCategory !== "ALL" ? initialCategory : urlCategory || "ALL",
+  );
+
+  useEffect(() => {
+    if (urlQ) {
+      setSearchQuery(urlQ);
+    }
+  }, [urlQ]);
+
+  useEffect(() => {
+    if (urlCategory) {
+      setSelectedCategory(urlCategory);
+    }
+  }, [urlCategory]);
+
+  useEffect(() => {
+    if (initialSearchQuery) {
+      setSearchQuery(initialSearchQuery);
+    }
+  }, [initialSearchQuery]);
+
+  useEffect(() => {
+    if (initialCategory && initialCategory !== "ALL") {
+      setSelectedCategory(initialCategory);
+    }
+  }, [initialCategory]);
+
   const [selectedSubCategories, setSelectedSubCategories] = useState<string[]>(
     [],
   );
@@ -136,24 +173,31 @@ export function AllProductsView({
   // Filtering Logic
   const filteredProducts = useMemo(() => {
     return initialProducts.filter((product) => {
-      // 1. Search Query
+      // 1. Search Query (Super robust & tokenized across all fields)
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase().trim();
-        const matchesName = product.name.toLowerCase().includes(query);
-        const matchesSku = product.sku.toLowerCase().includes(query);
-        const matchesCode = product.code.toLowerCase().includes(query);
-        const matchesBrand =
-          product.brandName?.toLowerCase().includes(query) ?? false;
-        const matchesSubCat =
-          product.subCategoryName?.toLowerCase().includes(query) ?? false;
+        const tokens = query.split(/\s+/).filter(Boolean);
 
-        if (
-          !matchesName &&
-          !matchesSku &&
-          !matchesCode &&
-          !matchesBrand &&
-          !matchesSubCat
-        ) {
+        const targetFields = [
+          product.name,
+          product.sku,
+          product.code,
+          product.brandName,
+          product.subCategoryName,
+          product.categoryName,
+          product.shortDescription,
+          product.slug,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+
+        const matchesQuery = targetFields.includes(query);
+        const matchesTokens =
+          tokens.length > 0 &&
+          tokens.every((token) => targetFields.includes(token));
+
+        if (!matchesQuery && !matchesTokens) {
           return false;
         }
       }
