@@ -3,6 +3,11 @@
 import db from "@/lib/db";
 import { getImageBase64 } from "@/lib/storage";
 import { Category } from "@/generated/prisma/enums";
+import {
+  getActiveCampaigns,
+  matchProductCampaign,
+  type ProductCampaignBadge,
+} from "@/lib/campaign-helper";
 
 export type FilterableStoreProduct = {
   id: string;
@@ -16,6 +21,7 @@ export type FilterableStoreProduct = {
   numericPrice: number;
   numericOriginalPrice?: number;
   discountPercent?: number;
+  campaignBadge?: ProductCampaignBadge | null;
   image: string;
   isVariable: boolean;
   stock: number;
@@ -121,32 +127,34 @@ export async function getAllStoreProductsAction(): Promise<{
   meta: StoreFilterMeta;
 }> {
   try {
-    const [dbProducts, dbSubCategories, dbBrands] = await Promise.all([
-      db.product.findMany({
-        include: {
-          subCategory: true,
-          brand: true,
-          variants: {
-            orderBy: {
-              createdAt: "asc",
+    const [dbProducts, dbSubCategories, dbBrands, activeCampaigns] =
+      await Promise.all([
+        db.product.findMany({
+          include: {
+            subCategory: true,
+            brand: true,
+            variants: {
+              orderBy: {
+                createdAt: "asc",
+              },
             },
           },
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      }),
-      db.subCategory.findMany({
-        orderBy: {
-          name: "asc",
-        },
-      }),
-      db.brand.findMany({
-        orderBy: {
-          name: "asc",
-        },
-      }),
-    ]);
+          orderBy: {
+            createdAt: "desc",
+          },
+        }),
+        db.subCategory.findMany({
+          orderBy: {
+            name: "asc",
+          },
+        }),
+        db.brand.findMany({
+          orderBy: {
+            name: "asc",
+          },
+        }),
+        getActiveCampaigns(),
+      ]);
 
     let minPrice = Infinity;
     let maxPrice = 0;
@@ -210,6 +218,12 @@ export async function getAllStoreProductsAction(): Promise<{
 
         const catEnum = p.subCategory?.category as Category | undefined;
 
+        const campaignBadge = matchProductCampaign(
+          p.id,
+          p.variants.map((v) => v.id),
+          activeCampaigns,
+        );
+
         return {
           id: p.id,
           name: p.name,
@@ -222,6 +236,7 @@ export async function getAllStoreProductsAction(): Promise<{
           numericPrice,
           numericOriginalPrice,
           discountPercent,
+          campaignBadge,
           image: base64Image,
           isVariable: p.isVariable,
           stock,

@@ -2,6 +2,11 @@
 
 import db from "@/lib/db";
 import { getImageBase64 } from "@/lib/storage";
+import {
+  getActiveCampaigns,
+  matchComboCampaign,
+  type ProductCampaignBadge,
+} from "@/lib/campaign-helper";
 
 export type StoreComboProduct = {
   id: string;
@@ -15,6 +20,7 @@ export type StoreComboProduct = {
   numericOriginalPrice?: number;
   discountPercent?: number;
   savingsAmount?: number;
+  campaignBadge?: ProductCampaignBadge | null;
   image: string;
   bundleStockCapacity: number;
   isAvailable: boolean;
@@ -49,40 +55,43 @@ export async function getStoreComboProductsAction(): Promise<{
   combos: StoreComboProduct[];
 }> {
   try {
-    const dbCombos = await db.comboProduct.findMany({
-      include: {
-        products: {
-          select: {
-            id: true,
-            name: true,
-            code: true,
-            stock: true,
-            regularPrice: true,
-            salePrice: true,
-            image: true,
-            isVariable: true,
+    const [dbCombos, activeCampaigns] = await Promise.all([
+      db.comboProduct.findMany({
+        include: {
+          products: {
+            select: {
+              id: true,
+              name: true,
+              code: true,
+              stock: true,
+              regularPrice: true,
+              salePrice: true,
+              image: true,
+              isVariable: true,
+            },
           },
-        },
-        variants: {
-          select: {
-            id: true,
-            sku: true,
-            stock: true,
-            image: true,
-            regularPrice: true,
-            salePrice: true,
-            product: {
-              select: {
-                name: true,
+          variants: {
+            select: {
+              id: true,
+              sku: true,
+              stock: true,
+              image: true,
+              regularPrice: true,
+              salePrice: true,
+              product: {
+                select: {
+                  name: true,
+                },
               },
             },
           },
         },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+      getActiveCampaigns(),
+    ]);
 
     if (dbCombos.length === 0) {
       return {
@@ -154,6 +163,8 @@ export async function getStoreComboProductsAction(): Promise<{
           })),
         ];
 
+        const campaignBadge = matchComboCampaign(combo.id, activeCampaigns);
+
         return {
           id: combo.id,
           name: combo.name,
@@ -170,6 +181,7 @@ export async function getStoreComboProductsAction(): Promise<{
             totalOriginalPriceNum > 0 ? totalOriginalPriceNum : undefined,
           discountPercent,
           savingsAmount,
+          campaignBadge,
           image: comboImage,
           bundleStockCapacity,
           isAvailable,

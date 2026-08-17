@@ -2,6 +2,11 @@
 
 import db from "@/lib/db";
 import { getImageBase64 } from "@/lib/storage";
+import {
+  getActiveCampaigns,
+  matchProductCampaign,
+  type ProductCampaignBadge,
+} from "@/lib/campaign-helper";
 
 export type PurposeCategoryTab =
   "ALL" | "FASHION" | "ACCESSORIES" | "CARE" | "FOOD" | "TOYS";
@@ -17,6 +22,7 @@ export type StorePurposeProduct = {
   numericPrice: number;
   numericOriginalPrice?: number;
   discountPercent?: number;
+  campaignBadge?: ProductCampaignBadge | null;
   image: string;
   isVariable: boolean;
   stock: number;
@@ -91,21 +97,24 @@ export async function getProductsByPurposeAction(): Promise<{
   products: StorePurposeProduct[];
 }> {
   try {
-    const dbProducts = await db.product.findMany({
-      take: 24,
-      include: {
-        subCategory: true,
-        brand: true,
-        variants: {
-          orderBy: {
-            createdAt: "asc",
+    const [dbProducts, activeCampaigns] = await Promise.all([
+      db.product.findMany({
+        take: 24,
+        include: {
+          subCategory: true,
+          brand: true,
+          variants: {
+            orderBy: {
+              createdAt: "asc",
+            },
           },
         },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+      getActiveCampaigns(),
+    ]);
 
     if (dbProducts.length === 0) {
       return {
@@ -174,6 +183,12 @@ export async function getProductsByPurposeAction(): Promise<{
           p.subCategory?.name,
         );
 
+        const campaignBadge = matchProductCampaign(
+          p.id,
+          p.variants.map((v) => v.id),
+          activeCampaigns,
+        );
+
         return {
           id: p.id,
           name: p.name,
@@ -185,6 +200,7 @@ export async function getProductsByPurposeAction(): Promise<{
           numericPrice,
           numericOriginalPrice,
           discountPercent,
+          campaignBadge,
           image: base64Image,
           isVariable: p.isVariable,
           stock,

@@ -47,6 +47,12 @@ enum StockEventType {
   DECREASE
 }
 
+enum DiscountType {
+  FIXED
+  PERCENTAGE
+  FREE_DELIVERY
+}
+
 model User {
   // Primary Key
   id String @id @default(cuid())
@@ -69,6 +75,7 @@ model User {
 
   // Child Relations
   sessions Session[]
+  coupons  Coupon[]
 
   // Timestamps
   otpExpiresAt DateTime?
@@ -202,6 +209,8 @@ model Product {
   variants      Variant[]
   stockEvents   StockEvent[]
   comboProducts ComboProduct[]
+  coupons       Coupon[]
+  campaign      Campaign[]
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -232,6 +241,8 @@ model Variant {
   attributes    Attribute[]
   stockEvents   StockEvent[]
   comboProducts ComboProduct[]
+  coupons       Coupon[]
+  campaign      Campaign[]
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -314,10 +325,81 @@ model ComboProduct {
   // Parent Relations
   products Product[]
   variants Variant[]
+  coupons  Coupon[]
+  campaign Campaign[]
 
   // Child Relations
 
   // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes and Constraints
+}
+
+model Coupon {
+  // Primary Key
+  id String @id @default(cuid())
+
+  // Fields
+  name               String
+  couponCode         String       @unique
+  discount           String?
+  discountType       DiscountType
+  minOrder           String?
+  maxOrder           String?
+  maxRedemptions     Int?
+  minPurchaseAmount  String?
+  currentRedemptions Int          @default(0)
+  forAllUsers        Boolean      @default(false)
+  forAllProducts     Boolean      @default(false)
+  forAllCombos       Boolean      @default(false)
+
+  // Forign Keys
+
+  // Parent Relations
+  users         User[]
+  products      Product[]
+  variants      Variant[]
+  comboProducts ComboProduct[]
+
+  // Child Relations
+
+  // Timestamps
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes and Constraints
+}
+
+model Campaign {
+  // Primary Key
+  id String @id @default(cuid())
+
+  // Fields
+  name               String
+  description        String
+  banner             String
+  discount           String?
+  discountType       DiscountType
+  minPurchaseAmount  String?
+  maxRedemptions     Int?
+  currentRedemptions Int          @default(0)
+  forAllProducts     Boolean      @default(false)
+  forAllCombos       Boolean      @default(false)
+
+  // Forign Keys
+
+  // Parent Relations
+
+  // Child Relations
+  products      Product[]
+  variants      Variant[]
+  comboProducts ComboProduct[]
+
+  // Timestamps
+  endsAt    DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

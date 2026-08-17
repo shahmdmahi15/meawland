@@ -531,14 +531,24 @@ function ProductGridCard({ product }: { product: ProductGridItem }) {
             </div>
           )}
 
-          {/* Badges Stack (Discount & Variable) */}
-          <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 z-10">
-            {hasDiscount && discountPercent > 0 && (
-              <span className="inline-flex items-center gap-0.5 rounded-full bg-rose-500 text-white font-black text-[10px] px-2 py-0.5 shadow-xs uppercase tracking-wider">
-                <Flame className="h-3 w-3" />
-                {discountPercent}% OFF
+          {/* Badges Stack (Campaign, Discount & Variable) */}
+          <div className="absolute top-2.5 left-2.5 flex flex-col items-start gap-1 z-10">
+            {"campaignBadge" in product && product.campaignBadge && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white font-extrabold text-[9px] sm:text-[10px] px-2.5 py-0.5 shadow-xs uppercase tracking-wider">
+                <Sparkles className="h-3 w-3 shrink-0" />
+                <span className="truncate max-w-[140px]">
+                  {product.campaignBadge.badgeText}
+                </span>
               </span>
             )}
+            {hasDiscount &&
+              discountPercent > 0 &&
+              !("campaignBadge" in product && product.campaignBadge) && (
+                <span className="inline-flex items-center gap-0.5 rounded-full bg-rose-500 text-white font-black text-[10px] px-2 py-0.5 shadow-xs uppercase tracking-wider">
+                  <Flame className="h-3 w-3" />
+                  {discountPercent}% OFF
+                </span>
+              )}
             {"isVariable" in product && product.isVariable && (
               <span className="inline-flex items-center gap-1 rounded-full bg-slate-900/80 backdrop-blur-xs text-white font-bold text-[9px] px-2 py-0.5 shadow-xs">
                 <Layers3 className="h-2.5 w-2.5" />
@@ -662,11 +672,16 @@ function ProductListCard({ product }: { product: ProductGridItem }) {
             <Package className="w-8 h-8 text-gray-300" />
           )}
 
-          {hasDiscount && (
+          {"campaignBadge" in product && product.campaignBadge ? (
+            <span className="absolute top-2 left-2 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white font-extrabold text-[8px] sm:text-[9px] px-2 py-0.5 shadow-xs uppercase flex items-center gap-0.5">
+              <Sparkles className="h-2.5 w-2.5" />
+              {product.campaignBadge.badgeText}
+            </span>
+          ) : hasDiscount ? (
             <span className="absolute top-2 left-2 rounded-full bg-rose-500 text-white font-black text-[9px] px-1.5 py-0.2 shadow-xs uppercase">
               {discountPercent}% OFF
             </span>
-          )}
+          ) : null}
         </div>
 
         {/* Product Info */}

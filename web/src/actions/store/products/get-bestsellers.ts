@@ -2,6 +2,11 @@
 
 import db from "@/lib/db";
 import { getImageBase64 } from "@/lib/storage";
+import {
+  getActiveCampaigns,
+  matchProductCampaign,
+  type ProductCampaignBadge,
+} from "@/lib/campaign-helper";
 
 export type StoreBestsellerProduct = {
   id: string;
@@ -14,6 +19,7 @@ export type StoreBestsellerProduct = {
   numericPrice: number;
   numericOriginalPrice?: number;
   discountPercent?: number;
+  campaignBadge?: ProductCampaignBadge | null;
   image: string;
   isVariable: boolean;
   stock: number;
@@ -44,22 +50,25 @@ export async function getBestsellerProductsAction(): Promise<{
   products: StoreBestsellerProduct[];
 }> {
   try {
-    // 1. Fetch available products from DB
-    const dbProducts = await db.product.findMany({
-      take: 12,
-      include: {
-        subCategory: true,
-        brand: true,
-        variants: {
-          orderBy: {
-            createdAt: "asc",
+    // 1. Fetch available products and active campaigns from DB
+    const [dbProducts, activeCampaigns] = await Promise.all([
+      db.product.findMany({
+        take: 12,
+        include: {
+          subCategory: true,
+          brand: true,
+          variants: {
+            orderBy: {
+              createdAt: "asc",
+            },
           },
         },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+      getActiveCampaigns(),
+    ]);
 
     if (dbProducts.length === 0) {
       return {
@@ -125,6 +134,12 @@ export async function getBestsellerProductsAction(): Promise<{
           ? p.variants.reduce((acc, v) => acc + (v.stock || 0), 0)
           : (p.stock ?? 0);
 
+        const campaignBadge = matchProductCampaign(
+          p.id,
+          p.variants.map((v) => v.id),
+          activeCampaigns,
+        );
+
         return {
           id: p.id,
           name: p.name,
@@ -136,6 +151,7 @@ export async function getBestsellerProductsAction(): Promise<{
           numericPrice,
           numericOriginalPrice,
           discountPercent,
+          campaignBadge,
           image: base64Image,
           isVariable: p.isVariable,
           stock,

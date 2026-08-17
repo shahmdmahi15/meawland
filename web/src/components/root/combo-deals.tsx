@@ -285,12 +285,21 @@ function ComboProductTileCard({
             COMBO DEAL
           </Badge>
 
-          {combo.discountPercent && combo.discountPercent > 0 && (
-            <Badge className="bg-rose-500 hover:bg-rose-500 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-full shadow-2xs gap-0.5">
-              <Flame className="h-3 w-3" />
-              {combo.discountPercent}% OFF
+          {combo.campaignBadge && (
+            <Badge className="bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full shadow-2xs gap-1">
+              <Sparkles className="h-3 w-3" />
+              {combo.campaignBadge.badgeText}
             </Badge>
           )}
+
+          {combo.discountPercent &&
+            combo.discountPercent > 0 &&
+            !combo.campaignBadge && (
+              <Badge className="bg-rose-500 hover:bg-rose-500 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-full shadow-2xs gap-0.5">
+                <Flame className="h-3 w-3" />
+                {combo.discountPercent}% OFF
+              </Badge>
+            )}
         </div>
 
         <button
@@ -431,12 +440,17 @@ function MobileComboProductCard({ combo }: { combo: StoreComboProduct }) {
             <Package className="w-8 h-8 text-gray-300 stroke-1" />
           )}
 
-          {combo.discountPercent && combo.discountPercent > 0 && (
+          {combo.campaignBadge ? (
+            <span className="absolute top-1.5 left-1.5 inline-flex items-center gap-0.5 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white font-extrabold text-[8px] px-1.5 py-0.2 uppercase shadow-xs">
+              <Sparkles className="h-2 w-2" />
+              {combo.campaignBadge.badgeText}
+            </span>
+          ) : combo.discountPercent && combo.discountPercent > 0 ? (
             <span className="absolute top-1.5 left-1.5 inline-flex items-center gap-0.5 rounded-full bg-rose-500 text-white font-black text-[9px] px-1.5 py-0.2 uppercase">
               <Flame className="h-2.5 w-2.5" />
               {combo.discountPercent}%
             </span>
-          )}
+          ) : null}
 
           <button
             type="button"

@@ -1008,13 +1008,23 @@ function StoreProductCard({ item }: { item: FilterableStoreProduct }) {
           )}
 
           {/* Badges */}
-          <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 z-10">
-            {item.discountPercent && item.discountPercent > 0 && (
-              <span className="inline-flex items-center gap-0.5 rounded-full bg-rose-500 text-white font-black text-[10px] px-2 py-0.5 shadow-xs uppercase tracking-wider">
-                <Flame className="h-3 w-3" />
-                {item.discountPercent}% OFF
+          <div className="absolute top-2.5 left-2.5 flex flex-col items-start gap-1 z-10">
+            {item.campaignBadge && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white font-extrabold text-[9px] sm:text-[10px] px-2.5 py-0.5 shadow-xs uppercase tracking-wider">
+                <Sparkles className="h-3 w-3 shrink-0" />
+                <span className="truncate max-w-[140px]">
+                  {item.campaignBadge.badgeText}
+                </span>
               </span>
             )}
+            {item.discountPercent &&
+              item.discountPercent > 0 &&
+              !item.campaignBadge && (
+                <span className="inline-flex items-center gap-0.5 rounded-full bg-rose-500 text-white font-black text-[10px] px-2 py-0.5 shadow-xs uppercase tracking-wider">
+                  <Flame className="h-3 w-3" />
+                  {item.discountPercent}% OFF
+                </span>
+              )}
             {item.isVariable && (
               <span className="inline-flex items-center gap-1 rounded-full bg-slate-900/80 backdrop-blur-xs text-white font-bold text-[9px] px-2 py-0.5 shadow-xs">
                 <Layers3 className="h-2.5 w-2.5" />
@@ -1126,12 +1136,17 @@ function StoreProductListCard({ item }: { item: FilterableStoreProduct }) {
             <Package className="w-10 h-10 text-gray-300 stroke-1" />
           )}
 
-          {item.discountPercent && item.discountPercent > 0 && (
+          {item.campaignBadge ? (
+            <span className="absolute top-2 left-2 inline-flex items-center gap-0.5 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white font-extrabold text-[8px] sm:text-[9px] px-2 py-0.5 uppercase shadow-xs">
+              <Sparkles className="h-2.5 w-2.5" />
+              {item.campaignBadge.badgeText}
+            </span>
+          ) : item.discountPercent && item.discountPercent > 0 ? (
             <span className="absolute top-2 left-2 inline-flex items-center gap-0.5 rounded-full bg-rose-500 text-white font-black text-[9px] px-2 py-0.5 uppercase">
               <Flame className="h-2.5 w-2.5" />
               {item.discountPercent}%
             </span>
-          )}
+          ) : null}
         </div>
 
         {/* Info */}
