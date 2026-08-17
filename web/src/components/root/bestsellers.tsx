@@ -15,6 +15,8 @@ import {
   Package,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toggleWishlistAction } from "@/actions/store/wishlist";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { StoreBestsellerProduct } from "@/actions/store/products/get-bestsellers";
@@ -46,8 +48,11 @@ export function Bestsellers({ products = [] }: BestsellersProps) {
 
   useEffect(() => {
     if (!emblaApi) return;
-    onSelect();
-    setScrollSnaps(emblaApi.scrollSnapList());
+    const updateSnaps = () => {
+      onSelect();
+      setScrollSnaps(emblaApi.scrollSnapList());
+    };
+    queueMicrotask(updateSnaps);
     emblaApi.on("select", onSelect);
     emblaApi.on("reInit", onSelect);
   }, [emblaApi, onSelect]);
@@ -121,7 +126,13 @@ export function Bestsellers({ products = [] }: BestsellersProps) {
             variant="outline"
             size="icon"
             onClick={scrollPrev}
-            className="hidden sm:flex absolute -left-2 sm:-left-3 md:-left-5 top-1/2 -translate-y-1/2 z-20 h-11 w-11 rounded-full border-gray-200 bg-white/95 backdrop-blur-xs shadow-md transition-all hover:bg-[#56C8D8] hover:text-white hover:border-[#56C8D8] cursor-pointer hover:scale-105"
+            disabled={!canScrollPrev}
+            className={cn(
+              "hidden sm:flex absolute -left-2 sm:-left-3 md:-left-5 top-1/2 -translate-y-1/2 z-20 h-11 w-11 rounded-full border-gray-200 bg-white/95 backdrop-blur-xs shadow-md transition-all",
+              !canScrollPrev
+                ? "opacity-30 cursor-not-allowed"
+                : "hover:bg-[#56C8D8] hover:text-white hover:border-[#56C8D8] cursor-pointer hover:scale-105",
+            )}
             aria-label="Previous products"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -146,7 +157,13 @@ export function Bestsellers({ products = [] }: BestsellersProps) {
             variant="outline"
             size="icon"
             onClick={scrollNext}
-            className="hidden sm:flex absolute -right-2 sm:-right-3 md:-right-5 top-1/2 -translate-y-1/2 z-20 h-11 w-11 rounded-full border-gray-200 bg-white/95 backdrop-blur-xs shadow-md transition-all hover:bg-[#56C8D8] hover:text-white hover:border-[#56C8D8] cursor-pointer hover:scale-105"
+            disabled={!canScrollNext}
+            className={cn(
+              "hidden sm:flex absolute -right-2 sm:-right-3 md:-right-5 top-1/2 -translate-y-1/2 z-20 h-11 w-11 rounded-full border-gray-200 bg-white/95 backdrop-blur-xs shadow-md transition-all",
+              !canScrollNext
+                ? "opacity-30 cursor-not-allowed"
+                : "hover:bg-[#56C8D8] hover:text-white hover:border-[#56C8D8] cursor-pointer hover:scale-105",
+            )}
             aria-label="Next products"
           >
             <ArrowRight className="w-5 h-5" />
@@ -182,20 +199,35 @@ function BestsellerProductCard({
 }: {
   product: StoreBestsellerProduct;
 }) {
+  const router = useRouter();
   const [imageError, setImageError] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
 
   const productSlug = product.slug || product.id;
 
-  const handleWishlist = (e: React.MouseEvent) => {
+  const handleWishlist = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const next = !isWishlisted;
-    setIsWishlisted(next);
-    if (next) {
-      toast.success(`Added ${product.name} to Wishlist! ❤️`);
+
+    const res = await toggleWishlistAction(product.id);
+    if (res.unauthorized) {
+      toast.error("Please login to add to wishlist", {
+        action: {
+          label: "Login",
+          onClick: () => router.push("/login?redirect=/wishlist"),
+        },
+      });
+      return;
+    }
+    if (res.success) {
+      setIsWishlisted(Boolean(res.isWishlisted));
+      if (res.isWishlisted) {
+        toast.success(`Added ${product.name} to Wishlist! ❤️`);
+      } else {
+        toast.info(`Removed from Wishlist`);
+      }
     } else {
-      toast.info(`Removed from Wishlist`);
+      toast.error(res.message);
     }
   };
 

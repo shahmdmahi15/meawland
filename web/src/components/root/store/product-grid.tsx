@@ -9,14 +9,9 @@ import {
   Search,
   X,
   SlidersHorizontal,
-  ArrowUpDown,
   LayoutGrid,
   List,
   Sparkles,
-  Tag,
-  Check,
-  ChevronDown,
-  Percent,
   Flame,
   Layers3,
 } from "lucide-react";
@@ -32,6 +27,8 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { toggleWishlistAction } from "@/actions/store/wishlist";
+import { useRouter } from "next/navigation";
 import type { CategoryStoreProduct } from "@/actions/store/products/get-by-category";
 
 export type ProductGridItem = CategoryStoreProduct;
@@ -63,7 +60,6 @@ export function ProductGrid({
   >("ALL");
   const [sortBy, setSortBy] = useState<SortOption>("featured");
   const [viewMode, setViewMode] = useState<"GRID" | "LIST">("GRID");
-  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   // Extract available brands
   const availableBrands = useMemo(() => {
@@ -426,11 +422,17 @@ export function ProductGrid({
 
         {/* Main Products Rendering */}
         {filteredAndSortedProducts.length === 0 ? (
-          <div className="py-16 text-center flex flex-col items-center justify-center gap-3 bg-[#F0F8FF]/40 rounded-3xl border border-dashed border-[#D4EEFC]">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white text-[#56C8D8] shadow-xs border border-[#D4EEFC]">
-              <Package className="h-8 w-8 stroke-1" />
+          <div className="py-12 sm:py-16 text-center flex flex-col items-center justify-center gap-3 bg-[#F0F8FF]/40 rounded-3xl border border-dashed border-[#D4EEFC] px-4">
+            <div className="relative w-32 h-32 sm:w-40 sm:h-40 mx-auto">
+              <Image
+                src="/empty-cat.gif"
+                alt="Empty products"
+                fill
+                className="object-contain"
+                unoptimized
+              />
             </div>
-            <p className="text-base sm:text-lg font-black text-gray-700">
+            <p className="text-base sm:text-lg font-black text-gray-800">
               {emptyMessage}
             </p>
             <p className="text-xs text-gray-500 max-w-sm">
@@ -479,7 +481,8 @@ export function ProductGrid({
 
 // ── Grid Product Card ──
 function ProductGridCard({ product }: { product: ProductGridItem }) {
-  const [imageSrc, setImageSrc] = useState<string>(product.image || "");
+  const router = useRouter();
+  const imageSrc = product.image || "";
   const [imageError, setImageError] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
 
@@ -497,15 +500,29 @@ function ProductGridCard({ product }: { product: ProductGridItem }) {
     ? Math.round(((numOrig - numPrice) / numOrig) * 100)
     : 0;
 
-  const handleWishlistClick = (e: React.MouseEvent) => {
+  const handleWishlistClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const next = !isWishlisted;
-    setIsWishlisted(next);
-    if (next) {
-      toast.success(`Added ${product.name} to your Wishlist! ❤️`);
+
+    const res = await toggleWishlistAction(product.id);
+    if (res.unauthorized) {
+      toast.error("Please login to add to wishlist", {
+        action: {
+          label: "Login",
+          onClick: () => router.push("/login?redirect=/wishlist"),
+        },
+      });
+      return;
+    }
+    if (res.success) {
+      setIsWishlisted(Boolean(res.isWishlisted));
+      if (res.isWishlisted) {
+        toast.success(`Added ${product.name} to your Wishlist! ❤️`);
+      } else {
+        toast.info(`Removed from Wishlist`);
+      }
     } else {
-      toast.info(`Removed ${product.name} from Wishlist`);
+      toast.error(res.message);
     }
   };
 
@@ -625,13 +642,15 @@ function ProductGridCard({ product }: { product: ProductGridItem }) {
 
 // ── List Product Card ──
 function ProductListCard({ product }: { product: ProductGridItem }) {
-  const [imageSrc, setImageSrc] = useState<string>(product.image || "");
+  const router = useRouter();
+  const imageSrc = product.image || "";
   const [imageError, setImageError] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
 
   const productSlug =
     "slug" in product && product.slug ? product.slug : product.id;
 
+  // Calculate discount amount & percentage
   const numPrice = parseFloat(product.price.replace(/[^\d.]/g, "")) || 0;
   const numOrig = product.originalPrice
     ? parseFloat(product.originalPrice.replace(/[^\d.]/g, "")) || 0
@@ -642,15 +661,29 @@ function ProductListCard({ product }: { product: ProductGridItem }) {
     ? Math.round(((numOrig - numPrice) / numOrig) * 100)
     : 0;
 
-  const handleWishlistClick = (e: React.MouseEvent) => {
+  const handleWishlistClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const next = !isWishlisted;
-    setIsWishlisted(next);
-    if (next) {
-      toast.success(`Added ${product.name} to Wishlist! ❤️`);
+
+    const res = await toggleWishlistAction(product.id);
+    if (res.unauthorized) {
+      toast.error("Please login to add to wishlist", {
+        action: {
+          label: "Login",
+          onClick: () => router.push("/login?redirect=/wishlist"),
+        },
+      });
+      return;
+    }
+    if (res.success) {
+      setIsWishlisted(Boolean(res.isWishlisted));
+      if (res.isWishlisted) {
+        toast.success(`Added ${product.name} to Wishlist! ❤️`);
+      } else {
+        toast.info(`Removed from Wishlist`);
+      }
     } else {
-      toast.info(`Removed from Wishlist`);
+      toast.error(res.message);
     }
   };
 

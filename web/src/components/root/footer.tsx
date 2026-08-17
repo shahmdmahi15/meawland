@@ -9,7 +9,6 @@ import {
   Phone,
   Mail,
   MapPin,
-  Heart,
   ShieldCheck,
   CheckCircle2,
 } from "lucide-react";

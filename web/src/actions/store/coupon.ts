@@ -1,7 +1,7 @@
 "use server";
 
 import db from "@/lib/db";
-import { DiscountType } from "@/generated/prisma/enums";
+import { Category, DiscountType } from "@/generated/prisma/enums";
 import {
   validateCouponCartSchema,
   ValidateCouponCartInput,
@@ -53,8 +53,10 @@ export async function validateStoreCouponAction(
       },
       include: {
         users: { select: { id: true } },
+        subCategories: { select: { id: true } },
+        brands: { select: { id: true } },
         products: { select: { id: true } },
-        variants: { select: { id: true } },
+        variants: { select: { id: true, productId: true } },
         comboProducts: { select: { id: true } },
       },
     });
@@ -134,10 +136,43 @@ export async function validateStoreCouponAction(
       }
     }
 
-    // Check Product / Variant / Combo restrictions
+    // Fetch product details for cart items if needed for category / subcategory / brand checking
+    let cartProductDetails: Array<{
+      id: string;
+      subCategory: { id: string; category: string } | null;
+      brandId: string | null;
+    }> = [];
+
+    if (productIds.length > 0 || variantIds.length > 0) {
+      const allProductIdsToFetch = new Set<string>(productIds);
+      if (variantIds.length > 0) {
+        const variantProducts = await db.variant.findMany({
+          where: { id: { in: variantIds } },
+          select: { productId: true },
+        });
+        variantProducts.forEach((v) => allProductIdsToFetch.add(v.productId));
+      }
+
+      if (allProductIdsToFetch.size > 0) {
+        cartProductDetails = await db.product.findMany({
+          where: { id: { in: Array.from(allProductIdsToFetch) } },
+          select: {
+            id: true,
+            subCategory: { select: { id: true, category: true } },
+            brandId: true,
+          },
+        });
+      }
+    }
+
+    // Check Product / Variant / Combo / Category / Subcategory / Brand restrictions
     const allowedProductIds = new Set(coupon.products.map((p) => p.id));
     const allowedVariantIds = new Set(coupon.variants.map((v) => v.id));
     const allowedComboIds = new Set(coupon.comboProducts.map((c) => c.id));
+    const allowedSubCategoryIds = new Set(
+      coupon.subCategories.map((s) => s.id),
+    );
+    const allowedBrandIds = new Set(coupon.brands.map((b) => b.id));
 
     let hasEligibleItem = false;
 
@@ -152,6 +187,34 @@ export async function validateStoreCouponAction(
         hasEligibleItem = true;
       if (variantIds.some((id) => allowedVariantIds.has(id)))
         hasEligibleItem = true;
+    }
+
+    // Check category / subcategory / brand eligibility for products in cart
+    if (!hasEligibleItem && cartProductDetails.length > 0) {
+      for (const p of cartProductDetails) {
+        if (
+          coupon.forAllCategories ||
+          (p.subCategory?.category &&
+            coupon.categories.includes(p.subCategory.category as Category))
+        ) {
+          hasEligibleItem = true;
+          break;
+        }
+        if (
+          coupon.forAllSubCategories ||
+          (p.subCategory?.id && allowedSubCategoryIds.has(p.subCategory.id))
+        ) {
+          hasEligibleItem = true;
+          break;
+        }
+        if (
+          coupon.forAllBrands ||
+          (p.brandId && allowedBrandIds.has(p.brandId))
+        ) {
+          hasEligibleItem = true;
+          break;
+        }
+      }
     }
 
     // Check combo bundle eligibility

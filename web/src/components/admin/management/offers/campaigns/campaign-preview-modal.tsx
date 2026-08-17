@@ -20,6 +20,9 @@ import {
   DollarSign,
   Clock,
   Flame,
+  Tag,
+  FolderTree,
+  Award,
 } from "lucide-react";
 
 interface CampaignPreviewModalProps {
@@ -172,6 +175,115 @@ export function CampaignPreviewModal({
                   </h4>
 
                   <div className="space-y-2.5 text-xs">
+                    {/* Categories */}
+                    <div className="flex items-start gap-2.5 p-3 rounded-lg border border-border/60 bg-muted/30">
+                      <Tag className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                      <div className="min-w-0 flex-1">
+                        <span className="font-semibold text-foreground">
+                          Main Categories:{" "}
+                        </span>
+                        {campaign.forAllCategories ? (
+                          <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                            Applicable to all categories
+                          </span>
+                        ) : campaign.categories.length > 0 ? (
+                          <div className="mt-1">
+                            <span>
+                              {campaign.categories.length} category(s) included:
+                            </span>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {campaign.categories.map((cat) => (
+                                <Badge
+                                  key={cat}
+                                  variant="secondary"
+                                  className="text-[10px]"
+                                >
+                                  {cat}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground italic">
+                            Not category-restricted
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Subcategories */}
+                    <div className="flex items-start gap-2.5 p-3 rounded-lg border border-border/60 bg-muted/30">
+                      <FolderTree className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                      <div className="min-w-0 flex-1">
+                        <span className="font-semibold text-foreground">
+                          Subcategories:{" "}
+                        </span>
+                        {campaign.forAllSubCategories ? (
+                          <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                            Applicable to all subcategories
+                          </span>
+                        ) : campaign.subCategories.length > 0 ? (
+                          <div className="mt-1">
+                            <span>
+                              {campaign.subCategories.length} subcategory(s)
+                              included:
+                            </span>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {campaign.subCategories.map((sc) => (
+                                <Badge
+                                  key={sc.id}
+                                  variant="secondary"
+                                  className="text-[10px]"
+                                >
+                                  {sc.name}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground italic">
+                            Not subcategory-restricted
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Brands */}
+                    <div className="flex items-start gap-2.5 p-3 rounded-lg border border-border/60 bg-muted/30">
+                      <Award className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                      <div className="min-w-0 flex-1">
+                        <span className="font-semibold text-foreground">
+                          Brands:{" "}
+                        </span>
+                        {campaign.forAllBrands ? (
+                          <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                            Applicable to all brands
+                          </span>
+                        ) : campaign.brands.length > 0 ? (
+                          <div className="mt-1">
+                            <span>
+                              {campaign.brands.length} brand(s) included:
+                            </span>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {campaign.brands.map((b) => (
+                                <Badge
+                                  key={b.id}
+                                  variant="secondary"
+                                  className="text-[10px]"
+                                >
+                                  {b.name}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground italic">
+                            Not brand-restricted
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
                     {/* Products */}
                     <div className="flex items-start gap-2.5 p-3 rounded-lg border border-border/60 bg-muted/30">
                       <Package className="h-4 w-4 text-primary shrink-0 mt-0.5" />

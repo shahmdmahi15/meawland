@@ -19,13 +19,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DiscountType } from "@/generated/prisma/enums";
+import { DiscountType, Category } from "@/generated/prisma/enums";
 import {
   createCouponAction,
   CouponFormData,
 } from "@/actions/admin/management/offers/coupons";
 import {
   UserPicker,
+  CategoryPicker,
+  SubCategoryPicker,
+  BrandPicker,
   ProductVariantPicker,
   ComboPicker,
 } from "../offer-item-selector";
@@ -45,6 +48,9 @@ import {
   Truck,
   DollarSign,
   CheckCircle2,
+  Tag,
+  FolderTree,
+  Award,
 } from "lucide-react";
 
 interface CreateCouponModalProps {
@@ -71,6 +77,9 @@ export function CreateCouponModal({
   const [maxRedemptions, setMaxRedemptions] = useState("");
   const [minPurchaseAmount, setMinPurchaseAmount] = useState("");
   const [forAllUsers, setForAllUsers] = useState(true);
+  const [forAllCategories, setForAllCategories] = useState(true);
+  const [forAllSubCategories, setForAllSubCategories] = useState(true);
+  const [forAllBrands, setForAllBrands] = useState(true);
   const [forAllProducts, setForAllProducts] = useState(true);
   const [forAllCombos, setForAllCombos] = useState(true);
 
@@ -84,6 +93,13 @@ export function CreateCouponModal({
 
   // Selected item IDs
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+  const [selectedCategoryEnums, setSelectedCategoryEnums] = useState<
+    Category[]
+  >([]);
+  const [selectedSubCategoryIds, setSelectedSubCategoryIds] = useState<
+    string[]
+  >([]);
+  const [selectedBrandIds, setSelectedBrandIds] = useState<string[]>([]);
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [selectedVariantIds, setSelectedVariantIds] = useState<string[]>([]);
   const [selectedComboIds, setSelectedComboIds] = useState<string[]>([]);
@@ -107,13 +123,39 @@ export function CreateCouponModal({
     setMaxRedemptions("");
     setMinPurchaseAmount("");
     setForAllUsers(true);
+    setForAllCategories(true);
+    setForAllSubCategories(true);
+    setForAllBrands(true);
     setForAllProducts(true);
     setForAllCombos(true);
     setExpiresAt(getDefaultDate());
     setSelectedUserIds([]);
+    setSelectedCategoryEnums([]);
+    setSelectedSubCategoryIds([]);
+    setSelectedBrandIds([]);
     setSelectedProductIds([]);
     setSelectedVariantIds([]);
     setSelectedComboIds([]);
+  };
+
+  const handleCategoryToggle = (category: Category) => {
+    setSelectedCategoryEnums((prev) =>
+      prev.includes(category)
+        ? prev.filter((item) => item !== category)
+        : [...prev, category],
+    );
+  };
+
+  const handleSubCategoryToggle = (id: string) => {
+    setSelectedSubCategoryIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
+    );
+  };
+
+  const handleBrandToggle = (id: string) => {
+    setSelectedBrandIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
+    );
   };
 
   const handleProductToggle = (id: string) => {
@@ -165,19 +207,6 @@ export function CreateCouponModal({
       return;
     }
 
-    const hasProductSelection =
-      forAllProducts ||
-      selectedProductIds.length > 0 ||
-      selectedVariantIds.length > 0;
-    const hasComboSelection = forAllCombos || selectedComboIds.length > 0;
-
-    if (!hasProductSelection && !hasComboSelection) {
-      toast.error(
-        "Please select at least one product, variant, or combo deal (or enable All Products / All Combos)",
-      );
-      return;
-    }
-
     try {
       setIsSubmitting(true);
       const res = await createCouponAction({
@@ -190,10 +219,16 @@ export function CreateCouponModal({
         maxRedemptions: maxRedemptions ? Number(maxRedemptions) : null,
         minPurchaseAmount: minPurchaseAmount ? minPurchaseAmount : null,
         forAllUsers,
+        forAllCategories,
+        forAllSubCategories,
+        forAllBrands,
         forAllProducts,
         forAllCombos,
         expiresAt: new Date(expiresAt),
         userIds: forAllUsers ? [] : selectedUserIds,
+        categoryEnums: forAllCategories ? [] : selectedCategoryEnums,
+        subCategoryIds: forAllSubCategories ? [] : selectedSubCategoryIds,
+        brandIds: forAllBrands ? [] : selectedBrandIds,
         productIds: forAllProducts ? [] : selectedProductIds,
         variantIds: forAllProducts ? [] : selectedVariantIds,
         comboProductIds: forAllCombos ? [] : selectedComboIds,
@@ -214,12 +249,6 @@ export function CreateCouponModal({
       setIsSubmitting(false);
     }
   };
-
-  const simpleProducts = formData.products.filter((p) => !p.isVariable);
-  const variableProducts = formData.products.filter((p) => p.isVariable);
-  const allVariantIds = variableProducts.flatMap((p) =>
-    p.variants.map((v) => v.id),
-  );
 
   return (
     <>
@@ -563,7 +592,174 @@ export function CreateCouponModal({
                   )}
                 </div>
 
-                {/* Scope Part 2: Products & Variants Scope */}
+                {/* Scope Part 2: Main Categories Scope */}
+                <div className="rounded-xl border border-border/80 bg-card p-4 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-border/60">
+                    <div className="flex items-center gap-3">
+                      <div className="h-9 w-9 rounded-lg bg-teal-500/10 text-teal-500 flex items-center justify-center shrink-0">
+                        <Tag className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-foreground flex items-center gap-2">
+                          Main Categories Scope
+                          {forAllCategories ? (
+                            <span className="text-[11px] font-normal text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+                              <CheckCircle2 className="h-3 w-3" /> All
+                              Categories Eligible
+                            </span>
+                          ) : (
+                            <span className="text-[11px] font-normal text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full">
+                              {selectedCategoryEnums.length} Category(s)
+                            </span>
+                          )}
+                        </h4>
+                        <p className="text-[11px] text-muted-foreground">
+                          {forAllCategories
+                            ? "Applicable to all product categories across the catalog."
+                            : "Limit this discount to specific main categories."}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 self-end sm:self-center">
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {forAllCategories
+                          ? "All Categories"
+                          : "Specific Categories"}
+                      </span>
+                      <Switch
+                        checked={forAllCategories}
+                        onCheckedChange={setForAllCategories}
+                      />
+                    </div>
+                  </div>
+
+                  {!forAllCategories && (
+                    <CategoryPicker
+                      categories={formData.categories}
+                      selectedCategoryEnums={selectedCategoryEnums}
+                      onCategoryToggle={handleCategoryToggle}
+                      onSelectAll={() =>
+                        setSelectedCategoryEnums(
+                          formData.categories.map((c) => c.enumValue),
+                        )
+                      }
+                      onClearAll={() => setSelectedCategoryEnums([])}
+                    />
+                  )}
+                </div>
+
+                {/* Scope Part 3: Subcategories Scope */}
+                <div className="rounded-xl border border-border/80 bg-card p-4 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-border/60">
+                    <div className="flex items-center gap-3">
+                      <div className="h-9 w-9 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center shrink-0">
+                        <FolderTree className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-foreground flex items-center gap-2">
+                          Subcategories Scope
+                          {forAllSubCategories ? (
+                            <span className="text-[11px] font-normal text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+                              <CheckCircle2 className="h-3 w-3" /> All
+                              Subcategories Eligible
+                            </span>
+                          ) : (
+                            <span className="text-[11px] font-normal text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full">
+                              {selectedSubCategoryIds.length} Subcategory(s)
+                            </span>
+                          )}
+                        </h4>
+                        <p className="text-[11px] text-muted-foreground">
+                          {forAllSubCategories
+                            ? "Applicable to all product subcategories across the catalog."
+                            : "Limit this discount to specific subcategories."}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 self-end sm:self-center">
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {forAllSubCategories
+                          ? "All Subcategories"
+                          : "Specific Subcategories"}
+                      </span>
+                      <Switch
+                        checked={forAllSubCategories}
+                        onCheckedChange={setForAllSubCategories}
+                      />
+                    </div>
+                  </div>
+
+                  {!forAllSubCategories && (
+                    <SubCategoryPicker
+                      subCategories={formData.subCategories}
+                      selectedSubCategoryIds={selectedSubCategoryIds}
+                      onSubCategoryToggle={handleSubCategoryToggle}
+                      onSelectAll={() =>
+                        setSelectedSubCategoryIds(
+                          formData.subCategories.map((sc) => sc.id),
+                        )
+                      }
+                      onClearAll={() => setSelectedSubCategoryIds([])}
+                    />
+                  )}
+                </div>
+
+                {/* Scope Part 4: Brands Scope */}
+                <div className="rounded-xl border border-border/80 bg-card p-4 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-border/60">
+                    <div className="flex items-center gap-3">
+                      <div className="h-9 w-9 rounded-lg bg-pink-500/10 text-pink-500 flex items-center justify-center shrink-0">
+                        <Award className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-foreground flex items-center gap-2">
+                          Brands Scope
+                          {forAllBrands ? (
+                            <span className="text-[11px] font-normal text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+                              <CheckCircle2 className="h-3 w-3" /> All Brands
+                              Eligible
+                            </span>
+                          ) : (
+                            <span className="text-[11px] font-normal text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full">
+                              {selectedBrandIds.length} Brand(s)
+                            </span>
+                          )}
+                        </h4>
+                        <p className="text-[11px] text-muted-foreground">
+                          {forAllBrands
+                            ? "Applicable to all brands and manufacturers."
+                            : "Limit this discount to specific brands."}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 self-end sm:self-center">
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {forAllBrands ? "All Brands" : "Specific Brands"}
+                      </span>
+                      <Switch
+                        checked={forAllBrands}
+                        onCheckedChange={setForAllBrands}
+                      />
+                    </div>
+                  </div>
+
+                  {!forAllBrands && (
+                    <BrandPicker
+                      brands={formData.brands}
+                      selectedBrandIds={selectedBrandIds}
+                      onBrandToggle={handleBrandToggle}
+                      onSelectAll={() =>
+                        setSelectedBrandIds(formData.brands.map((b) => b.id))
+                      }
+                      onClearAll={() => setSelectedBrandIds([])}
+                    />
+                  )}
+                </div>
+
+                {/* Scope Part 5: Products & Variants Scope */}
                 <div className="rounded-xl border border-border/80 bg-card p-4 space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-border/60">
                     <div className="flex items-center gap-3">

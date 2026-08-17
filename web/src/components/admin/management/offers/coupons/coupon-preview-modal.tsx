@@ -19,11 +19,13 @@ import {
   Users,
   Package,
   Boxes,
-  Sparkles,
   Percent,
   Truck,
   DollarSign,
   Ticket,
+  Tag,
+  FolderTree,
+  Award,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -237,6 +239,112 @@ export function CouponPreviewModal({
                           ))}
                         </div>
                       </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Categories */}
+                <div className="flex items-start gap-2.5 p-3 rounded-lg border border-border/60 bg-muted/30">
+                  <Tag className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                  <div className="min-w-0 flex-1">
+                    <span className="font-semibold text-foreground">
+                      Main Categories:{" "}
+                    </span>
+                    {coupon.forAllCategories ? (
+                      <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                        Applicable to all categories
+                      </span>
+                    ) : coupon.categories.length > 0 ? (
+                      <div className="mt-1">
+                        <span>
+                          {coupon.categories.length} category(s) selected:
+                        </span>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {coupon.categories.map((cat) => (
+                            <Badge
+                              key={cat}
+                              variant="secondary"
+                              className="text-[10px]"
+                            >
+                              {cat}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground italic">
+                        Not category-restricted
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Subcategories */}
+                <div className="flex items-start gap-2.5 p-3 rounded-lg border border-border/60 bg-muted/30">
+                  <FolderTree className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                  <div className="min-w-0 flex-1">
+                    <span className="font-semibold text-foreground">
+                      Subcategories:{" "}
+                    </span>
+                    {coupon.forAllSubCategories ? (
+                      <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                        Applicable to all subcategories
+                      </span>
+                    ) : coupon.subCategories.length > 0 ? (
+                      <div className="mt-1">
+                        <span>
+                          {coupon.subCategories.length} subcategory(s) selected:
+                        </span>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {coupon.subCategories.map((sc) => (
+                            <Badge
+                              key={sc.id}
+                              variant="secondary"
+                              className="text-[10px]"
+                            >
+                              {sc.name}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground italic">
+                        Not subcategory-restricted
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Brands */}
+                <div className="flex items-start gap-2.5 p-3 rounded-lg border border-border/60 bg-muted/30">
+                  <Award className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                  <div className="min-w-0 flex-1">
+                    <span className="font-semibold text-foreground">
+                      Brands:{" "}
+                    </span>
+                    {coupon.forAllBrands ? (
+                      <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                        Applicable to all brands
+                      </span>
+                    ) : coupon.brands.length > 0 ? (
+                      <div className="mt-1">
+                        <span>{coupon.brands.length} brand(s) selected:</span>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {coupon.brands.map((b) => (
+                            <Badge
+                              key={b.id}
+                              variant="secondary"
+                              className="text-[10px]"
+                            >
+                              {b.name}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground italic">
+                        Not brand-restricted
+                      </span>
                     )}
                   </div>
                 </div>

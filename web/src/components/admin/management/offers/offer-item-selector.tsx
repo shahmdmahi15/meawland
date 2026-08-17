@@ -7,9 +7,23 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
-import { Search, Package, Boxes, Users, X, Layers } from "lucide-react";
+import {
+  Search,
+  Package,
+  Boxes,
+  Users,
+  X,
+  Layers,
+  Tag,
+  FolderTree,
+  Award,
+} from "lucide-react";
+import { Category } from "@/generated/prisma/enums";
 import {
   CouponCatalogUser,
+  CouponCatalogCategory,
+  CouponCatalogSubCategory,
+  CouponCatalogBrand,
   CouponCatalogProduct,
   CouponCatalogCombo,
 } from "@/actions/admin/management/offers/coupons";
@@ -152,7 +166,424 @@ export function UserPicker({
 }
 
 // =========================================================================
-// 2. Product & Variant Picker Component
+// 2. Category Picker Component
+// =========================================================================
+interface CategoryPickerProps {
+  categories: CouponCatalogCategory[];
+  selectedCategoryEnums: Category[];
+  onCategoryToggle: (category: Category) => void;
+  onSelectAll?: () => void;
+  onClearAll?: () => void;
+}
+
+export function CategoryPicker({
+  categories,
+  selectedCategoryEnums,
+  onCategoryToggle,
+  onSelectAll,
+  onClearAll,
+}: CategoryPickerProps) {
+  const [search, setSearch] = useState("");
+
+  const filteredCategories = useMemo(() => {
+    if (!search.trim()) return categories;
+    const q = search.toLowerCase();
+    return categories.filter(
+      (c) =>
+        c.title.toLowerCase().includes(q) ||
+        c.enumValue.toLowerCase().includes(q),
+    );
+  }, [categories, search]);
+
+  return (
+    <div className="space-y-3 rounded-xl border border-border/80 bg-muted/20 p-3.5 sm:p-4">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 border-b border-border/60 pb-3">
+        <div className="flex items-center gap-2">
+          <Tag className="h-4 w-4 text-primary" />
+          <span className="text-xs font-bold uppercase tracking-wider text-foreground">
+            Select Main Categories
+          </span>
+          <Badge
+            variant={selectedCategoryEnums.length > 0 ? "default" : "outline"}
+            className="px-1.5 py-0 text-[10px] h-4.5"
+          >
+            {selectedCategoryEnums.length} Selected
+          </Badge>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="relative w-full sm:w-52">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search categories..."
+              className="h-8 pl-8 pr-8 text-xs bg-background"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+
+          {onSelectAll && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onSelectAll}
+              className="h-8 text-xs font-medium px-2.5 shrink-0"
+            >
+              Select All
+            </Button>
+          )}
+
+          {onClearAll && selectedCategoryEnums.length > 0 && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={onClearAll}
+              className="h-8 text-xs font-medium px-2 shrink-0 text-muted-foreground hover:text-foreground"
+            >
+              Clear
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-64 overflow-y-auto pr-1">
+        {filteredCategories.length === 0 ? (
+          <div className="col-span-full py-8 text-center text-xs text-muted-foreground">
+            No matching categories found.
+          </div>
+        ) : (
+          filteredCategories.map((cat) => {
+            const isSelected = selectedCategoryEnums.includes(cat.enumValue);
+            return (
+              <div
+                key={cat.enumValue}
+                onClick={() => onCategoryToggle(cat.enumValue)}
+                className={cn(
+                  "flex items-center gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-all text-left",
+                  isSelected
+                    ? "border-primary bg-primary/10 shadow-xs ring-1 ring-primary/40"
+                    : "border-border/60 bg-background hover:bg-muted/40",
+                )}
+              >
+                <Checkbox
+                  checked={isSelected}
+                  onCheckedChange={() => onCategoryToggle(cat.enumValue)}
+                  className="shrink-0"
+                />
+                <div className="h-8 w-8 rounded-lg bg-primary/15 text-primary flex items-center justify-center font-bold text-xs shrink-0">
+                  <Tag className="h-4 w-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-semibold text-foreground truncate">
+                    {cat.title}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground truncate">
+                    {cat.productCount}{" "}
+                    {cat.productCount === 1 ? "Product" : "Products"}
+                  </p>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
+// =========================================================================
+// 3. SubCategory Picker Component
+// =========================================================================
+interface SubCategoryPickerProps {
+  subCategories: CouponCatalogSubCategory[];
+  selectedSubCategoryIds: string[];
+  onSubCategoryToggle: (id: string) => void;
+  onSelectAll?: () => void;
+  onClearAll?: () => void;
+}
+
+export function SubCategoryPicker({
+  subCategories,
+  selectedSubCategoryIds,
+  onSubCategoryToggle,
+  onSelectAll,
+  onClearAll,
+}: SubCategoryPickerProps) {
+  const [search, setSearch] = useState("");
+
+  const filteredSubCategories = useMemo(() => {
+    if (!search.trim()) return subCategories;
+    const q = search.toLowerCase();
+    return subCategories.filter(
+      (sc) =>
+        sc.name.toLowerCase().includes(q) ||
+        sc.category.toLowerCase().includes(q),
+    );
+  }, [subCategories, search]);
+
+  return (
+    <div className="space-y-3 rounded-xl border border-border/80 bg-muted/20 p-3.5 sm:p-4">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 border-b border-border/60 pb-3">
+        <div className="flex items-center gap-2">
+          <FolderTree className="h-4 w-4 text-primary" />
+          <span className="text-xs font-bold uppercase tracking-wider text-foreground">
+            Select Subcategories
+          </span>
+          <Badge
+            variant={selectedSubCategoryIds.length > 0 ? "default" : "outline"}
+            className="px-1.5 py-0 text-[10px] h-4.5"
+          >
+            {selectedSubCategoryIds.length} Selected
+          </Badge>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="relative w-full sm:w-52">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search subcategories..."
+              className="h-8 pl-8 pr-8 text-xs bg-background"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+
+          {onSelectAll && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onSelectAll}
+              className="h-8 text-xs font-medium px-2.5 shrink-0"
+            >
+              Select All
+            </Button>
+          )}
+
+          {onClearAll && selectedSubCategoryIds.length > 0 && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={onClearAll}
+              className="h-8 text-xs font-medium px-2 shrink-0 text-muted-foreground hover:text-foreground"
+            >
+              Clear
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-64 overflow-y-auto pr-1">
+        {filteredSubCategories.length === 0 ? (
+          <div className="col-span-full py-8 text-center text-xs text-muted-foreground">
+            No matching subcategories found.
+          </div>
+        ) : (
+          filteredSubCategories.map((sc) => {
+            const isSelected = selectedSubCategoryIds.includes(sc.id);
+            return (
+              <div
+                key={sc.id}
+                onClick={() => onSubCategoryToggle(sc.id)}
+                className={cn(
+                  "flex items-center gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-all text-left",
+                  isSelected
+                    ? "border-primary bg-primary/10 shadow-xs ring-1 ring-primary/40"
+                    : "border-border/60 bg-background hover:bg-muted/40",
+                )}
+              >
+                <Checkbox
+                  checked={isSelected}
+                  onCheckedChange={() => onSubCategoryToggle(sc.id)}
+                  className="shrink-0"
+                />
+                <div className="h-8 w-8 rounded-lg bg-primary/15 text-primary flex items-center justify-center font-bold text-xs shrink-0">
+                  <FolderTree className="h-4 w-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-semibold text-foreground truncate">
+                    {sc.name}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground truncate">
+                    {sc.category} • {sc.productCount} products
+                  </p>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
+// =========================================================================
+// 4. Brand Picker Component
+// =========================================================================
+interface BrandPickerProps {
+  brands: CouponCatalogBrand[];
+  selectedBrandIds: string[];
+  onBrandToggle: (id: string) => void;
+  onSelectAll?: () => void;
+  onClearAll?: () => void;
+}
+
+export function BrandPicker({
+  brands,
+  selectedBrandIds,
+  onBrandToggle,
+  onSelectAll,
+  onClearAll,
+}: BrandPickerProps) {
+  const [search, setSearch] = useState("");
+
+  const filteredBrands = useMemo(() => {
+    if (!search.trim()) return brands;
+    const q = search.toLowerCase();
+    return brands.filter((b) => b.name.toLowerCase().includes(q));
+  }, [brands, search]);
+
+  return (
+    <div className="space-y-3 rounded-xl border border-border/80 bg-muted/20 p-3.5 sm:p-4">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 border-b border-border/60 pb-3">
+        <div className="flex items-center gap-2">
+          <Award className="h-4 w-4 text-primary" />
+          <span className="text-xs font-bold uppercase tracking-wider text-foreground">
+            Select Brands
+          </span>
+          <Badge
+            variant={selectedBrandIds.length > 0 ? "default" : "outline"}
+            className="px-1.5 py-0 text-[10px] h-4.5"
+          >
+            {selectedBrandIds.length} Selected
+          </Badge>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="relative w-full sm:w-52">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search brands..."
+              className="h-8 pl-8 pr-8 text-xs bg-background"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+
+          {onSelectAll && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onSelectAll}
+              className="h-8 text-xs font-medium px-2.5 shrink-0"
+            >
+              Select All
+            </Button>
+          )}
+
+          {onClearAll && selectedBrandIds.length > 0 && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={onClearAll}
+              className="h-8 text-xs font-medium px-2 shrink-0 text-muted-foreground hover:text-foreground"
+            >
+              Clear
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-64 overflow-y-auto pr-1">
+        {filteredBrands.length === 0 ? (
+          <div className="col-span-full py-8 text-center text-xs text-muted-foreground">
+            No matching brands found.
+          </div>
+        ) : (
+          filteredBrands.map((b) => {
+            const isSelected = selectedBrandIds.includes(b.id);
+            return (
+              <div
+                key={b.id}
+                onClick={() => onBrandToggle(b.id)}
+                className={cn(
+                  "flex items-center gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-all text-left",
+                  isSelected
+                    ? "border-primary bg-primary/10 shadow-xs ring-1 ring-primary/40"
+                    : "border-border/60 bg-background hover:bg-muted/40",
+                )}
+              >
+                <Checkbox
+                  checked={isSelected}
+                  onCheckedChange={() => onBrandToggle(b.id)}
+                  className="shrink-0"
+                />
+                <div className="h-9 w-9 relative rounded-md overflow-hidden bg-muted shrink-0 border border-border/40">
+                  {b.imageBase64 ? (
+                    <Image
+                      src={b.imageBase64}
+                      alt={b.name}
+                      fill
+                      className="object-contain p-1"
+                    />
+                  ) : (
+                    <div className="h-full w-full flex items-center justify-center text-muted-foreground">
+                      <Award className="h-4 w-4" />
+                    </div>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-semibold text-foreground truncate">
+                    {b.name}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground truncate">
+                    {b.productCount}{" "}
+                    {b.productCount === 1 ? "Product" : "Products"}
+                  </p>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
+// =========================================================================
+// 5. Product & Variant Picker Component
 // =========================================================================
 interface ProductVariantPickerProps {
   products: CouponCatalogProduct[];

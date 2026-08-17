@@ -86,6 +86,12 @@ export async function loginWithOtpAction(
       path: "/",
     });
 
+    const guestCartId = cookieStore.get("meawland_cart_id")?.value;
+    if (guestCartId) {
+      const { mergeGuestCartIntoUser } = await import("@/actions/store/cart");
+      await mergeGuestCartIntoUser(userExists.id, guestCartId);
+    }
+
     await sendEmail({
       to: userExists.email,
       subject: "New Device Login Alert",

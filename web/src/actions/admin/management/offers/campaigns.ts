@@ -3,19 +3,29 @@
 import { revalidatePath } from "next/cache";
 import db from "@/lib/db";
 import { getMeAction } from "@/actions/auth/get-me";
-import { Role, DiscountType } from "@/generated/prisma/enums";
+import { Role, DiscountType, Category } from "@/generated/prisma/enums";
 import { uploadFile, deleteFile, getImageBase64 } from "@/lib/storage";
 import crypto from "crypto";
+import { CATEGORY_MAP } from "@/lib/category-helpers";
 import {
   createCampaignSchema,
   updateCampaignSchema,
   deleteCampaignSchema,
 } from "@/schemas/admin/management/offers/campaign";
-import { CouponCatalogProduct, CouponCatalogCombo } from "./coupons";
+import {
+  CouponCatalogCategory,
+  CouponCatalogSubCategory,
+  CouponCatalogBrand,
+  CouponCatalogProduct,
+  CouponCatalogCombo,
+} from "./coupons";
 
 export type CampaignStatus = "ACTIVE" | "EXPIRED" | "EXHAUSTED";
 
 export type CampaignFormData = {
+  categories: CouponCatalogCategory[];
+  subCategories: CouponCatalogSubCategory[];
+  brands: CouponCatalogBrand[];
   products: CouponCatalogProduct[];
   combos: CouponCatalogCombo[];
 };
@@ -31,15 +41,31 @@ export type CampaignRow = {
   minPurchaseAmount: string | null;
   maxRedemptions: number | null;
   currentRedemptions: number;
+  forAllCategories: boolean;
+  forAllSubCategories: boolean;
+  forAllBrands: boolean;
   forAllProducts: boolean;
   forAllCombos: boolean;
   endsAt: Date;
   createdAt: Date;
   updatedAt: Date;
   status: CampaignStatus;
+  categoryCount: number;
+  subCategoryCount: number;
+  brandCount: number;
   productCount: number;
   variantCount: number;
   comboCount: number;
+  categories: Category[];
+  subCategories: Array<{
+    id: string;
+    name: string;
+    category: Category;
+  }>;
+  brands: Array<{
+    id: string;
+    name: string;
+  }>;
   products: Array<{
     id: string;
     name: string;
@@ -114,35 +140,102 @@ export async function getCampaignFormDataAction(): Promise<{
       return { success: false, message: "Unauthorized access" };
     }
 
-    const [rawProducts, rawCombos] = await Promise.all([
-      db.product.findMany({
-        orderBy: { createdAt: "desc" },
-        include: {
-          subCategory: {
-            select: { name: true, category: true },
+    const [rawSubCategories, rawBrands, rawProducts, rawCombos] =
+      await Promise.all([
+        db.subCategory.findMany({
+          orderBy: { name: "asc" },
+          include: {
+            _count: {
+              select: { products: true },
+            },
           },
-          variants: {
-            include: {
-              attributes: {
-                select: { id: true, name: true, value: true },
+        }),
+        db.brand.findMany({
+          orderBy: { name: "asc" },
+          include: {
+            _count: {
+              select: { products: true },
+            },
+          },
+        }),
+        db.product.findMany({
+          orderBy: { createdAt: "desc" },
+          include: {
+            subCategory: {
+              select: { id: true, name: true, category: true },
+            },
+            brand: {
+              select: { id: true, name: true },
+            },
+            variants: {
+              include: {
+                attributes: {
+                  select: { id: true, name: true, value: true },
+                },
               },
             },
           },
-        },
+        }),
+        db.comboProduct.findMany({
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            sku: true,
+            image: true,
+            regularPrice: true,
+            salePrice: true,
+          },
+        }),
+      ]);
+
+    // Categories catalog
+    const categoryCounts: Record<Category, number> = {} as Record<
+      Category,
+      number
+    >;
+    Object.values(Category).forEach((cat) => {
+      categoryCounts[cat] = 0;
+    });
+    rawProducts.forEach((p) => {
+      if (p.subCategory?.category) {
+        categoryCounts[p.subCategory.category] =
+          (categoryCounts[p.subCategory.category] || 0) + 1;
+      }
+    });
+
+    const categories: CouponCatalogCategory[] = Object.values(CATEGORY_MAP).map(
+      (info) => ({
+        enumValue: info.enumValue,
+        title: info.title,
+        slug: info.slug,
+        productCount: categoryCounts[info.enumValue] || 0,
       }),
-      db.comboProduct.findMany({
-        orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-          name: true,
-          code: true,
-          sku: true,
-          image: true,
-          regularPrice: true,
-          salePrice: true,
-        },
+    );
+
+    // SubCategories catalog
+    const subCategories: CouponCatalogSubCategory[] = rawSubCategories.map(
+      (sc) => ({
+        id: sc.id,
+        name: sc.name,
+        slug: sc.slug,
+        category: sc.category,
+        productCount: sc._count.products,
       }),
-    ]);
+    );
+
+    // Brands catalog
+    const brands: CouponCatalogBrand[] = await Promise.all(
+      rawBrands.map(async (b) => ({
+        id: b.id,
+        name: b.name,
+        slug: b.slug,
+        image: b.image,
+        imageBase64: await safeGetImageBase64(b.image),
+        productCount: b._count.products,
+      })),
+    );
 
     const products: CouponCatalogProduct[] = await Promise.all(
       rawProducts.map(async (p) => {
@@ -165,6 +258,10 @@ export async function getCampaignFormDataAction(): Promise<{
           regularPrice: p.regularPrice,
           salePrice: p.salePrice,
           categoryName: p.subCategory?.name,
+          subCategoryId: p.subCategory?.id,
+          categoryEnum: p.subCategory?.category,
+          brandId: p.brand?.id,
+          brandName: p.brand?.name,
           variants: variantsWithImages,
         };
       }),
@@ -180,6 +277,9 @@ export async function getCampaignFormDataAction(): Promise<{
     return {
       success: true,
       data: {
+        categories,
+        subCategories,
+        brands,
         products,
         combos,
       },
@@ -208,6 +308,12 @@ export async function getAllCampaignsAdminAction(): Promise<{
     const campaigns = await db.campaign.findMany({
       orderBy: { createdAt: "desc" },
       include: {
+        subCategories: {
+          select: { id: true, name: true, category: true },
+        },
+        brands: {
+          select: { id: true, name: true },
+        },
         products: {
           select: {
             id: true,
@@ -272,15 +378,24 @@ export async function getAllCampaignsAdminAction(): Promise<{
           minPurchaseAmount: c.minPurchaseAmount,
           maxRedemptions: c.maxRedemptions,
           currentRedemptions: c.currentRedemptions,
+          forAllCategories: c.forAllCategories,
+          forAllSubCategories: c.forAllSubCategories,
+          forAllBrands: c.forAllBrands,
           forAllProducts: c.forAllProducts,
           forAllCombos: c.forAllCombos,
           endsAt: c.endsAt,
           createdAt: c.createdAt,
           updatedAt: c.updatedAt,
           status,
+          categoryCount: c.categories.length,
+          subCategoryCount: c.subCategories.length,
+          brandCount: c.brands.length,
           productCount: c.products.length,
           variantCount: c.variants.length,
           comboCount: c.comboProducts.length,
+          categories: c.categories,
+          subCategories: c.subCategories,
+          brands: c.brands,
           products: c.products,
           variants: c.variants.map((v) => ({
             id: v.id,
@@ -332,6 +447,12 @@ export async function getCampaignByIdAdminAction(id: string): Promise<{
     const c = await db.campaign.findUnique({
       where: { id },
       include: {
+        subCategories: {
+          select: { id: true, name: true, category: true },
+        },
+        brands: {
+          select: { id: true, name: true },
+        },
         products: {
           select: {
             id: true,
@@ -381,15 +502,24 @@ export async function getCampaignByIdAdminAction(id: string): Promise<{
         minPurchaseAmount: c.minPurchaseAmount,
         maxRedemptions: c.maxRedemptions,
         currentRedemptions: c.currentRedemptions,
+        forAllCategories: c.forAllCategories,
+        forAllSubCategories: c.forAllSubCategories,
+        forAllBrands: c.forAllBrands,
         forAllProducts: c.forAllProducts,
         forAllCombos: c.forAllCombos,
         endsAt: c.endsAt,
         createdAt: c.createdAt,
         updatedAt: c.updatedAt,
         status,
+        categoryCount: c.categories.length,
+        subCategoryCount: c.subCategories.length,
+        brandCount: c.brands.length,
         productCount: c.products.length,
         variantCount: c.variants.length,
         comboCount: c.comboProducts.length,
+        categories: c.categories,
+        subCategories: c.subCategories,
+        brands: c.brands,
         products: c.products,
         variants: c.variants.map((v) => ({
           id: v.id,
@@ -424,11 +554,17 @@ export async function createCampaignAction(formData: FormData): Promise<{
 
     const bannerFile = formData.get("banner") as File | null;
     if (!bannerFile || !(bannerFile instanceof File) || bannerFile.size === 0) {
-      return { success: false, message: "Campaign banner image is required" };
+      return {
+        success: false,
+        message: "Please upload a campaign banner image",
+      };
     }
 
     if (bannerFile.size > 5 * 1024 * 1024) {
-      return { success: false, message: "Banner image must be less than 5MB" };
+      return {
+        success: false,
+        message: "Banner image must be less than 5MB",
+      };
     }
 
     const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
@@ -446,9 +582,19 @@ export async function createCampaignAction(formData: FormData): Promise<{
       discount: formData.get("discount"),
       minPurchaseAmount: formData.get("minPurchaseAmount"),
       maxRedemptions: formData.get("maxRedemptions"),
+      forAllCategories: formData.get("forAllCategories") === "true",
+      forAllSubCategories: formData.get("forAllSubCategories") === "true",
+      forAllBrands: formData.get("forAllBrands") === "true",
       forAllProducts: formData.get("forAllProducts") === "true",
       forAllCombos: formData.get("forAllCombos") === "true",
       endsAt: formData.get("endsAt"),
+      categoryEnums: JSON.parse(
+        (formData.get("categoryEnums") as string) || "[]",
+      ),
+      subCategoryIds: JSON.parse(
+        (formData.get("subCategoryIds") as string) || "[]",
+      ),
+      brandIds: JSON.parse((formData.get("brandIds") as string) || "[]"),
       productIds: JSON.parse((formData.get("productIds") as string) || "[]"),
       variantIds: JSON.parse((formData.get("variantIds") as string) || "[]"),
       comboProductIds: JSON.parse(
@@ -496,9 +642,21 @@ export async function createCampaignAction(formData: FormData): Promise<{
         discountType: data.discountType,
         minPurchaseAmount: data.minPurchaseAmount,
         maxRedemptions: data.maxRedemptions,
+        forAllCategories: data.forAllCategories,
+        forAllSubCategories: data.forAllSubCategories,
+        forAllBrands: data.forAllBrands,
         forAllProducts: data.forAllProducts,
         forAllCombos: data.forAllCombos,
         endsAt: data.endsAt,
+        categories: !data.forAllCategories ? data.categoryEnums : [],
+        subCategories:
+          !data.forAllSubCategories && data.subCategoryIds.length > 0
+            ? { connect: data.subCategoryIds.map((id) => ({ id })) }
+            : undefined,
+        brands:
+          !data.forAllBrands && data.brandIds.length > 0
+            ? { connect: data.brandIds.map((id) => ({ id })) }
+            : undefined,
         products:
           !data.forAllProducts && data.productIds.length > 0
             ? { connect: data.productIds.map((id) => ({ id })) }
@@ -613,9 +771,19 @@ export async function updateCampaignAction(formData: FormData): Promise<{
       discount: formData.get("discount"),
       minPurchaseAmount: formData.get("minPurchaseAmount"),
       maxRedemptions: formData.get("maxRedemptions"),
+      forAllCategories: formData.get("forAllCategories") === "true",
+      forAllSubCategories: formData.get("forAllSubCategories") === "true",
+      forAllBrands: formData.get("forAllBrands") === "true",
       forAllProducts: formData.get("forAllProducts") === "true",
       forAllCombos: formData.get("forAllCombos") === "true",
       endsAt: formData.get("endsAt"),
+      categoryEnums: JSON.parse(
+        (formData.get("categoryEnums") as string) || "[]",
+      ),
+      subCategoryIds: JSON.parse(
+        (formData.get("subCategoryIds") as string) || "[]",
+      ),
+      brandIds: JSON.parse((formData.get("brandIds") as string) || "[]"),
       productIds: JSON.parse((formData.get("productIds") as string) || "[]"),
       variantIds: JSON.parse((formData.get("variantIds") as string) || "[]"),
       comboProductIds: JSON.parse(
@@ -643,9 +811,21 @@ export async function updateCampaignAction(formData: FormData): Promise<{
         discountType: data.discountType,
         minPurchaseAmount: data.minPurchaseAmount,
         maxRedemptions: data.maxRedemptions,
+        forAllCategories: data.forAllCategories,
+        forAllSubCategories: data.forAllSubCategories,
+        forAllBrands: data.forAllBrands,
         forAllProducts: data.forAllProducts,
         forAllCombos: data.forAllCombos,
         endsAt: data.endsAt,
+        categories: !data.forAllCategories ? data.categoryEnums : [],
+        subCategories: {
+          set: !data.forAllSubCategories
+            ? data.subCategoryIds.map((id) => ({ id }))
+            : [],
+        },
+        brands: {
+          set: !data.forAllBrands ? data.brandIds.map((id) => ({ id })) : [],
+        },
         products: {
           set: !data.forAllProducts
             ? data.productIds.map((id) => ({ id }))

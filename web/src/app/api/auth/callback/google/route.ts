@@ -88,7 +88,14 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // 5. Set HTTP-only cookie with the RAW token and redirect
+    // 5. Merge guest cart if present
+    const guestCartId = req.cookies.get("meawland_cart_id")?.value;
+    if (guestCartId) {
+      const { mergeGuestCartIntoUser } = await import("@/actions/store/cart");
+      await mergeGuestCartIntoUser(user.id, guestCartId);
+    }
+
+    // 6. Set HTTP-only cookie with the RAW token and redirect
     const response = NextResponse.redirect(new URL("/account", req.url));
     response.cookies.set("__Host-SESSION_TOKEN", rawSessionToken, {
       expires: expiresAt,
@@ -97,6 +104,7 @@ export async function GET(req: NextRequest) {
       httpOnly: true,
       path: "/",
     });
+    response.cookies.delete("meawland_cart_id");
 
     return response;
   } catch (error) {

@@ -57,3 +57,11 @@ export function formatCategorySlugToTitle(slug: string): string {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 }
+
+export function formatCategoryToSlug(category: Category): string {
+  const found = Object.values(CATEGORY_MAP).find(
+    (c) => c.enumValue === category,
+  );
+  if (found) return found.slug;
+  return category.toLowerCase().replace(/_/g, "-");
+}

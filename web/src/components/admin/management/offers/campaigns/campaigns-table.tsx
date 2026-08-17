@@ -43,6 +43,9 @@ import {
   ImageIcon,
   Package,
   Boxes,
+  Tag,
+  FolderTree,
+  Award,
 } from "lucide-react";
 
 interface CampaignsTableProps {
@@ -304,6 +307,38 @@ export function CampaignsTable({
                   {/* Targets */}
                   <TableCell className="py-3">
                     <div className="flex flex-col gap-1 text-[11px] text-muted-foreground">
+                      {(!campaign.forAllCategories ||
+                        campaign.categoryCount > 0) && (
+                        <div className="flex items-center gap-1.5">
+                          <Tag className="h-3 w-3 text-teal-500/80 shrink-0" />
+                          <span className="truncate">
+                            {campaign.forAllCategories
+                              ? "All Categories"
+                              : `${campaign.categoryCount} Cat(s)`}
+                          </span>
+                        </div>
+                      )}
+                      {(!campaign.forAllSubCategories ||
+                        campaign.subCategoryCount > 0) && (
+                        <div className="flex items-center gap-1.5">
+                          <FolderTree className="h-3 w-3 text-indigo-500/80 shrink-0" />
+                          <span className="truncate">
+                            {campaign.forAllSubCategories
+                              ? "All Subcategories"
+                              : `${campaign.subCategoryCount} Subcat(s)`}
+                          </span>
+                        </div>
+                      )}
+                      {(!campaign.forAllBrands || campaign.brandCount > 0) && (
+                        <div className="flex items-center gap-1.5">
+                          <Award className="h-3 w-3 text-pink-500/80 shrink-0" />
+                          <span className="truncate">
+                            {campaign.forAllBrands
+                              ? "All Brands"
+                              : `${campaign.brandCount} Brand(s)`}
+                          </span>
+                        </div>
+                      )}
                       <div className="flex items-center gap-1.5">
                         <Package className="h-3 w-3 text-purple-500/80 shrink-0" />
                         <span className="truncate">

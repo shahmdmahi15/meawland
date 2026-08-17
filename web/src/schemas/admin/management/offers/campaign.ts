@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { DiscountType } from "@/generated/prisma/enums";
+import { DiscountType, Category } from "@/generated/prisma/enums";
 
 export const campaignPayloadSchema = z.object({
   name: z
@@ -38,8 +38,14 @@ export const campaignPayloadSchema = z.object({
       const num = Number(val);
       return isNaN(num) ? null : num;
     }),
+  forAllCategories: z.boolean().default(false),
+  forAllSubCategories: z.boolean().default(false),
+  forAllBrands: z.boolean().default(false),
   forAllProducts: z.boolean().default(false),
   forAllCombos: z.boolean().default(false),
+  categoryEnums: z.array(z.nativeEnum(Category)).default([]),
+  subCategoryIds: z.array(z.string()).default([]),
+  brandIds: z.array(z.string()).default([]),
   productIds: z.array(z.string()).default([]),
   variantIds: z.array(z.string()).default([]),
   comboProductIds: z.array(z.string()).default([]),

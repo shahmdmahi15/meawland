@@ -53,6 +53,32 @@ enum DiscountType {
   FREE_DELIVERY
 }
 
+enum PaymentMethod {
+  COD
+  BKASH
+}
+
+enum OrderStatus {
+  IN_REVIEW
+  PENDING
+  DELIVERY_APPROVAL_PENDING
+  PARTIAL_DELIVERY_APPROVAL_PENDING
+  CANCELLED_APPROVAL_PENDING
+  UNKNOWN_APPROVAL_PENDING
+  RETURNED_PARTIAL
+  DELIVERED
+  PARTIAL_DELIVERED
+  CANCELLED
+  HOLD
+  UNKNOWN
+  RETURNED
+}
+
+enum OrderType {
+  WEB
+  OTHER
+}
+
 model User {
   // Primary Key
   id String @id @default(cuid())
@@ -76,6 +102,9 @@ model User {
   // Child Relations
   sessions Session[]
   coupons  Coupon[]
+  wishlist Wishlist?
+  cart     Cart?
+  orders   Order[]
 
   // Timestamps
   otpExpiresAt DateTime?
@@ -123,7 +152,9 @@ model SubCategory {
   // Parent Relations
 
   // Child Relations
-  products Product[]
+  products  Product[]
+  coupons   Coupon[]
+  campaigns Campaign[]
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -146,7 +177,9 @@ model Brand {
   // Parent Relations
 
   // Child Relations
-  products Product[]
+  products  Product[]
+  coupons   Coupon[]
+  campaigns Campaign[]
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -211,6 +244,9 @@ model Product {
   comboProducts ComboProduct[]
   coupons       Coupon[]
   campaign      Campaign[]
+  wishlists     Wishlist[]
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -243,6 +279,8 @@ model Variant {
   comboProducts ComboProduct[]
   coupons       Coupon[]
   campaign      Campaign[]
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -323,12 +361,14 @@ model ComboProduct {
   // Forign Keys
 
   // Parent Relations
-  products Product[]
-  variants Variant[]
-  coupons  Coupon[]
-  campaign Campaign[]
 
   // Child Relations
+  products   Product[]
+  variants   Variant[]
+  coupons    Coupon[]
+  campaign   Campaign[]
+  cartItems  CartItem[]
+  orderItems OrderItem[]
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -342,23 +382,29 @@ model Coupon {
   id String @id @default(cuid())
 
   // Fields
-  name               String
-  couponCode         String       @unique
-  discount           String?
-  discountType       DiscountType
-  minOrder           String?
-  maxOrder           String?
-  maxRedemptions     Int?
-  minPurchaseAmount  String?
-  currentRedemptions Int          @default(0)
-  forAllUsers        Boolean      @default(false)
-  forAllProducts     Boolean      @default(false)
-  forAllCombos       Boolean      @default(false)
+  name                String
+  couponCode          String       @unique
+  discount            String?
+  discountType        DiscountType
+  minOrder            String?
+  maxOrder            String?
+  maxRedemptions      Int?
+  minPurchaseAmount   String?
+  currentRedemptions  Int          @default(0)
+  forAllUsers         Boolean      @default(false)
+  forAllCategories    Boolean      @default(false)
+  forAllSubCategories Boolean      @default(false)
+  forAllBrands        Boolean      @default(false)
+  forAllProducts      Boolean      @default(false)
+  forAllCombos        Boolean      @default(false)
 
   // Forign Keys
 
   // Parent Relations
   users         User[]
+  categories    Category[]
+  subCategories SubCategory[]
+  brands        Brand[]
   products      Product[]
   variants      Variant[]
   comboProducts ComboProduct[]
@@ -378,28 +424,177 @@ model Campaign {
   id String @id @default(cuid())
 
   // Fields
-  name               String
-  description        String
-  banner             String
-  discount           String?
-  discountType       DiscountType
-  minPurchaseAmount  String?
-  maxRedemptions     Int?
-  currentRedemptions Int          @default(0)
-  forAllProducts     Boolean      @default(false)
-  forAllCombos       Boolean      @default(false)
+  name                String
+  description         String
+  banner              String
+  discount            String?
+  discountType        DiscountType
+  minPurchaseAmount   String?
+  maxRedemptions      Int?
+  currentRedemptions  Int          @default(0)
+  forAllCategories    Boolean      @default(false)
+  forAllSubCategories Boolean      @default(false)
+  forAllBrands        Boolean      @default(false)
+  forAllProducts      Boolean      @default(false)
+  forAllCombos        Boolean      @default(false)
 
   // Forign Keys
 
   // Parent Relations
 
   // Child Relations
+  categories    Category[]
+  subCategories SubCategory[]
+  brands        Brand[]
   products      Product[]
   variants      Variant[]
   comboProducts ComboProduct[]
 
   // Timestamps
   endsAt    DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes and Constraints
+}
+
+model Wishlist {
+  // Primary Key
+  id String @id @default(cuid())
+
+  // Fields
+
+  // Forign Keys
+  userId String @unique
+
+  // Parent Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Child Relations
+  products Product[]
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes and Constraints
+}
+
+model Cart {
+  // Primary Key
+  id String @id @default(cuid())
+
+  // Fields
+  isTemporary Boolean
+
+  // Forign Keys
+  userId String? @unique
+
+  // Parent Relations
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Child Relations
+  cartItems CartItem[]
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes and Constraints
+}
+
+model CartItem {
+  // Primary Key
+  id String @id @default(cuid())
+
+  // Fields
+  quanitity Int @default(1)
+
+  // Forign Keys
+  cartId         String
+  productId      String?
+  variantId      String?
+  comboProductId String?
+
+  // Parent Relations
+  cart         Cart          @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product      Product?      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant      Variant?      @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  comboProduct ComboProduct? @relation(fields: [comboProductId], references: [id], onDelete: Cascade)
+
+  // Child Relations  
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes and Constraints
+}
+
+model Order {
+  // Primary Key
+  id String @id @default(cuid())
+
+  // Fields
+  code          String        @unique
+  totalQuantity Int
+  totalCost     String
+  totalPrice    String
+  discountCost  String
+  finalCost     String
+  name          String
+  email         String
+  phone         String
+  address       String
+  district      String
+  note          String?
+  paymentMethod PaymentMethod
+  status        OrderStatus
+  type OrderType
+
+  // Forign Keys
+  userId String?
+
+  // Parent Relations
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Child Relations
+  orderItems OrderItem[]
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes and Constraints
+}
+
+model OrderItem {
+  // Primary Key
+  id String @id @default(cuid())
+
+  // Fields
+  quanitity    Int
+  totalCost    String
+  unitPrice    String
+  discountCost String
+  finalCost    String
+  status       OrderStatus
+
+  // Forign Keys
+  orderId        String
+  productId      String?
+  variantId      String?
+  comboProductId String?
+
+  // Parent Relations
+  order        Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product      Product?      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant      Variant?      @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  comboProduct ComboProduct? @relation(fields: [comboProductId], references: [id], onDelete: Cascade)
+
+  // Child Relations  
+
+  // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

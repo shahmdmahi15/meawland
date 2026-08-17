@@ -14,6 +14,8 @@ import {
   Package,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toggleWishlistAction } from "@/actions/store/wishlist";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { StoreBrandProduct } from "@/actions/store/products/get-by-brand";
@@ -54,8 +56,11 @@ export function Products({ products = [] }: ProductsProps) {
 
   useEffect(() => {
     if (!emblaApi) return;
-    onSelect();
-    setScrollSnaps(emblaApi.scrollSnapList());
+    const updateSnaps = () => {
+      onSelect();
+      setScrollSnaps(emblaApi.scrollSnapList());
+    };
+    queueMicrotask(updateSnaps);
     emblaApi.on("select", onSelect);
     emblaApi.on("reInit", onSelect);
   }, [emblaApi, onSelect]);
@@ -199,20 +204,35 @@ export function Products({ products = [] }: ProductsProps) {
 }
 
 function MeawlandProductCard({ product }: { product: StoreBrandProduct }) {
+  const router = useRouter();
   const [imageError, setImageError] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
 
   const productSlug = product.slug || product.id;
 
-  const handleWishlist = (e: React.MouseEvent) => {
+  const handleWishlist = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const next = !isWishlisted;
-    setIsWishlisted(next);
-    if (next) {
-      toast.success(`Added ${product.name} to Wishlist! ❤️`);
+
+    const res = await toggleWishlistAction(product.id);
+    if (res.unauthorized) {
+      toast.error("Please login to add to wishlist", {
+        action: {
+          label: "Login",
+          onClick: () => router.push("/login?redirect=/wishlist"),
+        },
+      });
+      return;
+    }
+    if (res.success) {
+      setIsWishlisted(Boolean(res.isWishlisted));
+      if (res.isWishlisted) {
+        toast.success(`Added ${product.name} to Wishlist! ❤️`);
+      } else {
+        toast.info(`Removed from Wishlist`);
+      }
     } else {
-      toast.info(`Removed from Wishlist`);
+      toast.error(res.message);
     }
   };
 

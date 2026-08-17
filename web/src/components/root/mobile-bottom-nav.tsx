@@ -23,15 +23,18 @@ const categories = [
   { name: "Pet Litter", href: "/category/pet-litter" },
 ];
 
+import { useCart } from "@/context/cart-context";
+
 export function MobileBottomNav({ user }: { user: NavbarAccount | null }) {
   const pathname = usePathname();
+  const { cart, openDrawer } = useCart();
   const [openMenu, setOpenMenu] = useState(false);
 
   const navItems = [
     { label: "Home", href: "/", icon: Home },
     { label: "Search", href: "/products", icon: Search },
     { label: "Wishlist", href: "/wishlist", icon: Heart },
-    { label: "Cart", href: "/cart", icon: ShoppingCart },
+    { label: "Cart", href: "/cart", icon: ShoppingCart, isCart: true },
     user
       ? { label: "Account", href: "/account", icon: User }
       : { label: "Login", href: "/login", icon: User },
@@ -43,6 +46,40 @@ export function MobileBottomNav({ user }: { user: NavbarAccount | null }) {
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
+
+          if (item.isCart) {
+            return (
+              <button
+                key={item.label}
+                type="button"
+                onClick={openDrawer}
+                className={`flex flex-col items-center justify-center w-full h-full transition-all duration-300 relative group cursor-pointer ${
+                  isActive
+                    ? "text-[#F97316]"
+                    : "text-gray-600 hover:text-[#F97316]"
+                }`}
+                aria-label="Open cart"
+              >
+                <div
+                  className={`relative p-2.5 rounded-full transition-all duration-300 flex items-center justify-center ${
+                    isActive
+                      ? "bg-[#F97316]/15 scale-110 shadow-inner"
+                      : "group-hover:bg-[#F97316]/10 group-hover:scale-105 active:scale-90"
+                  }`}
+                >
+                  <Icon className="w-5 h-5 transition-all" />
+                  {cart.itemCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 bg-[#F97316] text-white font-black text-[9px] w-4 h-4 rounded-full flex items-center justify-center border-2 border-white shadow-xs">
+                      {cart.itemCount}
+                    </span>
+                  )}
+                </div>
+                {isActive && (
+                  <div className="absolute -bottom-1 w-1 h-1 bg-[#F97316] rounded-full shadow-[0_0_10px_rgba(249,115,22,0.8)]" />
+                )}
+              </button>
+            );
+          }
 
           return (
             <Link
@@ -63,9 +100,6 @@ export function MobileBottomNav({ user }: { user: NavbarAccount | null }) {
               >
                 <Icon className="w-5 h-5 transition-all" />
               </div>
-              <span className="text-[8px] font-black uppercase tracking-[0.15em] transition-all duration-300 hidden opacity-100 scale-105">
-                {item.label}
-              </span>
               {isActive && (
                 <div className="absolute -bottom-1 w-1 h-1 bg-[#F97316] rounded-full shadow-[0_0_10px_rgba(249,115,22,0.8)]" />
               )}

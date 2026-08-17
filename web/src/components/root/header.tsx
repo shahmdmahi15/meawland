@@ -10,9 +10,7 @@ import {
   ShoppingCart,
   User,
   X,
-  Sparkles,
   ArrowRight,
-  Package,
   Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,6 +19,7 @@ import {
   quickSearchAction,
   type QuickSearchResult,
 } from "@/actions/store/products/quick-search";
+import { useCart } from "@/context/cart-context";
 
 const navItems = [
   { label: "Pet Accessories", href: "/category/pet-accessories" },
@@ -34,6 +33,7 @@ const navItems = [
 
 export function Header({ user }: { user: NavbarAccount | null }) {
   const router = useRouter();
+  const { cart, openDrawer } = useCart();
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
@@ -49,8 +49,10 @@ export function Header({ user }: { user: NavbarAccount | null }) {
   useEffect(() => {
     const trimmed = searchQuery.trim();
     if (trimmed.length < 2) {
-      setSearchResult(null);
-      return;
+      const timer = setTimeout(() => {
+        setSearchResult(null);
+      }, 0);
+      return () => clearTimeout(timer);
     }
 
     const timer = setTimeout(() => {
@@ -187,8 +189,16 @@ export function Header({ user }: { user: NavbarAccount | null }) {
                   </span>
 
                   {searchResult.products.length === 0 ? (
-                    <div className="py-6 text-center space-y-1">
-                      <Package className="w-6 h-6 text-gray-300 mx-auto" />
+                    <div className="py-4 text-center flex flex-col items-center justify-center space-y-1">
+                      <div className="relative w-14 h-14 mx-auto">
+                        <Image
+                          src="/empty-cat.gif"
+                          alt="No matches"
+                          fill
+                          className="object-contain"
+                          unoptimized
+                        />
+                      </div>
                       <p className="text-xs font-bold text-gray-500">
                         No direct product matches
                       </p>
@@ -275,12 +285,13 @@ export function Header({ user }: { user: NavbarAccount | null }) {
           <Button
             variant="ghost"
             size="icon"
+            onClick={openDrawer}
             className="relative rounded-full bg-white/30 backdrop-blur-md h-11 w-11 md:h-12 md:w-12 border border-white/30 shadow-md hover:bg-white/50 transition-all text-gray-700 cursor-pointer"
             aria-label="Open cart"
           >
             <ShoppingCart className="w-5 h-5" />
             <span className="absolute -top-1 -right-1 bg-[#F97316] text-white font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
-              0
+              {cart.itemCount}
             </span>
           </Button>
 

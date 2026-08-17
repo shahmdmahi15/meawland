@@ -1,5 +1,5 @@
 import db from "@/lib/db";
-import { DiscountType } from "@/generated/prisma/enums";
+import { DiscountType, Category } from "@/generated/prisma/enums";
 
 export type ProductCampaignBadge = {
   id: string;
@@ -16,6 +16,8 @@ export async function getActiveCampaigns() {
         endsAt: { gt: new Date() },
       },
       include: {
+        subCategories: { select: { id: true } },
+        brands: { select: { id: true } },
         products: { select: { id: true } },
         variants: { select: { id: true, productId: true } },
         comboProducts: { select: { id: true } },
@@ -41,19 +43,47 @@ export function matchProductCampaign(
     name: string;
     discount: string | null;
     discountType: DiscountType;
+    forAllCategories: boolean;
+    forAllSubCategories: boolean;
+    forAllBrands: boolean;
     forAllProducts: boolean;
+    categories: Category[];
+    subCategories: Array<{ id: string }>;
+    brands: Array<{ id: string }>;
     products: Array<{ id: string }>;
     variants: Array<{ id: string; productId: string }>;
   }>,
+  itemMeta?: {
+    categoryEnum?: Category | null;
+    subCategoryId?: string | null;
+    brandId?: string | null;
+  },
 ): ProductCampaignBadge | null {
   for (const c of activeCampaigns) {
-    const matchesAll = c.forAllProducts;
+    const matchesAllProducts = c.forAllProducts;
     const matchesProduct = c.products.some((p) => p.id === productId);
     const matchesVariant = c.variants.some(
       (v) => v.productId === productId || variantIds.includes(v.id),
     );
+    const matchesCategory =
+      c.forAllCategories ||
+      (itemMeta?.categoryEnum && c.categories.includes(itemMeta.categoryEnum));
+    const matchesSubCategory =
+      c.forAllSubCategories ||
+      (itemMeta?.subCategoryId &&
+        c.subCategories.some((sc) => sc.id === itemMeta.subCategoryId));
+    const matchesBrand =
+      c.forAllBrands ||
+      (itemMeta?.brandId && c.brands.some((b) => b.id === itemMeta.brandId));
 
-    if (matchesAll || matchesProduct || matchesVariant) {
+    if (
+      matchesAllProducts ||
+      matchesProduct ||
+      matchesVariant ||
+      matchesCategory ||
+      matchesSubCategory ||
+      matchesBrand
+    ) {
       let badgeText = c.name;
       if (c.discountType === DiscountType.PERCENTAGE && c.discount) {
         badgeText = `${c.discount}% OFF • ${c.name}`;

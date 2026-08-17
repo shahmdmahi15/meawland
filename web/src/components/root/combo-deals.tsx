@@ -7,7 +7,6 @@ import useEmblaCarousel from "embla-carousel-react";
 import {
   ArrowLeft,
   ArrowRight,
-  Heart,
   Package,
   Sparkles,
   Flame,
@@ -15,7 +14,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { StoreComboProduct } from "@/actions/store/combo-products/get-all";
 
@@ -254,168 +252,124 @@ export function ComboDeals({ combos = [] }: ComboDealsProps) {
 // 3D Tile Card for Desktop / Tablet
 function ComboProductTileCard({
   combo,
-  isCenter,
 }: {
   combo: StoreComboProduct;
-  isCenter: boolean;
+  isCenter?: boolean;
 }) {
   const [imageError, setImageError] = useState(false);
-  const [isWishlisted, setIsWishlisted] = useState(false);
-
-  const handleWishlist = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const next = !isWishlisted;
-    setIsWishlisted(next);
-    if (next) {
-      toast.success(`Added ${combo.name} to Wishlist! ❤️`);
-    } else {
-      toast.info(`Removed from Wishlist`);
-    }
-  };
-
   const comboSlug = combo.slug || combo.id;
 
   return (
-    <div className="w-full h-full flex flex-col justify-between">
-      {/* Top Header Tags */}
-      <div className="w-full flex items-center justify-between gap-2 mb-3">
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <Badge className="bg-[#56C8D8] hover:bg-[#56C8D8] text-white text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full tracking-wider shadow-2xs">
-            COMBO DEAL
-          </Badge>
-
-          {combo.campaignBadge && (
-            <Badge className="bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full shadow-2xs gap-1">
-              <Sparkles className="h-3 w-3" />
-              {combo.campaignBadge.badgeText}
+    <Link
+      href={`/product/${comboSlug}`}
+      className="block w-full h-full group select-none text-left cursor-pointer"
+    >
+      <div className="w-full h-full flex flex-col justify-between">
+        {/* Top Header Tags */}
+        <div className="w-full flex items-center justify-between gap-2 mb-3">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <Badge className="bg-[#56C8D8] hover:bg-[#56C8D8] text-white text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full tracking-wider shadow-2xs">
+              COMBO DEAL
             </Badge>
-          )}
 
-          {combo.discountPercent &&
-            combo.discountPercent > 0 &&
-            !combo.campaignBadge && (
-              <Badge className="bg-rose-500 hover:bg-rose-500 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-full shadow-2xs gap-0.5">
-                <Flame className="h-3 w-3" />
-                {combo.discountPercent}% OFF
+            {combo.campaignBadge && (
+              <Badge className="bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full shadow-2xs gap-1">
+                <Sparkles className="h-3 w-3" />
+                {combo.campaignBadge.badgeText}
               </Badge>
             )}
-        </div>
 
-        <button
-          type="button"
-          onClick={handleWishlist}
-          className={cn(
-            "p-1.5 rounded-full bg-gray-50 hover:bg-rose-50 transition-colors cursor-pointer",
-            isWishlisted
-              ? "text-rose-500"
-              : "text-gray-400 hover:text-rose-500",
-          )}
-          aria-label="Add combo to wishlist"
-        >
-          <Heart
-            className={cn(
-              "w-4 h-4 sm:w-5 sm:h-5",
-              isWishlisted ? "fill-rose-500 text-rose-500" : "",
-            )}
-          />
-        </button>
-      </div>
-
-      {/* Combo Product Image */}
-      <div className="relative w-full h-44 sm:h-52 rounded-2xl overflow-hidden bg-radial from-[#F0F8FF] to-white border border-gray-100 mb-3.5 flex items-center justify-center shadow-inner group">
-        {!imageError && combo.image ? (
-          <Image
-            src={combo.image}
-            alt={combo.name}
-            fill
-            sizes="400px"
-            className="object-contain p-2 group-hover:scale-105 transition-transform duration-500"
-            onError={() => setImageError(true)}
-            unoptimized={combo.image.startsWith("data:")}
-          />
-        ) : (
-          <div className="flex flex-col items-center justify-center text-gray-300 p-4">
-            <Package className="w-12 h-12 stroke-1 mb-1 text-[#56C8D8]" />
-            <span className="text-xs font-bold text-gray-400">
-              Meawland Combo
-            </span>
+            {combo.discountPercent &&
+              combo.discountPercent > 0 &&
+              !combo.campaignBadge && (
+                <Badge className="bg-rose-500 hover:bg-rose-500 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-full shadow-2xs gap-0.5">
+                  <Flame className="h-3 w-3" />
+                  {combo.discountPercent}% OFF
+                </Badge>
+              )}
           </div>
-        )}
-
-        {/* Included Items Count Tag */}
-        <div className="absolute bottom-2 left-2">
-          <span className="inline-flex items-center gap-1 rounded-full bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 shadow-xs">
-            <Layers className="h-3 w-3 text-[#56C8D8]" />
-            {combo.itemsCount} Bundled Items
-          </span>
         </div>
-      </div>
 
-      {/* Title & Description */}
-      <div className="space-y-1 mb-3 text-center">
-        <h3 className="text-sm sm:text-base md:text-lg font-black text-gray-900 line-clamp-1">
-          {combo.name}
-        </h3>
-        <p className="text-[11px] sm:text-xs text-gray-500 font-medium line-clamp-2 leading-relaxed">
-          {combo.description || "Premium bundled value deal for your pets."}
-        </p>
-      </div>
-
-      {/* Pricing Breakdown & Savings */}
-      <div className="bg-[#F0F8FF]/80 rounded-xl p-2 sm:p-2.5 border border-[#D4EEFC]/60 mb-3.5 flex items-center justify-between">
-        <div className="text-left">
-          <span className="text-[10px] font-bold text-gray-400 block uppercase">
-            Bundle Price
-          </span>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-base sm:text-xl text-[#56C8D8] font-black">
-              {combo.price}
-            </span>
-            {combo.originalPrice && (
-              <span className="text-xs text-gray-400 font-bold line-through">
-                {combo.originalPrice}
+        {/* Combo Product Image */}
+        <div className="relative w-full h-44 sm:h-52 rounded-2xl overflow-hidden bg-radial from-[#F0F8FF] to-white border border-gray-100 mb-3.5 flex items-center justify-center shadow-inner group">
+          {!imageError && combo.image ? (
+            <Image
+              src={combo.image}
+              alt={combo.name}
+              fill
+              sizes="400px"
+              className="object-contain p-2 group-hover:scale-105 transition-transform duration-500"
+              onError={() => setImageError(true)}
+              unoptimized={combo.image.startsWith("data:")}
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center text-gray-300 p-4">
+              <Package className="w-12 h-12 stroke-1 mb-1 text-[#56C8D8]" />
+              <span className="text-xs font-bold text-gray-400">
+                Meawland Combo
               </span>
-            )}
+            </div>
+          )}
+
+          {/* Included Items Count Tag */}
+          <div className="absolute bottom-2 left-2">
+            <span className="inline-flex items-center gap-1 rounded-full bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 shadow-xs">
+              <Layers className="h-3 w-3 text-[#56C8D8]" />
+              {combo.itemsCount} Bundled Items
+            </span>
           </div>
         </div>
 
-        {combo.savingsAmount && combo.savingsAmount > 0 && (
-          <span className="inline-flex items-center gap-0.5 rounded-lg bg-emerald-500/10 text-emerald-600 text-[10px] sm:text-[11px] font-black px-2 py-1 border border-emerald-500/20">
-            <Sparkles className="h-3 w-3" />
-            Save ৳{combo.savingsAmount}
-          </span>
-        )}
-      </div>
+        {/* Title & Description */}
+        <div className="space-y-1 mb-3 text-center">
+          <h3 className="text-sm sm:text-base md:text-lg font-black text-gray-900 line-clamp-1 group-hover:text-[#56C8D8] transition-colors">
+            {combo.name}
+          </h3>
+          <p className="text-[11px] sm:text-xs text-gray-500 font-medium line-clamp-2 leading-relaxed">
+            {combo.description || "Premium bundled value deal for your pets."}
+          </p>
+        </div>
 
-      {/* CTA Button */}
-      <Link href={`/product/${comboSlug}`} className="w-full">
-        <Button
-          className="w-full bg-[#56C8D8] hover:bg-[#38bdf8] text-white font-black text-xs sm:text-sm uppercase tracking-wider rounded-2xl py-3 shadow-md cursor-pointer border-0 transition-all hover:shadow-lg"
-          tabIndex={isCenter ? 0 : -1}
-        >
-          VIEW COMBO DEAL
-        </Button>
-      </Link>
-    </div>
+        {/* Pricing Breakdown & Savings */}
+        <div className="bg-[#F0F8FF]/80 rounded-xl p-2 sm:p-2.5 border border-[#D4EEFC]/60 mb-3.5 flex items-center justify-between">
+          <div className="text-left">
+            <span className="text-[10px] font-bold text-gray-400 block uppercase">
+              Bundle Price
+            </span>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-base sm:text-xl text-[#56C8D8] font-black">
+                {combo.price}
+              </span>
+              {combo.originalPrice && (
+                <span className="text-xs text-gray-400 font-bold line-through">
+                  {combo.originalPrice}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {combo.savingsAmount && combo.savingsAmount > 0 && (
+            <span className="inline-flex items-center gap-0.5 rounded-lg bg-emerald-500/10 text-emerald-600 text-[10px] sm:text-[11px] font-black px-2 py-1 border border-emerald-500/20">
+              <Sparkles className="h-3 w-3" />
+              Save ৳{combo.savingsAmount}
+            </span>
+          )}
+        </div>
+
+        {/* CTA Button */}
+        <div className="w-full">
+          <div className="w-full bg-[#56C8D8] group-hover:bg-[#38bdf8] text-white font-black text-xs sm:text-sm uppercase tracking-wider rounded-2xl py-3 shadow-md text-center border-0 transition-all group-hover:shadow-lg">
+            VIEW COMBO DEAL
+          </div>
+        </div>
+      </div>
+    </Link>
   );
 }
 
 // Mobile 2-in-a-Row Card Component
 function MobileComboProductCard({ combo }: { combo: StoreComboProduct }) {
   const [imageError, setImageError] = useState(false);
-  const [isWishlisted, setIsWishlisted] = useState(false);
-
-  const handleWishlist = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const next = !isWishlisted;
-    setIsWishlisted(next);
-    if (next) {
-      toast.success(`Added to Wishlist! ❤️`);
-    }
-  };
-
   const comboSlug = combo.slug || combo.id;
 
   return (
@@ -451,19 +405,6 @@ function MobileComboProductCard({ combo }: { combo: StoreComboProduct }) {
               {combo.discountPercent}%
             </span>
           ) : null}
-
-          <button
-            type="button"
-            onClick={handleWishlist}
-            className="absolute top-1.5 right-1.5 p-1 rounded-full bg-white/90 shadow-2xs text-gray-400 hover:text-rose-500 cursor-pointer"
-          >
-            <Heart
-              className={cn(
-                "w-3.5 h-3.5",
-                isWishlisted ? "fill-rose-500 text-rose-500" : "",
-              )}
-            />
-          </button>
         </div>
 
         {/* Combo Title */}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -14,18 +14,16 @@ import {
   Heart,
   Package,
   X,
-  RotateCcw,
-  Check,
-  ChevronDown,
   ArrowUpDown,
   PawPrint,
   ShieldCheck,
-  Truck,
   Filter,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { toggleWishlistAction } from "@/actions/store/wishlist";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Sheet,
   SheetContent,
@@ -40,7 +38,6 @@ import type {
   FilterableStoreProduct,
   StoreFilterMeta,
 } from "@/actions/store/products/get-all-store-products";
-import { Category } from "@/generated/prisma/enums";
 
 type SortOption =
   | "NEWEST"
@@ -49,8 +46,6 @@ type SortOption =
   | "NAME_ASC"
   | "NAME_DESC"
   | "DISCOUNT_DESC";
-
-import { useSearchParams } from "next/navigation";
 
 interface AllProductsViewProps {
   initialProducts: FilterableStoreProduct[];
@@ -77,25 +72,25 @@ export function AllProductsView({
 
   useEffect(() => {
     if (urlQ) {
-      setSearchQuery(urlQ);
+      queueMicrotask(() => setSearchQuery(urlQ));
     }
   }, [urlQ]);
 
   useEffect(() => {
     if (urlCategory) {
-      setSelectedCategory(urlCategory);
+      queueMicrotask(() => setSelectedCategory(urlCategory));
     }
   }, [urlCategory]);
 
   useEffect(() => {
     if (initialSearchQuery) {
-      setSearchQuery(initialSearchQuery);
+      queueMicrotask(() => setSearchQuery(initialSearchQuery));
     }
   }, [initialSearchQuery]);
 
   useEffect(() => {
     if (initialCategory && initialCategory !== "ALL") {
-      setSelectedCategory(initialCategory);
+      queueMicrotask(() => setSelectedCategory(initialCategory));
     }
   }, [initialCategory]);
 
@@ -709,9 +704,15 @@ export function AllProductsView({
 
             {/* Empty State */}
             {sortedProducts.length === 0 ? (
-              <div className="bg-[#F0F8FF]/60 border border-dashed border-[#D4EEFC] rounded-3xl p-12 text-center space-y-4">
-                <div className="w-16 h-16 rounded-full bg-white border border-[#D4EEFC] text-gray-400 flex items-center justify-center mx-auto shadow-2xs">
-                  <Package className="w-8 h-8 stroke-1" />
+              <div className="bg-[#F0F8FF]/60 border border-dashed border-[#D4EEFC] rounded-3xl p-8 sm:p-12 text-center space-y-4">
+                <div className="relative w-32 h-32 sm:w-40 sm:h-40 mx-auto">
+                  <Image
+                    src="/empty-cat.gif"
+                    alt="No products found"
+                    fill
+                    className="object-contain"
+                    unoptimized
+                  />
                 </div>
                 <div className="space-y-1">
                   <h3 className="text-xl font-black text-gray-900">
@@ -724,7 +725,7 @@ export function AllProductsView({
                 </div>
                 <Button
                   onClick={handleClearAllFilters}
-                  className="rounded-full bg-[#56C8D8] hover:bg-[#38bdf8] text-white font-bold text-xs px-6 py-2 shadow-md border-0"
+                  className="rounded-full bg-[#56C8D8] hover:bg-[#38bdf8] text-white font-bold text-xs px-6 py-2.5 shadow-md border-0 cursor-pointer"
                 >
                   Reset All Filters
                 </Button>
@@ -959,26 +960,50 @@ function FilterSidebarContent({
           </div>
         </div>
       )}
+
+      {/* Reset Filters Action */}
+      <Button
+        variant="outline"
+        onClick={onClearAll}
+        className="w-full text-xs font-bold rounded-2xl border-[#D4EEFC] text-gray-600 hover:text-[#0C1E3C] hover:bg-[#EBF7FD] hover:border-[#56C8D8] py-5 transition-all cursor-pointer"
+      >
+        Reset All Filters
+      </Button>
     </div>
   );
 }
 
 // Product Grid Card
 function StoreProductCard({ item }: { item: FilterableStoreProduct }) {
+  const router = useRouter();
   const [imageError, setImageError] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
 
   const productSlug = item.slug || item.id;
 
-  const handleWishlist = (e: React.MouseEvent) => {
+  const handleWishlist = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const next = !isWishlisted;
-    setIsWishlisted(next);
-    if (next) {
-      toast.success(`Added ${item.name} to Wishlist! ❤️`);
+
+    const res = await toggleWishlistAction(item.id);
+    if (res.unauthorized) {
+      toast.error("Please login to add to wishlist", {
+        action: {
+          label: "Login",
+          onClick: () => router.push("/login?redirect=/wishlist"),
+        },
+      });
+      return;
+    }
+    if (res.success) {
+      setIsWishlisted(Boolean(res.isWishlisted));
+      if (res.isWishlisted) {
+        toast.success(`Added ${item.name} to Wishlist! ❤️`);
+      } else {
+        toast.info(`Removed from Wishlist`);
+      }
     } else {
-      toast.info(`Removed from Wishlist`);
+      toast.error(res.message);
     }
   };
 
@@ -1100,20 +1125,35 @@ function StoreProductCard({ item }: { item: FilterableStoreProduct }) {
 
 // Product List Card
 function StoreProductListCard({ item }: { item: FilterableStoreProduct }) {
+  const router = useRouter();
   const [imageError, setImageError] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
 
   const productSlug = item.slug || item.id;
 
-  const handleWishlist = (e: React.MouseEvent) => {
+  const handleWishlist = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const next = !isWishlisted;
-    setIsWishlisted(next);
-    if (next) {
-      toast.success(`Added ${item.name} to Wishlist! ❤️`);
+
+    const res = await toggleWishlistAction(item.id);
+    if (res.unauthorized) {
+      toast.error("Please login to add to wishlist", {
+        action: {
+          label: "Login",
+          onClick: () => router.push("/login?redirect=/wishlist"),
+        },
+      });
+      return;
+    }
+    if (res.success) {
+      setIsWishlisted(Boolean(res.isWishlisted));
+      if (res.isWishlisted) {
+        toast.success(`Added ${item.name} to Wishlist! ❤️`);
+      } else {
+        toast.info(`Removed from Wishlist`);
+      }
     } else {
-      toast.info(`Removed from Wishlist`);
+      toast.error(res.message);
     }
   };
 

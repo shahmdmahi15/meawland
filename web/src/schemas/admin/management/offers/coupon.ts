@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { DiscountType } from "@/generated/prisma/enums";
+import { DiscountType, Category } from "@/generated/prisma/enums";
 
 export const couponPayloadSchema = z.object({
   name: z
@@ -58,9 +58,15 @@ export const couponPayloadSchema = z.object({
       val !== undefined && val !== null ? String(val) : null,
     ),
   forAllUsers: z.boolean().default(false),
+  forAllCategories: z.boolean().default(false),
+  forAllSubCategories: z.boolean().default(false),
+  forAllBrands: z.boolean().default(false),
   forAllProducts: z.boolean().default(false),
   forAllCombos: z.boolean().default(false),
   userIds: z.array(z.string()).default([]),
+  categoryEnums: z.array(z.nativeEnum(Category)).default([]),
+  subCategoryIds: z.array(z.string()).default([]),
+  brandIds: z.array(z.string()).default([]),
   productIds: z.array(z.string()).default([]),
   variantIds: z.array(z.string()).default([]),
   comboProductIds: z.array(z.string()).default([]),
@@ -121,6 +127,9 @@ export const validateCouponCartSchema = z.object({
   code: z.string().trim().min(1, "Coupon code is required"),
   subtotal: z.number().nonnegative(),
   userId: z.string().optional(),
+  categoryEnums: z.array(z.nativeEnum(Category)).default([]),
+  subCategoryIds: z.array(z.string()).default([]),
+  brandIds: z.array(z.string()).default([]),
   productIds: z.array(z.string()).default([]),
   variantIds: z.array(z.string()).default([]),
   comboProductIds: z.array(z.string()).default([]),

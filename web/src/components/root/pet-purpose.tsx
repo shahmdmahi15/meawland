@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { toggleWishlistAction } from "@/actions/store/wishlist";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type {
@@ -269,20 +271,35 @@ export function PetPurpose({ products = [] }: PetPurposeProps) {
 }
 
 function PurposeProductCard({ item }: { item: StorePurposeProduct }) {
+  const router = useRouter();
   const [imageError, setImageError] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
 
   const productSlug = item.slug || item.id;
 
-  const handleWishlist = (e: React.MouseEvent) => {
+  const handleWishlist = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const next = !isWishlisted;
-    setIsWishlisted(next);
-    if (next) {
-      toast.success(`Added ${item.name} to Wishlist! ❤️`);
+
+    const res = await toggleWishlistAction(item.id);
+    if (res.unauthorized) {
+      toast.error("Please login to add to wishlist", {
+        action: {
+          label: "Login",
+          onClick: () => router.push("/login?redirect=/wishlist"),
+        },
+      });
+      return;
+    }
+    if (res.success) {
+      setIsWishlisted(Boolean(res.isWishlisted));
+      if (res.isWishlisted) {
+        toast.success(`Added ${item.name} to Wishlist! ❤️`);
+      } else {
+        toast.info(`Removed from Wishlist`);
+      }
     } else {
-      toast.info(`Removed from Wishlist`);
+      toast.error(res.message);
     }
   };
 
