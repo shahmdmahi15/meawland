@@ -79,6 +79,11 @@ enum OrderType {
   OTHER
 }
 
+enum PaymentStatus {
+  PENDING
+  PAID
+}
+
 model User {
   // Primary Key
   id String @id @default(cuid())
@@ -548,9 +553,10 @@ model Order {
   address       String
   district      String
   note          String?
-  paymentMethod PaymentMethod
   status        OrderStatus
-  type OrderType
+  type          OrderType
+  paymentMethod PaymentMethod
+  paymentStatus PaymentStatus
 
   // Forign Keys
   userId String?

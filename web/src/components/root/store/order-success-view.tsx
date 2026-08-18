@@ -26,6 +26,16 @@ interface OrderSuccessViewProps {
   order: OrderConfirmationDetails;
 }
 
+const isValidImageSrc = (src?: string | null): boolean => {
+  if (!src) return false;
+  return (
+    src.startsWith("data:") ||
+    src.startsWith("http://") ||
+    src.startsWith("https://") ||
+    src.startsWith("/")
+  );
+};
+
 export function OrderSuccessView({ order }: OrderSuccessViewProps) {
   const [copied, setCopied] = useState(false);
 
@@ -159,14 +169,18 @@ export function OrderSuccessView({ order }: OrderSuccessViewProps) {
                 className="pt-3 first:pt-0 flex items-center gap-3"
               >
                 <div className="relative w-14 h-14 rounded-xl bg-gray-50 border border-gray-200 shrink-0 p-1 overflow-hidden flex items-center justify-center">
-                  <Image
-                    src={item.image}
-                    alt={item.name}
-                    fill
-                    sizes="56px"
-                    className="object-contain p-1"
-                    unoptimized={item.image.startsWith("data:")}
-                  />
+                  {isValidImageSrc(item.image) ? (
+                    <Image
+                      src={item.image}
+                      alt={item.name}
+                      fill
+                      sizes="56px"
+                      className="object-contain p-1"
+                      unoptimized={item.image.startsWith("data:")}
+                    />
+                  ) : (
+                    <Package className="w-6 h-6 text-gray-400" />
+                  )}
                 </div>
 
                 <div className="flex-1 min-w-0">

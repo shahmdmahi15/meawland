@@ -16,14 +16,36 @@ import {
   placeOrderSchema,
   type PlaceOrderInput,
 } from "@/schemas/store/checkout";
+import { getImageBase64 } from "@/lib/storage";
 import {
   OrderStatus,
   OrderType,
   PaymentMethod,
+  PaymentStatus,
   StockEventType,
   Role,
 } from "@/generated/prisma/enums";
 import { revalidatePath } from "next/cache";
+
+async function safeGetImageBase64(
+  key: string | null | undefined,
+): Promise<string> {
+  if (!key) return "";
+  if (
+    key.startsWith("data:") ||
+    key.startsWith("http://") ||
+    key.startsWith("https://") ||
+    key.startsWith("/")
+  ) {
+    return key;
+  }
+  try {
+    return await getImageBase64(key);
+  } catch (error) {
+    console.error(`[Storage.GetBase64] Failed for key "${key}":`, error);
+    return "";
+  }
+}
 
 export type UserCheckoutProfile = {
   id?: string;
@@ -422,6 +444,7 @@ export async function placeOrderAction(
           district,
           note: note || null,
           paymentMethod,
+          paymentStatus: PaymentStatus.PENDING,
           status: OrderStatus.PENDING,
           type: OrderType.WEB,
           userId: orderUserId,
@@ -667,6 +690,7 @@ export async function getOrderConfirmationAction(orderId: string): Promise<{
                 product: {
                   select: {
                     name: true,
+                    image: true,
                   },
                 },
               },
@@ -689,18 +713,20 @@ export async function getOrderConfirmationAction(orderId: string): Promise<{
     const items = await Promise.all(
       order.orderItems.map(async (oi) => {
         let name = "Item";
-        let image = "/fallback-product.png";
+        let imageKey: string | null = null;
 
         if (oi.variant) {
           name = `${oi.variant.product.name} (${oi.variant.sku})`;
-          image = oi.variant.image || "/fallback-product.png";
+          imageKey = oi.variant.image || oi.variant.product.image;
         } else if (oi.product) {
           name = oi.product.name;
-          image = oi.product.image || "/fallback-product.png";
+          imageKey = oi.product.image;
         } else if (oi.comboProduct) {
           name = oi.comboProduct.name;
-          image = oi.comboProduct.image || "/fallback-product.png";
+          imageKey = oi.comboProduct.image;
         }
+
+        const image = await safeGetImageBase64(imageKey);
 
         return {
           id: oi.id,

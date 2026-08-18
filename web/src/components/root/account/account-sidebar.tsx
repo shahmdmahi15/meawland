@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -13,7 +14,6 @@ import {
   ShieldUser,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NavbarAccount } from "@/actions/auth/get-me";
 import { logoutAction } from "@/actions/auth/logout";
 import { toast } from "sonner";
@@ -80,21 +80,26 @@ export function AccountSidebar({ user }: AccountSidebarProps) {
       {/* User Profile */}
       <div className="flex flex-col items-center gap-2 mb-6 px-2">
         <div className="relative">
-          <Avatar
-            className="size-18 ring-2 ring-[#56C8D8]/30"
-            style={{ width: 80, height: 80 }}
-          >
+          <div className="w-20 h-20 rounded-full ring-2 ring-[#56C8D8]/30 overflow-hidden bg-[#e0f7fa] flex items-center justify-center relative shadow-sm">
             {user?.avatar ? (
-              <AvatarImage src={user.avatar} alt={user?.name || "User"} />
-            ) : null}
-            <AvatarFallback className="bg-[#e0f7fa] text-[#0097a7] text-lg font-bold">
-              {user?.name ? (
-                getInitials(user.name)
-              ) : (
-                <User className="w-6 h-6" />
-              )}
-            </AvatarFallback>
-          </Avatar>
+              <Image
+                src={user.avatar}
+                alt={user?.name || "User"}
+                fill
+                sizes="80px"
+                className="object-cover rounded-full"
+                unoptimized={user.avatar.startsWith("data:")}
+              />
+            ) : (
+              <span className="text-[#0097a7] text-lg font-bold">
+                {user?.name ? (
+                  getInitials(user.name)
+                ) : (
+                  <User className="w-8 h-8 text-[#0097a7]" />
+                )}
+              </span>
+            )}
+          </div>
         </div>
         <div className="text-center">
           <p className="font-bold text-gray-900 text-sm leading-tight">
