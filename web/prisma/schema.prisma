@@ -84,6 +84,31 @@ enum PaymentStatus {
   PAID
 }
 
+enum SupportTicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum SupportTicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum SupportChannel {
+  WEB_TICKET
+  WHATSAPP
+  MESSENGER
+}
+
+enum NewsletterStatus {
+  SUBSCRIBED
+  UNSUBSCRIBED
+}
+
 model User {
   // Primary Key
   id String @id @default(cuid())
@@ -105,11 +130,12 @@ model User {
   // Parent Relations
 
   // Child Relations
-  sessions Session[]
-  coupons  Coupon[]
-  wishlist Wishlist?
-  cart     Cart?
-  orders   Order[]
+  sessions       Session[]
+  coupons        Coupon[]
+  wishlist       Wishlist?
+  cart           Cart?
+  orders         Order[]
+  supportTickets SupportTicket[]
 
   // Timestamps
   otpExpiresAt DateTime?
@@ -565,7 +591,8 @@ model Order {
   user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Child Relations
-  orderItems OrderItem[]
+  orderItems     OrderItem[]
+  supportTickets SupportTicket[]
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -606,3 +633,49 @@ model OrderItem {
 
   // Indexes and Constraints
 }
+
+model SupportTicket {
+  // Primary Key
+  id String @id @default(cuid())
+
+  // Fields
+  code     String                @unique
+  subject  String
+  message  String
+  category String
+  status   SupportTicketStatus   @default(OPEN)
+  priority SupportTicketPriority @default(MEDIUM)
+  channel  SupportChannel        @default(WEB_TICKET)
+
+  // Forign Keys
+  userId  String
+  orderId String?
+
+  // Parent Relations
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order Order? @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  // Child Relations
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes and Constraints
+}
+
+model NewsletterSubscriber {
+  // Primary Key
+  id String @id @default(cuid())
+
+  // Fields
+  email     String           @unique
+  status    NewsletterStatus @default(SUBSCRIBED)
+  source    String?          @default("FOOTER") // FOOTER, POPUP, CHECKOUT, MANUAL
+  ipAddress String?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+

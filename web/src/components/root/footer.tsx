@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -11,13 +11,16 @@ import {
   MapPin,
   ShieldCheck,
   CheckCircle2,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { subscribeNewsletterAction } from "@/actions/root/newsletter";
 
 export function Footer() {
   const [email, setEmail] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,9 +28,17 @@ export function Footer() {
       toast.error("Please enter a valid email address.");
       return;
     }
-    setIsSubscribed(true);
-    toast.success("Thank you for subscribing to Meawland VIP updates! 🐾");
-    setEmail("");
+
+    startTransition(async () => {
+      const res = await subscribeNewsletterAction(email, "FOOTER");
+      if (res.success) {
+        setIsSubscribed(true);
+        toast.success(res.message);
+        setEmail("");
+      } else {
+        toast.error(res.message);
+      }
+    });
   };
 
   return (
@@ -115,10 +126,20 @@ export function Footer() {
                     />
                     <Button
                       type="submit"
+                      disabled={isPending}
                       className="bg-[#56C8D8] hover:bg-[#38bdf8] text-white font-black text-xs px-5 py-2.5 rounded-full shadow-md cursor-pointer border-0 shrink-0 gap-1.5"
                     >
-                      <span>Subscribe</span>
-                      <Send className="w-3.5 h-3.5" />
+                      {isPending ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Subscribing...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Subscribe</span>
+                          <Send className="w-3.5 h-3.5" />
+                        </>
+                      )}
                     </Button>
                   </div>
                   <p className="text-[10px] text-gray-400 font-medium">

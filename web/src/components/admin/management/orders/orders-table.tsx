@@ -3,6 +3,7 @@
 import { useState, useMemo, useTransition, Fragment } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import {
   Table,
   TableBody,
@@ -65,14 +66,121 @@ const isValidImageSrc = (src?: string | null): boolean => {
   );
 };
 
+const ORDER_STATUS_CONFIG: Record<
+  OrderStatus,
+  { label: string; color: string }
+> = {
+  [OrderStatus.IN_REVIEW]: {
+    label: "In Review",
+    color: "text-blue-700 bg-blue-50 border-blue-200",
+  },
+  [OrderStatus.PENDING]: {
+    label: "Pending",
+    color: "text-amber-700 bg-amber-50 border-amber-200",
+  },
+  [OrderStatus.DELIVERY_APPROVAL_PENDING]: {
+    label: "Delivery Approval Pending",
+    color: "text-indigo-700 bg-indigo-50 border-indigo-200",
+  },
+  [OrderStatus.PARTIAL_DELIVERY_APPROVAL_PENDING]: {
+    label: "Partial Delivery Approval",
+    color: "text-cyan-700 bg-cyan-50 border-cyan-200",
+  },
+  [OrderStatus.CANCELLED_APPROVAL_PENDING]: {
+    label: "Cancelled Approval",
+    color: "text-rose-700 bg-rose-50 border-rose-200",
+  },
+  [OrderStatus.UNKNOWN_APPROVAL_PENDING]: {
+    label: "Unknown Approval",
+    color: "text-gray-700 bg-gray-50 border-gray-200",
+  },
+  [OrderStatus.RETURNED_PARTIAL]: {
+    label: "Partial Returned",
+    color: "text-orange-700 bg-orange-50 border-orange-200",
+  },
+  [OrderStatus.DELIVERED]: {
+    label: "Delivered",
+    color: "text-emerald-700 bg-emerald-50 border-emerald-200",
+  },
+  [OrderStatus.PARTIAL_DELIVERED]: {
+    label: "Partial Delivered",
+    color: "text-teal-700 bg-teal-50 border-teal-200",
+  },
+  [OrderStatus.CANCELLED]: {
+    label: "Cancelled",
+    color: "text-red-700 bg-red-50 border-red-200",
+  },
+  [OrderStatus.HOLD]: {
+    label: "On Hold",
+    color: "text-yellow-700 bg-yellow-50 border-yellow-200",
+  },
+  [OrderStatus.UNKNOWN]: {
+    label: "Unknown",
+    color: "text-gray-700 bg-gray-50 border-gray-200",
+  },
+  [OrderStatus.RETURNED]: {
+    label: "Returned",
+    color: "text-rose-700 bg-rose-50 border-rose-200",
+  },
+};
+
+const PAYMENT_STATUS_CONFIG: Record<
+  PaymentStatus,
+  { label: string; color: string }
+> = {
+  [PaymentStatus.PENDING]: {
+    label: "Pending",
+    color: "text-amber-700 bg-amber-50 border-amber-200",
+  },
+  [PaymentStatus.PAID]: {
+    label: "Paid",
+    color: "text-emerald-700 bg-emerald-50 border-emerald-200",
+  },
+};
+
 export function OrdersTable({
   orders,
   defaultTypeFilter = "ALL",
 }: OrdersTableProps) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const urlOrderId = searchParams.get("orderId");
+  const urlOrderCode = searchParams.get("orderCode");
+  const urlSearch = searchParams.get("search");
+
+  const [activeModalOrderId, setActiveModalOrderId] = useState<string | null>(
+    null,
+  );
+
+  const urlMatchedOrderId = useMemo(() => {
+    if (urlOrderId) {
+      return orders.find((o) => o.id === urlOrderId)?.id ?? null;
+    }
+    if (urlOrderCode) {
+      return (
+        orders.find((o) => o.code.toLowerCase() === urlOrderCode.toLowerCase())
+          ?.id ?? null
+      );
+    }
+    return null;
+  }, [urlOrderId, urlOrderCode, orders]);
+
+  const effectiveActiveOrderId = activeModalOrderId ?? urlMatchedOrderId;
+
   const [isPending, startTransition] = useTransition();
 
+  // Controlled status states
+  const [orderStatuses, setOrderStatuses] = useState<
+    Record<string, OrderStatus>
+  >({});
+  const [paymentStatuses, setPaymentStatuses] = useState<
+    Record<string, PaymentStatus>
+  >({});
+
   // Search and Filter states
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(() => urlSearch || "");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>("ALL");
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<string>("ALL");
@@ -98,6 +206,7 @@ export function OrdersTable({
 
   // Inline status updates
   const handleQuickStatusChange = (orderId: string, newStatus: OrderStatus) => {
+    setOrderStatuses((prev) => ({ ...prev, [orderId]: newStatus }));
     startTransition(async () => {
       const res = await updateOrderStatusAction({
         orderId,
@@ -116,6 +225,7 @@ export function OrdersTable({
     orderId: string,
     newPaymentStatus: PaymentStatus,
   ) => {
+    setPaymentStatuses((prev) => ({ ...prev, [orderId]: newPaymentStatus }));
     startTransition(async () => {
       const res = await updatePaymentStatusAction({
         orderId,
@@ -230,37 +340,51 @@ export function OrdersTable({
 
   // Render Status Badge
   const renderStatusBadge = (order: AdminOrder) => {
+    const status = orderStatuses[order.id] ?? order.status;
+    const cfg = ORDER_STATUS_CONFIG[status];
     return (
       <Select
-        defaultValue={order.status}
-        onValueChange={(val) =>
-          handleQuickStatusChange(order.id, val as OrderStatus)
-        }
+        value={status}
+        onValueChange={(val) => {
+          if (val) handleQuickStatusChange(order.id, val as OrderStatus);
+        }}
         disabled={isPending}
       >
         <SelectTrigger
           className={cn(
-            "h-7 text-xs font-semibold px-2 border w-32",
-            order.status === OrderStatus.DELIVERED &&
-              "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
-            order.status === OrderStatus.PENDING &&
-              "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30",
-            order.status === OrderStatus.IN_REVIEW &&
-              "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30",
-            order.status === OrderStatus.CANCELLED &&
-              "bg-destructive/10 text-destructive border-destructive/30",
-            order.status === OrderStatus.HOLD &&
-              "bg-purple-500/10 text-purple-600 border-purple-500/30",
+            "h-7 text-xs font-bold px-2.5 border rounded-lg w-36 shadow-2xs cursor-pointer",
+            cfg?.color,
           )}
         >
-          <SelectValue />
+          <SelectValue>
+            <span className="font-bold text-xs truncate">
+              {cfg?.label || status}
+            </span>
+          </SelectValue>
         </SelectTrigger>
-        <SelectContent>
-          {Object.values(OrderStatus).map((st) => (
-            <SelectItem key={st} value={st} className="text-xs">
-              {st.replace(/_/g, " ")}
-            </SelectItem>
-          ))}
+        <SelectContent
+          alignItemWithTrigger={false}
+          className="min-w-[190px] bg-white border border-gray-200 shadow-xl rounded-xl p-1 z-50"
+        >
+          {Object.values(OrderStatus).map((st) => {
+            const scfg = ORDER_STATUS_CONFIG[st];
+            return (
+              <SelectItem
+                key={st}
+                value={st}
+                className="text-xs py-1.5 px-2 rounded-lg cursor-pointer"
+              >
+                <span
+                  className={cn(
+                    "font-bold text-xs",
+                    scfg?.color?.split(" ")[0],
+                  )}
+                >
+                  {scfg?.label || st}
+                </span>
+              </SelectItem>
+            );
+          })}
         </SelectContent>
       </Select>
     );
@@ -268,9 +392,11 @@ export function OrdersTable({
 
   // Render Payment Badge
   const renderPaymentBadge = (order: AdminOrder) => {
+    const pStatus = paymentStatuses[order.id] ?? order.paymentStatus;
+    const pcfg = PAYMENT_STATUS_CONFIG[pStatus];
     return (
       <Select
-        defaultValue={order.paymentStatus}
+        value={pStatus}
         onValueChange={(val) => {
           if (val)
             handleQuickPaymentStatusChange(order.id, val as PaymentStatus);
@@ -279,27 +405,36 @@ export function OrdersTable({
       >
         <SelectTrigger
           className={cn(
-            "h-7 text-[11px] font-bold px-2 border w-24",
-            order.paymentStatus === PaymentStatus.PAID
-              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
-              : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30",
+            "h-7 text-[11px] font-bold px-2.5 border rounded-lg w-28 shadow-2xs cursor-pointer",
+            pcfg?.color,
           )}
         >
-          <SelectValue />
+          <SelectValue>
+            <span className="font-bold text-[11px]">
+              {pcfg?.label || pStatus}
+            </span>
+          </SelectValue>
         </SelectTrigger>
-        <SelectContent>
-          <SelectItem
-            value={PaymentStatus.PAID}
-            className="text-xs text-emerald-600 font-medium"
-          >
-            PAID
-          </SelectItem>
-          <SelectItem
-            value={PaymentStatus.PENDING}
-            className="text-xs text-amber-600 font-medium"
-          >
-            PENDING
-          </SelectItem>
+        <SelectContent
+          alignItemWithTrigger={false}
+          className="min-w-[140px] bg-white border border-gray-200 shadow-xl rounded-xl p-1 z-50"
+        >
+          {Object.values(PaymentStatus).map((pst) => {
+            const itemCfg = PAYMENT_STATUS_CONFIG[pst];
+            return (
+              <SelectItem
+                key={pst}
+                value={pst}
+                className="text-xs py-1.5 px-2 rounded-lg cursor-pointer"
+              >
+                <span
+                  className={cn("font-bold", itemCfg?.color?.split(" ")[0])}
+                >
+                  {itemCfg?.label || pst}
+                </span>
+              </SelectItem>
+            );
+          })}
         </SelectContent>
       </Select>
     );
@@ -350,7 +485,10 @@ export function OrdersTable({
                 <SelectTrigger className="h-9 text-xs w-[120px]">
                   <SelectValue placeholder="All Types" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent
+                  alignItemWithTrigger={false}
+                  className="min-w-[130px] bg-white border border-gray-200 shadow-xl rounded-xl p-1 z-50"
+                >
                   <SelectItem value="ALL">All Types</SelectItem>
                   <SelectItem value={OrderType.WEB}>Web</SelectItem>
                   <SelectItem value={OrderType.OTHER}>Other / POS</SelectItem>
@@ -366,14 +504,17 @@ export function OrdersTable({
                 setCurrentPage(1);
               }}
             >
-              <SelectTrigger className="h-9 text-xs w-[140px]">
+              <SelectTrigger className="h-9 text-xs w-[150px]">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent
+                alignItemWithTrigger={false}
+                className="min-w-[200px] bg-white border border-gray-200 shadow-xl rounded-xl p-1 z-50"
+              >
                 <SelectItem value="ALL">All Statuses</SelectItem>
                 {Object.values(OrderStatus).map((st) => (
                   <SelectItem key={st} value={st} className="text-xs">
-                    {st.replace(/_/g, " ")}
+                    {ORDER_STATUS_CONFIG[st]?.label || st}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -390,7 +531,10 @@ export function OrdersTable({
               <SelectTrigger className="h-9 text-xs w-[130px]">
                 <SelectValue placeholder="Payment" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent
+                alignItemWithTrigger={false}
+                className="min-w-[140px] bg-white border border-gray-200 shadow-xl rounded-xl p-1 z-50"
+              >
                 <SelectItem value="ALL">All Payments</SelectItem>
                 <SelectItem value={PaymentStatus.PAID}>Paid</SelectItem>
                 <SelectItem value={PaymentStatus.PENDING}>Pending</SelectItem>
@@ -408,7 +552,10 @@ export function OrdersTable({
               <SelectTrigger className="h-9 text-xs w-[120px]">
                 <SelectValue placeholder="Method" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent
+                alignItemWithTrigger={false}
+                className="min-w-[130px] bg-white border border-gray-200 shadow-xl rounded-xl p-1 z-50"
+              >
                 <SelectItem value="ALL">All Methods</SelectItem>
                 <SelectItem value={PaymentMethod.COD}>COD</SelectItem>
                 <SelectItem value={PaymentMethod.BKASH}>bKash</SelectItem>
@@ -423,10 +570,13 @@ export function OrdersTable({
                 setCurrentPage(1);
               }}
             >
-              <SelectTrigger className="h-9 text-xs w-[130px]">
+              <SelectTrigger className="h-9 text-xs w-[140px]">
                 <SelectValue placeholder="Sort By" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent
+                alignItemWithTrigger={false}
+                className="min-w-[150px] bg-white border border-gray-200 shadow-xl rounded-xl p-1 z-50"
+              >
                 <SelectItem value="newest">Newest First</SelectItem>
                 <SelectItem value="oldest">Oldest First</SelectItem>
                 <SelectItem value="amount_high">Highest Amount</SelectItem>
@@ -508,13 +658,21 @@ export function OrdersTable({
               ) : (
                 paginatedOrders.map((order) => {
                   const isExpanded = expandedRows.has(order.id);
+                  const isHighlighted =
+                    order.id === urlOrderId ||
+                    order.code.toLowerCase() === urlOrderCode?.toLowerCase() ||
+                    effectiveActiveOrderId === order.id;
 
                   return (
                     <Fragment key={order.id}>
                       <TableRow
                         className={cn(
-                          "group hover:bg-muted/30 transition-colors",
-                          isExpanded && "bg-muted/20",
+                          "group transition-colors",
+                          isHighlighted
+                            ? "bg-primary/10 hover:bg-primary/15 border-l-4 border-l-primary"
+                            : isExpanded
+                              ? "bg-muted/20"
+                              : "hover:bg-muted/30",
                         )}
                       >
                         {/* Expand Row Toggle */}
@@ -608,7 +766,21 @@ export function OrdersTable({
                         {/* Actions */}
                         <TableCell className="text-right pr-4">
                           <div className="flex items-center justify-end gap-1">
-                            <OrderDetailModal order={order} />
+                            <OrderDetailModal
+                              order={order}
+                              isOpen={effectiveActiveOrderId === order.id}
+                              onOpenChange={(isOpen) => {
+                                if (
+                                  !isOpen &&
+                                  effectiveActiveOrderId === order.id
+                                ) {
+                                  setActiveModalOrderId(null);
+                                  if (urlOrderId || urlOrderCode) {
+                                    router.replace(pathname, { scroll: false });
+                                  }
+                                }
+                              }}
+                            />
                             <OrderInvoiceModal order={order} />
                             <DeleteOrderButton
                               orderId={order.id}

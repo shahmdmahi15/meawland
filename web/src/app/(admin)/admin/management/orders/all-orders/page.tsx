@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import {
   AlertCircle,
@@ -185,7 +186,15 @@ export default async function AllOrdersPage() {
       </div>
 
       {/* Unified Orders Data Table */}
-      <OrdersTable orders={orders} defaultTypeFilter="ALL" />
+      <Suspense
+        fallback={
+          <div className="p-8 text-center text-xs text-muted-foreground">
+            Loading orders...
+          </div>
+        }
+      >
+        <OrdersTable orders={orders} defaultTypeFilter="ALL" />
+      </Suspense>
     </div>
   );
 }

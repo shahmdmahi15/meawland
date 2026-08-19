@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { getAllProductsAdminAction } from "@/actions/admin/management/inventory/get-all-products";
 import { getNewProductFormDataAction } from "@/actions/admin/management/inventory/get-form-data";
@@ -191,11 +192,19 @@ export default async function AllProductsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-3 sm:p-4 min-w-0 w-full overflow-hidden">
-          <AllProductsTable
-            products={products}
-            subCategories={subCategories}
-            brands={brands}
-          />
+          <Suspense
+            fallback={
+              <div className="p-8 text-center text-xs text-muted-foreground">
+                Loading products...
+              </div>
+            }
+          >
+            <AllProductsTable
+              products={products}
+              subCategories={subCategories}
+              brands={brands}
+            />
+          </Suspense>
         </CardContent>
       </Card>
     </div>

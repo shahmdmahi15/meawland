@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import {
   Dialog,
@@ -39,25 +39,42 @@ import { formatCategory, formatDate } from "@/lib/utils";
 
 interface ProductDetailModalProps {
   product: FullProduct;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function ProductDetailModal({ product }: ProductDetailModalProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string>(
-    product.imageBase64 || "",
-  );
+export function ProductDetailModal({
+  product,
+  isOpen,
+  onOpenChange,
+}: ProductDetailModalProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = typeof isOpen === "boolean";
+  const open = isControlled ? isOpen : internalOpen;
 
-  useEffect(() => {
-    const nextImages = Array.from(
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!isControlled) {
+      setInternalOpen(nextOpen);
+    }
+    onOpenChange?.(nextOpen);
+  };
+
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  const allImages = useMemo(() => {
+    return Array.from(
       new Set(
-        [product.imageBase64, ...(product.galleryBase64 ?? [])].filter(Boolean),
+        [product.imageBase64, ...(product.galleryBase64 ?? [])].filter(
+          (img): img is string => Boolean(img),
+        ),
       ),
     );
-    setSelectedImage((current) => {
-      if (current && nextImages.includes(current)) return current;
-      return nextImages[0] ?? "";
-    });
-  }, [product]);
+  }, [product.imageBase64, product.galleryBase64]);
+
+  const activeImage =
+    selectedImage && allImages.includes(selectedImage)
+      ? selectedImage
+      : (allImages[0] ?? "");
 
   // Calculate stock status
   const totalStock = product.isVariable
@@ -93,16 +110,6 @@ export function ProductDetailModal({ product }: ProductDetailModalProps) {
       </Badge>
     );
   };
-
-  // Gallery items including main image
-  const allImages = Array.from(
-    new Set(
-      [
-        ...(product.imageBase64 ? [product.imageBase64] : []),
-        ...(product.galleryBase64 ? product.galleryBase64.filter(Boolean) : []),
-      ].filter(Boolean),
-    ),
-  );
 
   const stockEventsCount = product.stockEvents?.length ?? 0;
   const formatCurrency = (value?: string | number | null) => {
@@ -142,7 +149,7 @@ export function ProductDetailModal({ product }: ProductDetailModalProps) {
         size="icon-sm"
         onClick={() => {
           setSelectedImage(product.imageBase64 || "");
-          setIsOpen(true);
+          handleOpenChange(true);
         }}
         title="View Product Details"
         aria-label="View Product Details"
@@ -150,7 +157,7 @@ export function ProductDetailModal({ product }: ProductDetailModalProps) {
         <Eye className="h-4 w-4" />
       </Button>
 
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent className="sm:max-w-[1180px] w-[min(96vw,1180px)] max-w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
             <div className="flex flex-wrap items-center justify-between gap-2 pr-6">
@@ -195,9 +202,9 @@ export function ProductDetailModal({ product }: ProductDetailModalProps) {
             {/* Left Column: Image Preview & Gallery */}
             <div className="md:col-span-5 space-y-3">
               <div className="relative aspect-square w-full rounded-xl border bg-muted/30 overflow-hidden flex items-center justify-center">
-                {selectedImage ? (
+                {activeImage ? (
                   <Image
-                    src={selectedImage}
+                    src={activeImage}
                     alt={product.name}
                     fill
                     className="object-contain p-2"
@@ -218,7 +225,7 @@ export function ProductDetailModal({ product }: ProductDetailModalProps) {
                       type="button"
                       onClick={() => setSelectedImage(img)}
                       className={`relative h-14 w-14 shrink-0 rounded-lg border overflow-hidden transition-all ${
-                        selectedImage === img
+                        activeImage === img
                           ? "ring-2 ring-primary border-transparent"
                           : "opacity-70 hover:opacity-100"
                       }`}

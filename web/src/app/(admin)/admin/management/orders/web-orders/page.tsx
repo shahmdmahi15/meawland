@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import {
   AlertCircle,
@@ -175,7 +176,15 @@ export default async function WebOrdersPage() {
       </div>
 
       {/* Orders Table */}
-      <OrdersTable orders={orders} defaultTypeFilter={OrderType.WEB} />
+      <Suspense
+        fallback={
+          <div className="p-8 text-center text-xs text-muted-foreground">
+            Loading web orders...
+          </div>
+        }
+      >
+        <OrdersTable orders={orders} defaultTypeFilter={OrderType.WEB} />
+      </Suspense>
     </div>
   );
 }

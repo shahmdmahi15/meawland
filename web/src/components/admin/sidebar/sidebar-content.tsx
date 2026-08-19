@@ -31,6 +31,8 @@ import {
   ChartColumnDecreasing,
   ChartLine,
   Heart,
+  Target,
+  Ticket,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -147,11 +149,45 @@ const adminNavigations = [
           },
         ],
       },
+    ],
+  },
+
+  {
+    name: "Support & Marketing",
+    items: [
       {
-        title: "Customers",
-        url: "/admin/management/customers",
-        icon: Users,
-        items: [],
+        title: "Marketing",
+        url: "#",
+        icon: Target,
+        items: [
+          {
+            title: "SMS",
+            url: "/admin/support-marketing/marketing/sms",
+          },
+          {
+            title: "Email",
+            url: "/admin/support-marketing/marketing/email",
+          },
+          {
+            title: "Newsletter",
+            url: "/admin/support-marketing/marketing/newsletter",
+          },
+        ],
+      },
+      {
+        title: "Support",
+        url: "#",
+        icon: Ticket,
+        items: [
+          {
+            title: "Customers",
+            url: "/admin/support-marketing/support/customers",
+          },
+          {
+            title: "Tickets",
+            url: "/admin/support-marketing/support/tickets",
+          },
+        ],
       },
     ],
   },
@@ -320,11 +356,44 @@ const ownerNavigations = [
           },
         ],
       },
+    ],
+  },
+  {
+    name: "Support & Marketing",
+    items: [
       {
-        title: "Customers",
-        url: "/admin/management/customers",
-        icon: Users,
-        items: [],
+        title: "Marketing",
+        url: "#",
+        icon: Target,
+        items: [
+          {
+            title: "SMS",
+            url: "/admin/support-marketing/marketing/sms",
+          },
+          {
+            title: "Email",
+            url: "/admin/support-marketing/marketing/email",
+          },
+          {
+            title: "Newsletter",
+            url: "/admin/support-marketing/marketing/newsletter",
+          },
+        ],
+      },
+      {
+        title: "Support",
+        url: "#",
+        icon: Ticket,
+        items: [
+          {
+            title: "Customers",
+            url: "/admin/support-marketing/support/customers",
+          },
+          {
+            title: "Tickets",
+            url: "/admin/support-marketing/support/tickets",
+          },
+        ],
       },
     ],
   },

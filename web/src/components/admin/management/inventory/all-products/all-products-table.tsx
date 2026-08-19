@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import {
   Table,
   TableBody,
@@ -36,7 +37,6 @@ import {
   LayoutGrid,
   List,
   SlidersHorizontal,
-  Plus,
   CheckCircle2,
   AlertTriangle,
   XCircle,
@@ -47,7 +47,7 @@ import { DeleteProductButton } from "./delete-product-button";
 import { ProductDetailModal } from "./product-detail-modal";
 import { StockEventsModal } from "./stock-events-modal";
 import { EditProductModal } from "./edit-product-modal";
-import { formatCategory } from "@/lib/utils";
+import { formatCategory, cn } from "@/lib/utils";
 
 type SortOption =
   | "newest"
@@ -79,8 +79,37 @@ export function AllProductsTable({
   subCategories,
   brands,
 }: AllProductsTableProps) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const urlProductId = searchParams.get("productId");
+  const urlProductCode = searchParams.get("productCode");
+  const urlSearch = searchParams.get("search");
+
+  const [activeModalProductId, setActiveModalProductId] = useState<
+    string | null
+  >(null);
+
+  // Pure derived URL matched product ID
+  const urlMatchedProductId = useMemo(() => {
+    if (urlProductId) {
+      return products.find((p) => p.id === urlProductId)?.id ?? null;
+    }
+    if (urlProductCode) {
+      return (
+        products.find(
+          (p) => p.code.toLowerCase() === urlProductCode.toLowerCase(),
+        )?.id ?? null
+      );
+    }
+    return null;
+  }, [urlProductId, urlProductCode, products]);
+
+  const effectiveActiveProductId = activeModalProductId ?? urlMatchedProductId;
+
   // State for search and filters
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(() => urlSearch || "");
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
   const [selectedSubCategory, setSelectedSubCategory] = useState<string>("ALL");
   const [selectedBrand, setSelectedBrand] = useState<string>("ALL");
@@ -745,11 +774,21 @@ export function AllProductsTable({
                 {paginatedProducts.flatMap((product) => {
                   const stock = getProductStock(product);
                   const isExpanded = expandedRows.has(product.id);
+                  const isHighlighted =
+                    product.id === urlProductId ||
+                    product.code.toLowerCase() ===
+                      urlProductCode?.toLowerCase() ||
+                    effectiveActiveProductId === product.id;
 
                   const mainRow = (
                     <TableRow
                       key={product.id}
-                      className="hover:bg-muted/20 border-b"
+                      className={cn(
+                        "border-b transition-colors",
+                        isHighlighted
+                          ? "bg-primary/10 hover:bg-primary/15 border-l-4 border-l-primary"
+                          : "hover:bg-muted/20",
+                      )}
                     >
                       {/* Expand Trigger for Variable Products */}
                       <TableCell className="p-2 text-center">
@@ -882,7 +921,21 @@ export function AllProductsTable({
                       {/* Actions */}
                       <TableCell className="py-3 pr-4 text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <ProductDetailModal product={product} />
+                          <ProductDetailModal
+                            product={product}
+                            isOpen={effectiveActiveProductId === product.id}
+                            onOpenChange={(isOpen) => {
+                              if (
+                                !isOpen &&
+                                effectiveActiveProductId === product.id
+                              ) {
+                                setActiveModalProductId(null);
+                                if (urlProductId || urlProductCode) {
+                                  router.replace(pathname, { scroll: false });
+                                }
+                              }
+                            }}
+                          />
                           <StockEventsModal product={product} />
                           <EditProductModal
                             product={product}
