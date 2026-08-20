@@ -56,6 +56,7 @@ export function Footer() {
                   alt="Footer cat animation"
                   fill
                   unoptimized
+                  loading="eager"
                   sizes="340px"
                   className="object-contain drop-shadow-md"
                 />

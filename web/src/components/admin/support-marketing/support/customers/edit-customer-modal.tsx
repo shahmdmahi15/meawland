@@ -27,7 +27,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Role } from "@/generated/prisma/enums";
 import { toast } from "sonner";
 import { User, Edit, Loader2, Save } from "lucide-react";
 
@@ -48,7 +47,6 @@ export function EditCustomerModal({
   const [phone, setPhone] = useState(customer.phone || "");
   const [district, setDistrict] = useState(customer.district || "");
   const [address, setAddress] = useState(customer.address || "");
-  const [role, setRole] = useState<Role>(customer.role);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -61,7 +59,6 @@ export function EditCustomerModal({
       phone,
       district,
       address,
-      role,
     };
 
     const parsed = adminUpdateCustomerSchema.safeParse(formData);
@@ -180,38 +177,6 @@ export function EditCustomerModal({
                 </SelectContent>
               </Select>
             </div>
-          </div>
-
-          {/* Role */}
-          <div className="space-y-1.5">
-            <Label className="text-xs font-bold text-gray-700">
-              Account Role
-            </Label>
-            <Select
-              value={role}
-              onValueChange={(val) => val && setRole(val as Role)}
-            >
-              <SelectTrigger className="h-10 rounded-xl bg-gray-50/80 border-gray-200 text-xs">
-                <SelectValue placeholder="Role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={Role.USER} className="text-xs">
-                  USER (Customer)
-                </SelectItem>
-                <SelectItem
-                  value={Role.ADMIN}
-                  className="text-xs text-blue-600 font-bold"
-                >
-                  ADMIN
-                </SelectItem>
-                <SelectItem
-                  value={Role.OWNER}
-                  className="text-xs text-purple-600 font-bold"
-                >
-                  OWNER
-                </SelectItem>
-              </SelectContent>
-            </Select>
           </div>
 
           {/* Address */}

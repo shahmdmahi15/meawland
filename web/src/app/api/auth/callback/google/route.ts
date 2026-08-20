@@ -3,6 +3,8 @@ import crypto from "crypto";
 import db from "@/lib/db";
 import { generateId } from "@/lib/generate-code";
 import { env } from "@/env";
+import { mergeGuestCartIntoUser } from "@/actions/store/cart";
+import { trackMetaCompleteRegistrationAction } from "@/actions/meta";
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
@@ -91,8 +93,30 @@ export async function GET(req: NextRequest) {
     // 5. Merge guest cart if present
     const guestCartId = req.cookies.get("meawland_cart_id")?.value;
     if (guestCartId) {
-      const { mergeGuestCartIntoUser } = await import("@/actions/store/cart");
-      await mergeGuestCartIntoUser(user.id, guestCartId);
+      await mergeGuestCartIntoUser(user.id, guestCartId).catch((err) => {
+        console.error("[OAuth.Google] Merge cart error:", err);
+      });
+    }
+
+    // 5.1 Track Meta CAPI CompleteRegistration (Safe non-blocking)
+    try {
+      trackMetaCompleteRegistrationAction({
+        userId: user.id,
+        method: "GOOGLE",
+        email: user.email,
+        name: user.name,
+        context: {
+          clientIp:
+            req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null,
+          userAgent: req.headers.get("user-agent") || null,
+          fbp: req.cookies.get("_fbp")?.value || null,
+          fbc: req.cookies.get("_fbc")?.value || null,
+        },
+      }).catch((err) => {
+        console.error("[OAuth.Google] Meta CAPI CompleteRegistration error:", err);
+      });
+    } catch {
+      // Ignored to guarantee OAuth never fails due to telemetry
     }
 
     // 6. Set HTTP-only cookie with the RAW token and redirect

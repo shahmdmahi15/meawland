@@ -58,6 +58,27 @@ enum PaymentMethod {
   BKASH
 }
 
+enum CourierProvider {
+  STEADFAST
+  PATHAO
+  REDX
+  MANUAL
+}
+
+enum CourierStatus {
+  IN_REVIEW
+  PENDING
+  DELIVERED_APPROVAL_PENDING
+  PARTIAL_DELIVERED_APPROVAL_PENDING
+  CANCELLED_APPROVAL_PENDING
+  UNKNOWN_APPROVAL_PENDING
+  DELIVERED
+  PARTIAL_DELIVERED
+  CANCELLED
+  HOLD
+  UNKNOWN
+}
+
 enum OrderStatus {
   IN_REVIEW
   PENDING
@@ -82,6 +103,9 @@ enum OrderType {
 enum PaymentStatus {
   PENDING
   PAID
+  CANCELLED
+  FAILED
+  REFUNDED
 }
 
 enum SupportTicketStatus {
@@ -107,6 +131,126 @@ enum SupportChannel {
 enum NewsletterStatus {
   SUBSCRIBED
   UNSUBSCRIBED
+}
+
+enum SmsCampaignType {
+  MANUAL_BROADCAST
+  TARGETED_SEGMENT
+  AUTOMATED_TRIGGER
+  PROMOTIONAL_FLASH
+  CART_RECOVERY
+}
+
+enum SmsCampaignStatus {
+  DRAFT
+  SCHEDULED
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum SmsDeliveryStatus {
+  PENDING
+  SUBMITTED
+  DELIVERED
+  FAILED
+}
+
+enum SmsTemplateCategory {
+  ORDER_UPDATE
+  PROMOTIONAL
+  OTP
+  SEASONAL
+  CART_RECOVERY
+  WELCOME
+  CUSTOM
+}
+
+enum EmailCampaignType {
+  MANUAL_BROADCAST
+  TARGETED_SEGMENT
+  AUTOMATED_TRIGGER
+  PROMOTIONAL_FLASH
+  CART_RECOVERY
+  NEWSLETTER_DIGEST
+}
+
+enum EmailCampaignStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum EmailDeliveryStatus {
+  PENDING
+  SENT
+  FAILED
+  BOUNCED
+}
+
+enum EmailTemplateCategory {
+  ORDER_RECEIPT
+  ORDER_STATUS
+  PROMOTIONAL
+  WELCOME_SERIES
+  ABANDONED_CART
+  NEWSLETTER
+  PET_CARE_TIPS
+  CUSTOM
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  STATUS_CHANGE
+  STOCK_CHANGE
+  PRICE_CHANGE
+  ROLE_CHANGE
+  LOGIN
+  LOGOUT
+  PASSWORD_RESET
+  EXPORT
+  PAYMENT_RECEIVED
+  COURIER_DISPATCH
+  REFUND
+  SETTINGS_UPDATE
+  BROADCAST_SENT
+  OTHER
+}
+
+enum AuditEntity {
+  ORDER
+  PRODUCT
+  VARIANT
+  COMBO_PRODUCT
+  STOCK
+  CATEGORY
+  BRAND
+  COUPON
+  CAMPAIGN
+  USER
+  CUSTOMER
+  SUPPORT_TICKET
+  SMS
+  EMAIL
+  NEWSLETTER
+  PAYMENT
+  SHIPMENT
+  SYSTEM_SETTINGS
+  AUTH
+  OTHER
+}
+
+enum AuditSeverity {
+  INFO
+  WARNING
+  CRITICAL
+  SECURITY
 }
 
 model User {
@@ -135,7 +279,11 @@ model User {
   wishlist       Wishlist?
   cart           Cart?
   orders         Order[]
+  payments       Payment[]
   supportTickets SupportTicket[]
+  smsLogs        SmsLog[]
+  emailLogs      EmailLog[]
+  auditLogs      AuditLog[]
 
   // Timestamps
   otpExpiresAt DateTime?
@@ -592,7 +740,11 @@ model Order {
 
   // Child Relations
   orderItems     OrderItem[]
+  payment        Payment?
+  shipment       Shipment?
   supportTickets SupportTicket[]
+  smsLogs        SmsLog[]
+  emailLogs      EmailLog[]
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -679,3 +831,332 @@ model NewsletterSubscriber {
   updatedAt DateTime @updatedAt
 }
 
+model Payment {
+  // Primary Key
+  id String @id @default(cuid())
+
+  // Fields
+  amount                  String
+  currency                String        @default("BDT")
+  paymentMethod           PaymentMethod @default(BKASH)
+  status                  PaymentStatus @default(PENDING)
+  paymentID               String?       @unique
+  trxID                   String?       @unique
+  customerMsisdn          String?
+  payerReference          String?
+  merchantInvoiceNumber   String?
+  transactionStatus       String?
+  intent                  String?
+  statusCode              String?
+  statusMessage           String?
+  paymentCreateTime       String?
+  paymentExecuteTime      String?
+  refundTrxId             String?
+  refundTransactionStatus String?
+  refundAmount            String?
+  refundTime              String?
+  refundReason            String?
+  rawResponse             Json?
+
+  // Forign Keys
+  orderId String  @unique
+  userId  String?
+
+  // Parent Relations
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user  User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // Child Relations
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes and Constraints
+  @@index([trxID])
+  @@index([paymentID])
+}
+
+model Shipment {
+  // Primary Key
+  id String @id @default(cuid())
+
+  // Courier Provider & Core IDs
+  provider         CourierProvider @default(STEADFAST)
+  consignmentId    Int?            @unique
+  trackingCode     String?         @unique
+  invoice          String
+
+  // Consignment Details
+  recipientName    String
+  recipientPhone   String
+  alternativePhone String?
+  recipientEmail   String?
+  recipientAddress String
+  codAmount        String
+  deliveryType     Int?            @default(0) // 0: Home Delivery, 1: Point/Hub Pick Up
+  note             String?
+  itemDescription  String?
+  totalLot         Int?            @default(1)
+
+  // Status & Tracking
+  status           CourierStatus   @default(IN_REVIEW)
+  rawStatus        String?
+  rawResponse      Json?
+  lastCheckedAt    DateTime?
+
+  // Relations
+  orderId          String          @unique
+  order            Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  // Timestamps
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  // Indexes
+  @@index([trackingCode])
+  @@index([consignmentId])
+  @@index([invoice])
+}
+
+model SmsCampaign {
+  // Primary Key
+  id              String            @id @default(cuid())
+
+  // Fields
+  title           String
+  type            SmsCampaignType   @default(TARGETED_SEGMENT)
+  status          SmsCampaignStatus @default(DRAFT)
+  message         String
+  senderId        String?
+  targetSegment   String?
+  segmentFilters  Json?
+  totalRecipients Int               @default(0)
+  sentCount       Int               @default(0)
+  failedCount     Int               @default(0)
+  estimatedCost   String?
+  actualCost      String?
+  scheduledAt     DateTime?
+  completedAt     DateTime?
+
+  // Relations
+  logs            SmsLog[]
+
+  // Timestamps
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([status])
+  @@index([type])
+}
+
+model SmsLog {
+  // Primary Key
+  id             String            @id @default(cuid())
+
+  // Fields
+  recipientPhone String
+  recipientName  String?
+  message        String
+  status         SmsDeliveryStatus @default(PENDING)
+  responseCode   Int?
+  statusMessage  String?
+  rawResponse    Json?
+
+  // Foreign Keys & Relations
+  campaignId     String?
+  campaign       SmsCampaign?      @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  orderId        String?
+  order          Order?            @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  userId         String?
+  user           User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // Timestamps
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([recipientPhone])
+  @@index([status])
+  @@index([campaignId])
+}
+
+model SmsTemplate {
+  // Primary Key
+  id          String              @id @default(cuid())
+
+  // Fields
+  title       String
+  category    SmsTemplateCategory @default(PROMOTIONAL)
+  body        String
+  variables   String[]
+  isDefault   Boolean             @default(false)
+
+  // Timestamps
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  @@index([category])
+}
+
+model SmsAutomationSettings {
+  // Primary Key
+  id                      String   @id @default("default")
+
+  // Automated Event Toggles
+  orderPlacedSms          Boolean  @default(true)
+  orderDispatchedSms      Boolean  @default(true)
+  orderDeliveredSms       Boolean  @default(true)
+  bkashPaymentPaidSms     Boolean  @default(true)
+
+  // Custom Message Templates
+  orderPlacedTemplate     String?
+  orderDispatchedTemplate String?
+  orderDeliveredTemplate  String?
+  bkashPaidTemplate       String?
+
+  // Timestamps
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+}
+
+model EmailCampaign {
+  // Primary Key
+  id              String              @id @default(cuid())
+
+  // Fields
+  title           String
+  subject         String
+  previewText     String?
+  contentHtml     String
+  contentText     String?
+  type            EmailCampaignType   @default(PROMOTIONAL_FLASH)
+  status          EmailCampaignStatus @default(DRAFT)
+  targetSegment   String              @default("ALL_CUSTOMERS")
+  segmentFilters  Json?
+  totalRecipients Int                 @default(0)
+  sentCount       Int                 @default(0)
+  failedCount     Int                 @default(0)
+  scheduledAt     DateTime?
+  completedAt     DateTime?
+
+  // Relations
+  logs            EmailLog[]
+
+  // Timestamps
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([status])
+  @@index([type])
+}
+
+model EmailLog {
+  // Primary Key
+  id             String              @id @default(cuid())
+
+  // Fields
+  recipientEmail String
+  recipientName  String?
+  subject        String
+  status         EmailDeliveryStatus @default(PENDING)
+  messageId      String?
+  errorMessage   String?
+
+  // Foreign Keys & Relations
+  campaignId     String?
+  campaign       EmailCampaign?      @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  orderId        String?
+  order          Order?              @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  userId         String?
+  user           User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // Timestamps
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  @@index([recipientEmail])
+  @@index([status])
+  @@index([campaignId])
+}
+
+model EmailTemplate {
+  // Primary Key
+  id          String                @id @default(cuid())
+
+  // Fields
+  title       String
+  subject     String
+  previewText String?
+  category    EmailTemplateCategory @default(PROMOTIONAL)
+  htmlContent String
+  textContent String?
+  variables   String[]
+  isDefault   Boolean               @default(false)
+
+  // Timestamps
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+
+  @@index([category])
+}
+
+model EmailAutomationSettings {
+  // Primary Key
+  id                        String   @id @default("default")
+
+  // Automated Event Toggles
+  orderPlacedEmail          Boolean  @default(true)
+  orderDispatchedEmail      Boolean  @default(true)
+  orderDeliveredEmail       Boolean  @default(true)
+  bkashPaymentPaidEmail     Boolean  @default(true)
+  welcomeNewUserEmail       Boolean  @default(true)
+  abandonedCartEmail        Boolean  @default(false)
+
+  // Custom Subject Lines
+  orderPlacedSubject        String?
+  orderDispatchedSubject    String?
+  orderDeliveredSubject     String?
+  bkashPaidSubject          String?
+  welcomeUserSubject        String?
+
+  // Timestamps
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+}
+
+model AuditLog {
+  // Primary Key
+  id String @id @default(cuid())
+
+  // Core Audit Attributes
+  action     AuditAction
+  entity     AuditEntity
+  entityId   String?
+  entityName String?
+  summary    String
+  severity   AuditSeverity @default(INFO)
+
+  // Detailed State Tracking (Diff & Metadata)
+  previousState Json?
+  newState      Json?
+  metadata      Json?
+
+  // Origin & Network Context
+  ipAddress String?
+  userAgent String?
+  path      String?
+
+  // Foreign Keys & Relations
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+
+  // Indexes for high-performance audit query & filtering
+  @@index([entity, entityId])
+  @@index([action])
+  @@index([userId])
+  @@index([severity])
+  @@index([createdAt])
+}

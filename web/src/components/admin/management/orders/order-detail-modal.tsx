@@ -27,11 +27,19 @@ import {
   Mail,
   Calendar,
   CreditCard,
-  Truck,
-  FileText,
-  TrendingUp,
   Package,
+  Truck,
+  TrendingUp,
+  FileText,
   Eye,
+  Smartphone,
+  RotateCcw,
+  Copy,
+  Check,
+  Send,
+  Loader2,
+  RefreshCw,
+  ExternalLink,
 } from "lucide-react";
 import {
   OrderStatus,
@@ -45,6 +53,12 @@ import {
   updatePaymentStatusAction,
   updateOrderItemStatusAction,
 } from "@/actions/admin/management/orders/update-order";
+import { processAdminBkashRefundAction } from "@/actions/bkash/admin-refund";
+import {
+  sendOrderToSteadfastAction,
+  syncSteadfastShipmentStatusAction,
+  createSteadfastReturnRequestFromAdminAction,
+} from "@/actions/admin/management/orders/send-to-steadfast";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -135,6 +149,18 @@ const PAYMENT_STATUS_CONFIG: Record<
     label: "Paid",
     color: "text-emerald-700 bg-emerald-50 border-emerald-200",
   },
+  [PaymentStatus.CANCELLED]: {
+    label: "Cancelled",
+    color: "text-red-700 bg-red-50 border-red-200",
+  },
+  [PaymentStatus.FAILED]: {
+    label: "Failed",
+    color: "text-rose-700 bg-rose-50 border-rose-200",
+  },
+  [PaymentStatus.REFUNDED]: {
+    label: "Refunded",
+    color: "text-purple-700 bg-purple-50 border-purple-200",
+  },
 };
 
 export function OrderDetailModal({
@@ -155,10 +181,123 @@ export function OrderDetailModal({
   };
 
   const [isPending, startTransition] = useTransition();
-
   const [currentStatus, setCurrentStatus] = useState<OrderStatus>(order.status);
   const [currentPaymentStatus, setCurrentPaymentStatus] =
     useState<PaymentStatus>(order.paymentStatus);
+
+  // Refund state
+  const [isRefundOpen, setIsRefundOpen] = useState(false);
+  const [refundAmount, setRefundAmount] = useState(order.finalCost);
+  const [refundReason, setRefundReason] = useState("Customer requested refund");
+  const [isRefunding, setIsRefunding] = useState(false);
+  const [copiedTrx, setCopiedTrx] = useState(false);
+
+  // Steadfast Courier States
+  const [isSendingToSteadfast, setIsSendingToSteadfast] = useState(false);
+  const [isSyncingCourier, setIsSyncingCourier] = useState(false);
+  const [copiedTracking, setCopiedTracking] = useState(false);
+  const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
+  const [returnReason, setReturnReason] = useState("");
+  const [isCreatingReturn, setIsCreatingReturn] = useState(false);
+
+  const handleCopyTracking = (tracking: string) => {
+    navigator.clipboard.writeText(tracking);
+    setCopiedTracking(true);
+    toast.success("Steadfast Tracking Code copied!");
+    setTimeout(() => setCopiedTracking(false), 2000);
+  };
+
+  const handleSendToSteadfast = async () => {
+    setIsSendingToSteadfast(true);
+    try {
+      const res = await sendOrderToSteadfastAction({ orderId: order.id });
+      if (res.success) {
+        toast.success(res.message || "Order sent to Steadfast Courier!");
+      } else {
+        toast.error(res.message || "Failed to dispatch to Steadfast.");
+      }
+    } catch {
+      toast.error("Failed to send order to Steadfast.");
+    } finally {
+      setIsSendingToSteadfast(false);
+    }
+  };
+
+  const handleSyncCourierStatus = async () => {
+    setIsSyncingCourier(true);
+    try {
+      const res = await syncSteadfastShipmentStatusAction(order.id);
+      if (res.success) {
+        toast.success(res.message || "Steadfast delivery status updated.");
+      } else {
+        toast.error(res.message || "Failed to sync status from Steadfast.");
+      }
+    } catch {
+      toast.error("Failed to sync courier status.");
+    } finally {
+      setIsSyncingCourier(false);
+    }
+  };
+
+  const handleCreateReturn = async () => {
+    setIsCreatingReturn(true);
+    try {
+      const res = await createSteadfastReturnRequestFromAdminAction(
+        order.id,
+        returnReason.trim() || undefined,
+      );
+      if (res.success) {
+        toast.success(res.message || "Return request created on Steadfast.");
+        setIsReturnModalOpen(false);
+      } else {
+        toast.error(res.message || "Failed to create return request.");
+      }
+    } catch {
+      toast.error("Failed to create return request.");
+    } finally {
+      setIsCreatingReturn(false);
+    }
+  };
+
+  const handleCopyTrx = (trx: string) => {
+    navigator.clipboard.writeText(trx);
+    setCopiedTrx(true);
+    toast.success("Transaction ID copied to clipboard!");
+    setTimeout(() => setCopiedTrx(false), 2000);
+  };
+
+  const handleExecuteRefund = async () => {
+    if (!refundAmount || parseFloat(refundAmount) <= 0) {
+      toast.error("Please enter a valid refund amount.");
+      return;
+    }
+    if (!refundReason.trim()) {
+      toast.error("Please provide a reason for the refund.");
+      return;
+    }
+
+    setIsRefunding(true);
+    try {
+      const res = await processAdminBkashRefundAction({
+        orderId: order.id,
+        refundAmount: parseFloat(refundAmount).toFixed(2),
+        reason: refundReason.trim(),
+        sku: order.code,
+      });
+
+      if (res.success) {
+        toast.success(res.message || "bKash refund processed successfully!");
+        setCurrentPaymentStatus(PaymentStatus.REFUNDED);
+        setIsRefundOpen(false);
+      } else {
+        toast.error(res.message || "Failed to process bKash refund.");
+      }
+    } catch {
+      toast.error("An unexpected error occurred while processing the refund.");
+    } finally {
+      setIsRefunding(false);
+    }
+  };
 
   const [itemStatuses, setItemStatuses] = useState<Record<string, OrderStatus>>(
     () => {
@@ -440,18 +579,308 @@ export function OrderDetailModal({
                     <strong className="text-foreground">
                       {order.paymentMethod === PaymentMethod.COD
                         ? "Cash on Delivery (COD)"
-                        : "bKash"}
+                        : "bKash Online"}
                     </strong>
                   </span>
                 </div>
+
+                {/* bKash Payment Details */}
+                {order.paymentMethod === PaymentMethod.BKASH && order.payment && (
+                  <div className="p-3 mt-2 rounded-xl bg-[#fdf2f8] border border-[#fbcfe8] space-y-1.5 text-[11px]">
+                    <div className="flex items-center justify-between text-[#9d174d] font-bold">
+                      <span className="flex items-center gap-1">
+                        <Smartphone className="w-3 h-3" /> bKash Gateway Details
+                      </span>
+                      {order.payment.status && (
+                        <span className="px-1.5 py-0.5 rounded bg-white border border-[#fbcfe8] text-[10px]">
+                          {order.payment.status}
+                        </span>
+                      )}
+                    </div>
+
+                    {order.payment.trxID && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">TrxID:</span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyTrx(order.payment!.trxID!)}
+                          className="inline-flex items-center gap-1 font-mono font-bold text-gray-900 hover:text-[#9d174d] cursor-pointer"
+                        >
+                          <span>{order.payment.trxID}</span>
+                          {copiedTrx ? (
+                            <Check className="w-3 h-3 text-emerald-600" />
+                          ) : (
+                            <Copy className="w-3 h-3 text-gray-400" />
+                          )}
+                        </button>
+                      </div>
+                    )}
+
+                    {order.payment.customerMsisdn && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">bKash Mobile:</span>
+                        <span className="font-semibold text-gray-900">
+                          {order.payment.customerMsisdn}
+                        </span>
+                      </div>
+                    )}
+
+                    {order.payment.paymentExecuteTime && (
+                      <div className="flex items-center justify-between text-muted-foreground">
+                        <span>Paid Time:</span>
+                        <span>{order.payment.paymentExecuteTime}</span>
+                      </div>
+                    )}
+
+                    {order.payment.refundTrxId && (
+                      <div className="pt-1 border-t border-[#fbcfe8] text-purple-700 font-bold space-y-0.5">
+                        <div className="flex justify-between">
+                          <span>Refund TrxID:</span>
+                          <span className="font-mono">{order.payment.refundTrxId}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Refunded Amount:</span>
+                          <span>৳{order.payment.refundAmount}</span>
+                        </div>
+                        {order.payment.refundReason && (
+                          <div className="text-[10px] text-muted-foreground font-normal">
+                            Reason: {order.payment.refundReason}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Refund Button for Admin */}
+                    {order.payment.trxID &&
+                      currentPaymentStatus === PaymentStatus.PAID &&
+                      !order.payment.refundTrxId && (
+                        <div className="pt-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={() => setIsRefundOpen(true)}
+                            className="w-full h-7 text-[11px] rounded-lg bg-[#9d174d] hover:bg-[#831843] text-white font-bold gap-1 cursor-pointer"
+                          >
+                            <RotateCcw className="w-3 h-3" />
+                            <span>Issue bKash Refund</span>
+                          </Button>
+                        </div>
+                      )}
+                  </div>
+                )}
+
                 {order.note && (
                   <div className="p-2 rounded-md bg-muted/40 text-[11px] text-muted-foreground mt-2">
                     <strong>Note:</strong> {order.note}
                   </div>
                 )}
               </div>
+
+              {/* Steadfast Courier Card */}
+              <div className="p-4 rounded-xl border border-border/80 bg-card space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 font-bold text-xs text-foreground">
+                    <Truck className="w-4 h-4 text-[#0f766e]" />
+                    <span>Steadfast Courier Delivery</span>
+                  </div>
+                  {order.shipment?.status && (
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] uppercase font-bold bg-[#f0fdf4] text-[#15803d] border-[#bbf7d0]"
+                    >
+                      {order.shipment.rawStatus || order.shipment.status}
+                    </Badge>
+                  )}
+                </div>
+
+                {order.shipment?.consignmentId ? (
+                  <div className="space-y-2 text-xs">
+                    <div className="p-3 rounded-lg bg-muted/30 border border-border/60 space-y-1.5 text-[11px]">
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Consignment ID:</span>
+                        <span className="font-mono font-bold text-foreground">
+                          #{order.shipment.consignmentId}
+                        </span>
+                      </div>
+
+                      {order.shipment.trackingCode && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground">Tracking Code:</span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleCopyTracking(order.shipment!.trackingCode!)
+                            }
+                            className="inline-flex items-center gap-1 font-mono font-bold text-primary hover:underline cursor-pointer"
+                          >
+                            <span>{order.shipment.trackingCode}</span>
+                            {copiedTracking ? (
+                              <Check className="w-3 h-3 text-emerald-600" />
+                            ) : (
+                              <Copy className="w-3 h-3 text-muted-foreground" />
+                            )}
+                          </button>
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">COD Amount:</span>
+                        <span className="font-bold text-foreground">
+                          ৳{parseFloat(order.shipment.codAmount).toLocaleString()}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Delivery Type:</span>
+                        <span className="font-medium text-foreground">
+                          {order.shipment.deliveryType === 1
+                            ? "Point / Hub Pick Up"
+                            : "Home Delivery"}
+                        </span>
+                      </div>
+
+                      {order.shipment.lastCheckedAt && (
+                        <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-1 border-t border-border/40">
+                          <span>Last Synced:</span>
+                          <span>
+                            {new Date(
+                              order.shipment.lastCheckedAt,
+                            ).toLocaleTimeString()}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-1">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        disabled={isSyncingCourier}
+                        onClick={handleSyncCourierStatus}
+                        className="flex-1 h-8 text-xs font-semibold gap-1.5 cursor-pointer shadow-xs"
+                      >
+                        <RefreshCw
+                          className={cn(
+                            "w-3.5 h-3.5",
+                            isSyncingCourier && "animate-spin text-primary",
+                          )}
+                        />
+                        <span>Sync Live Status</span>
+                      </Button>
+
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setIsReturnModalOpen(true)}
+                        className="h-8 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 cursor-pointer"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                        <span>Return</span>
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">
+                      This order has not been dispatched to Steadfast Courier yet. Click below to generate consignment &amp; tracking code.
+                    </p>
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={isSendingToSteadfast}
+                      onClick={handleSendToSteadfast}
+                      className="w-full h-8 text-xs font-semibold bg-[#0f766e] hover:bg-[#115e59] text-white gap-1.5 shadow-xs cursor-pointer"
+                    >
+                      {isSendingToSteadfast ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Dispatching to Steadfast...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-3.5 h-3.5" />
+                          <span>Send to Steadfast Courier</span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
+
+          {/* Refund Dialog */}
+          {isRefundOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+              <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-gray-200">
+                <div className="flex items-center gap-2 text-rose-600">
+                  <RotateCcw className="w-5 h-5" />
+                  <h3 className="font-black text-base text-gray-900">
+                    Process bKash Refund
+                  </h3>
+                </div>
+
+                <p className="text-xs text-gray-600">
+                  This will call the official bKash Refund API and refund the customer directly to their bKash wallet.
+                </p>
+
+                <div className="space-y-3 text-xs">
+                  <div>
+                    <label className="font-bold text-gray-700 block mb-1">
+                      Refund Amount (৳)
+                    </label>
+                    <input
+                      type="number"
+                      value={refundAmount}
+                      onChange={(e) => setRefundAmount(e.target.value)}
+                      max={parseFloat(order.finalCost)}
+                      className="w-full h-9 px-3 rounded-lg border border-gray-300 font-bold text-gray-900"
+                    />
+                    <span className="text-[10px] text-gray-500">
+                      Total Order Paid: ৳{parseFloat(order.finalCost).toLocaleString()}
+                    </span>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-gray-700 block mb-1">
+                      Refund Reason
+                    </label>
+                    <input
+                      type="text"
+                      value={refundReason}
+                      onChange={(e) => setRefundReason(e.target.value)}
+                      placeholder="e.g. Item out of stock, customer requested"
+                      className="w-full h-9 px-3 rounded-lg border border-gray-300 text-gray-900"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsRefundOpen(false)}
+                    disabled={isRefunding}
+                    className="rounded-lg text-xs"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleExecuteRefund}
+                    disabled={isRefunding}
+                    className="rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs gap-1.5 shadow-sm"
+                  >
+                    {isRefunding ? "Processing..." : "Confirm Refund"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Ordered Items List */}
           <div className="space-y-3">

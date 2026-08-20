@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { CustomerOrderSummary } from "@/schemas/root/account/orders";
 import { Printer, Phone, Mail } from "lucide-react";
-import { PaymentMethod } from "@/generated/prisma/enums";
+import { PaymentMethod, PaymentStatus } from "@/generated/prisma/enums";
 
 interface CustomerOrderInvoiceModalProps {
   order: CustomerOrderSummary;
@@ -115,8 +115,15 @@ export function CustomerOrderInvoiceModal({
                   {order.paymentMethod === PaymentMethod.COD
                     ? "Cash on Delivery (COD)"
                     : "bKash Online Payment"}
-                </strong>
+                </strong>{" "}
+                ({order.paymentStatus})
               </p>
+              {order.paymentMethod === PaymentMethod.BKASH && order.payment?.trxID && (
+                <p className="text-[11px] text-gray-500 font-mono mt-0.5">
+                  bKash TrxID: <strong>{order.payment.trxID}</strong>
+                  {order.payment.customerMsisdn && ` | ${order.payment.customerMsisdn}`}
+                </p>
+              )}
             </div>
           </div>
 

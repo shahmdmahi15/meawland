@@ -24,7 +24,15 @@ import {
   CreditCard,
   ExternalLink,
   ShoppingBag,
+  Smartphone,
+  Copy,
+  Check,
+  CheckCircle2,
+  Loader2,
+  Truck,
 } from "lucide-react";
+import { retryBkashPaymentAction } from "@/actions/bkash/retry-payment";
+import { toast } from "sonner";
 import {
   OrderStatus,
   PaymentMethod,
@@ -54,6 +62,32 @@ export function CustomerOrderDetailModal({
   onReorder,
 }: CustomerOrderDetailModalProps) {
   const [open, setOpen] = React.useState(false);
+  const [isPaying, setIsPaying] = React.useState(false);
+  const [copiedTrx, setCopiedTrx] = React.useState(false);
+
+  const handlePayWithBkash = async () => {
+    setIsPaying(true);
+    try {
+      const res = await retryBkashPaymentAction(order.id);
+      if (res.success && res.bkashURL) {
+        toast.info("Redirecting to bKash Secure Gateway...");
+        window.location.href = res.bkashURL;
+      } else {
+        toast.error(res.message || "Failed to initiate bKash payment.");
+      }
+    } catch {
+      toast.error("Failed to connect to bKash gateway.");
+    } finally {
+      setIsPaying(false);
+    }
+  };
+
+  const handleCopyTrx = (trx: string) => {
+    navigator.clipboard.writeText(trx);
+    setCopiedTrx(true);
+    toast.success("Transaction ID copied!");
+    setTimeout(() => setCopiedTrx(false), 2000);
+  };
 
   const totalPrice = parseFloat(order.totalPrice || "0");
   const discountCost = parseFloat(order.discountCost || "0");
@@ -215,18 +249,22 @@ export function CustomerOrderDetailModal({
             </div>
 
             {/* Payment & Security Info */}
-            <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-4 space-y-2">
+            <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-4 space-y-2.5">
               <div className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                <CreditCard className="w-3.5 h-3.5 text-[#56C8D8]" /> Payment
-                Information
+                {order.paymentMethod === PaymentMethod.BKASH ? (
+                  <Smartphone className="w-3.5 h-3.5 text-[#e2136e]" />
+                ) : (
+                  <CreditCard className="w-3.5 h-3.5 text-[#56C8D8]" />
+                )}
+                <span>Payment Information</span>
               </div>
-              <div className="text-xs space-y-1.5">
+              <div className="text-xs space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Payment Method:</span>
                   <strong className="text-gray-900">
                     {order.paymentMethod === PaymentMethod.COD
                       ? "Cash on Delivery"
-                      : "bKash Online"}
+                      : "bKash Online Payment"}
                   </strong>
                 </div>
                 <div className="flex items-center justify-between">
@@ -243,6 +281,51 @@ export function CustomerOrderDetailModal({
                     {order.paymentStatus}
                   </Badge>
                 </div>
+
+                {order.paymentMethod === PaymentMethod.BKASH && order.payment && (
+                  <div className="mt-2 p-2.5 rounded-xl bg-white border border-[#fbcfe8] text-[11px] space-y-1 text-gray-700">
+                    {order.payment.trxID && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-500">Transaction ID:</span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyTrx(order.payment!.trxID!)}
+                          className="inline-flex items-center gap-1 font-mono font-bold text-[#9d174d] hover:underline cursor-pointer"
+                        >
+                          <span>{order.payment.trxID}</span>
+                          {copiedTrx ? (
+                            <Check className="w-3 h-3 text-emerald-600" />
+                          ) : (
+                            <Copy className="w-3 h-3 text-gray-400" />
+                          )}
+                        </button>
+                      </div>
+                    )}
+                    {order.payment.customerMsisdn && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-500">bKash Account:</span>
+                        <span className="font-semibold text-gray-900">
+                          {order.payment.customerMsisdn}
+                        </span>
+                      </div>
+                    )}
+                    {order.payment.paymentExecuteTime && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-500">Paid At:</span>
+                        <span className="text-gray-600">
+                          {order.payment.paymentExecuteTime}
+                        </span>
+                      </div>
+                    )}
+                    {order.payment.refundTrxId && (
+                      <div className="flex items-center justify-between pt-1 border-t border-gray-100 text-purple-700 font-bold">
+                        <span>Refund TrxID:</span>
+                        <span className="font-mono">{order.payment.refundTrxId} (৳{order.payment.refundAmount})</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {order.note && (
                   <p className="text-[11px] text-gray-500 pt-1">
                     <strong>Note:</strong> {order.note}
@@ -250,6 +333,51 @@ export function CustomerOrderDetailModal({
                 )}
               </div>
             </div>
+
+            {/* Steadfast Courier Tracking Info */}
+            {order.shipment && (
+              <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-4 space-y-2.5">
+                <div className="flex items-center justify-between text-xs font-bold text-emerald-800 uppercase tracking-wider">
+                  <span className="flex items-center gap-1.5">
+                    <Truck className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Courier Delivery &amp; Tracking</span>
+                  </span>
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] uppercase font-bold bg-white text-emerald-700 border-emerald-200"
+                  >
+                    {order.shipment.rawStatus || order.shipment.status}
+                  </Badge>
+                </div>
+                <div className="text-xs space-y-1.5 text-gray-700">
+                  {order.shipment.trackingCode && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-500">Tracking Code:</span>
+                      <span className="font-mono font-bold text-gray-900">
+                        {order.shipment.trackingCode}
+                      </span>
+                    </div>
+                  )}
+                  {order.shipment.consignmentId && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-500">Consignment ID:</span>
+                      <span className="font-mono text-gray-900">
+                        #{order.shipment.consignmentId}
+                      </span>
+                    </div>
+                  )}
+                  <div className="pt-2">
+                    <Link
+                      href={`/account/tracking?order=${order.code}`}
+                      className="inline-flex items-center justify-center gap-1.5 w-full py-1.5 px-3 rounded-xl bg-white border border-emerald-300 text-emerald-800 text-xs font-bold hover:bg-emerald-100/50 transition-colors"
+                    >
+                      <span>Live Tracking Portal</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Ordered Line Items */}
@@ -350,7 +478,7 @@ export function CustomerOrderDetailModal({
         </div>
 
         {/* Footer actions */}
-        <div className="p-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between gap-2">
+        <div className="p-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between gap-2 flex-wrap">
           <Button
             variant="ghost"
             size="sm"
@@ -360,19 +488,39 @@ export function CustomerOrderDetailModal({
             Close
           </Button>
 
-          {onReorder && (
-            <Button
-              size="sm"
-              onClick={() => {
-                onReorder();
-                setOpen(false);
-              }}
-              className="rounded-xl bg-[#56C8D8] hover:bg-[#45B0BF] text-white font-bold text-xs gap-1.5 shadow-sm"
-            >
-              <ShoppingBag className="w-4 h-4" />
-              <span>Buy Items Again</span>
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {order.paymentMethod === PaymentMethod.BKASH &&
+              order.paymentStatus !== PaymentStatus.PAID &&
+              order.status !== OrderStatus.CANCELLED && (
+                <Button
+                  size="sm"
+                  onClick={handlePayWithBkash}
+                  disabled={isPaying}
+                  className="rounded-xl bg-[#e2136e] hover:bg-[#c2105e] text-white font-bold text-xs gap-1.5 shadow-sm cursor-pointer"
+                >
+                  {isPaying ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Smartphone className="w-3.5 h-3.5" />
+                  )}
+                  <span>Pay with bKash</span>
+                </Button>
+              )}
+
+            {onReorder && (
+              <Button
+                size="sm"
+                onClick={() => {
+                  onReorder();
+                  setOpen(false);
+                }}
+                className="rounded-xl bg-[#56C8D8] hover:bg-[#45B0BF] text-white font-bold text-xs gap-1.5 shadow-sm cursor-pointer"
+              >
+                <ShoppingBag className="w-4 h-4" />
+                <span>Buy Items Again</span>
+              </Button>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useTransition } from "react";
+import Link from "next/link";
 import {
   AdminNewsletterSubscriber,
   AdminNewsletterStats,
@@ -169,7 +170,17 @@ export function NewsletterTable({ subscribers, stats }: NewsletterTableProps) {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <Link href="/admin/support-marketing/marketing/email">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 rounded-xl border-[#56C8D8] text-[#0097a7] hover:bg-[#EDF5FA] text-xs font-bold gap-1.5 cursor-pointer shadow-2xs"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-[#56C8D8]" />
+              <span>Email Marketing Hub</span>
+            </Button>
+          </Link>
           <BroadcastComposeModal activeCount={stats.activeSubscribers} />
           <AddSubscriberModal />
         </div>

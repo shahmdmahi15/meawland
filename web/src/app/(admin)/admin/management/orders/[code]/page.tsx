@@ -246,10 +246,49 @@ export default async function AdminOrderDetailPage({ params }: OrderPageProps) {
                     <strong>
                       {order.paymentMethod === PaymentMethod.COD
                         ? "Cash on Delivery"
-                        : "bKash"}
-                    </strong>
+                        : "bKash Online Payment"}
+                    </strong>{" "}
+                    ({order.paymentStatus})
                   </span>
                 </div>
+                {order.paymentMethod === PaymentMethod.BKASH && order.payment && (
+                  <div className="mt-2 p-2.5 rounded-lg bg-[#fdf2f8] border border-[#fbcfe8] space-y-1 text-[11px] text-[#9d174d]">
+                    {order.payment.trxID && (
+                      <p>
+                        TrxID: <strong className="font-mono">{order.payment.trxID}</strong>
+                      </p>
+                    )}
+                    {order.payment.customerMsisdn && (
+                      <p className="text-gray-700">bKash Account: {order.payment.customerMsisdn}</p>
+                    )}
+                    {order.payment.paymentExecuteTime && (
+                      <p className="text-gray-500">Paid At: {order.payment.paymentExecuteTime}</p>
+                    )}
+                    {order.payment.refundTrxId && (
+                      <p className="text-purple-700 font-bold">
+                        Refunded: ৳{order.payment.refundAmount} (TrxID: {order.payment.refundTrxId})
+                      </p>
+                    )}
+                  </div>
+                )}
+                {order.shipment?.consignmentId && (
+                  <div className="mt-2 p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 space-y-1 text-[11px] text-emerald-900">
+                    <p className="font-bold flex items-center gap-1 text-emerald-800">
+                      <Truck className="w-3.5 h-3.5" /> Steadfast Consignment #{order.shipment.consignmentId}
+                    </p>
+                    {order.shipment.trackingCode && (
+                      <p>
+                        Tracking Code: <strong className="font-mono">{order.shipment.trackingCode}</strong>
+                      </p>
+                    )}
+                    <p>
+                      Status: <strong className="uppercase">{order.shipment.rawStatus || order.shipment.status}</strong>
+                    </p>
+                    <p>
+                      COD Amount: <strong>৳{order.shipment.codAmount}</strong>
+                    </p>
+                  </div>
+                )}
                 {order.note && (
                   <p className="text-[11px] text-muted-foreground bg-muted/30 p-2 rounded mt-2">
                     <strong>Note:</strong> {order.note}

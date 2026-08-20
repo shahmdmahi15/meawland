@@ -9,6 +9,8 @@ import {
 } from "@/schemas/auth/login-otp";
 import crypto from "crypto";
 import { cookies } from "next/headers";
+import { mergeGuestCartIntoUser } from "@/actions/store/cart";
+import { trackMetaCompleteRegistrationAction } from "@/actions/meta";
 
 export async function loginWithOtpAction(
   input: LoginOtpInput,
@@ -88,8 +90,9 @@ export async function loginWithOtpAction(
 
     const guestCartId = cookieStore.get("meawland_cart_id")?.value;
     if (guestCartId) {
-      const { mergeGuestCartIntoUser } = await import("@/actions/store/cart");
-      await mergeGuestCartIntoUser(userExists.id, guestCartId);
+      await mergeGuestCartIntoUser(userExists.id, guestCartId).catch((err) => {
+        console.error("[Actions.Auth.LoginWithOtp] Merge cart error:", err);
+      });
     }
 
     await sendEmail({
@@ -99,6 +102,20 @@ export async function loginWithOtpAction(
     }).catch((error) => {
       console.error("[Actions.Auth.LoginWithOtp]:", error);
     });
+
+    try {
+      trackMetaCompleteRegistrationAction({
+        userId: userExists.id,
+        method: "OTP",
+        email: userExists.email,
+        phone: userExists.phone,
+        name: userExists.name,
+      }).catch((err) => {
+        console.error("[Actions.Auth.LoginWithOtp] Meta CAPI Registration error:", err);
+      });
+    } catch {
+      // Non-blocking telemetry
+    }
 
     return {
       success: true,

@@ -84,6 +84,9 @@ export const metadata: Metadata = {
   },
 };
 
+import { Suspense } from "react";
+import { MetaPixelProvider } from "@/components/providers/meta-pixel/meta-pixel-provider";
+
 export default function EntryLayout({
   children,
 }: {
@@ -96,7 +99,11 @@ export default function EntryLayout({
       className={`${dmSans.variable} ${chewy.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        {children}
+        <Suspense fallback={null}>
+          <MetaPixelProvider>
+            {children}
+          </MetaPixelProvider>
+        </Suspense>
         <Toaster richColors />
       </body>
     </html>

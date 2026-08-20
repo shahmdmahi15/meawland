@@ -3,7 +3,8 @@
 import db from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { getImageBase64 } from "@/lib/storage";
-import { StockEventType } from "@/generated/prisma/enums";
+import { StockEventType, AuditAction, AuditEntity, AuditSeverity } from "@/generated/prisma/enums";
+import { recordAuditLog } from "@/lib/audit-logger";
 import {
   modifyStockSchema,
   type ModifyStockInput,
@@ -445,6 +446,19 @@ export async function modifyStockAction(data: ModifyStockInput): Promise<{
 
         return { eventId: event.id, previousStock, newStock };
       }
+    });
+
+    await recordAuditLog({
+      action: AuditAction.STOCK_CHANGE,
+      entity: AuditEntity.STOCK,
+      entityId: targetType === "PRODUCT" ? productId : variantId,
+      entityName: reason,
+      summary: `Inventory Stock adjusted (${type}): ${result.previousStock} → ${result.newStock} units (Mode: ${adjustmentMode}). Reason: ${reason}`,
+      severity: result.newStock === 0 ? AuditSeverity.WARNING : AuditSeverity.INFO,
+      previousState: { stock: result.previousStock },
+      newState: { stock: result.newStock, adjustmentMode, quantity },
+      metadata: { targetType, productId, variantId, reason, note, eventId: result.eventId },
+      path: "/admin/management/inventory/modify-stock",
     });
 
     revalidatePath("/admin/management/inventory/modify-stock");

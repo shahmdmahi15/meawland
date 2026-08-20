@@ -30,6 +30,12 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { AttributeType } from "@/generated/prisma/enums";
+import { trackMetaPixelEvent, generateBrowserEventId } from "@/lib/meta-pixel";
+import {
+  trackMetaViewContentAction,
+  trackMetaAddToCartAction,
+  trackMetaAddToWishlistAction,
+} from "@/actions/meta";
 
 interface ProductDetailsViewProps {
   product: ProductDetailData;
@@ -55,6 +61,34 @@ export function ProductDetailsView({
   const [activeTab, setActiveTab] = useState<"description" | "usage" | "specs">(
     "description",
   );
+
+  // Track ViewContent on initial product view (Browser Pixel + Server CAPI with shared Event ID)
+  React.useEffect(() => {
+    const eventId = generateBrowserEventId("vc");
+    const priceVal = product.salePrice ?? product.regularPrice ?? 0;
+
+    trackMetaPixelEvent(
+      "ViewContent",
+      {
+        content_name: product.name,
+        content_category: product.categoryName || "Pet Supplies",
+        content_ids: [product.sku || product.id],
+        content_type: "product",
+        value: priceVal,
+        currency: "BDT",
+      },
+      eventId,
+    );
+
+    trackMetaViewContentAction({
+      productId: product.id,
+      productName: product.name,
+      price: priceVal,
+      category: product.categoryName,
+      sku: product.sku,
+      eventId,
+    }).catch(() => {});
+  }, [product.id]);
 
   const handleSelectOption = (type: AttributeType, optionName: string) => {
     const updated = {
@@ -165,7 +199,36 @@ export function ProductDetailsView({
 
   // Wishlist Toggle
   const handleToggleWishlist = async () => {
-    setIsWishlisted((prev) => !prev);
+    const nextState = !isWishlisted;
+    setIsWishlisted(nextState);
+
+    if (nextState) {
+      const eventId = generateBrowserEventId("atw");
+      const priceVal = numericCurrentPrice || product.salePrice || product.regularPrice || 0;
+
+      trackMetaPixelEvent(
+        "AddToWishlist",
+        {
+          content_name: product.name,
+          content_category: product.categoryName || "Pet Supplies",
+          content_ids: [currentSku || product.id],
+          content_type: "product",
+          value: priceVal,
+          currency: "BDT",
+        },
+        eventId,
+      );
+
+      trackMetaAddToWishlistAction({
+        productId: product.id,
+        productName: product.name,
+        price: priceVal,
+        category: product.categoryName,
+        sku: currentSku,
+        eventId,
+      }).catch(() => {});
+    }
+
     const res = await toggleWishlistAction(product.id);
     if (res.success) {
       toast.success(res.message);
@@ -211,6 +274,33 @@ export function ProductDetailsView({
       );
       return;
     }
+
+    const eventId = generateBrowserEventId("atc");
+    const priceVal = numericCurrentPrice || product.salePrice || product.regularPrice || 0;
+
+    trackMetaPixelEvent(
+      "AddToCart",
+      {
+        content_name: product.name,
+        content_category: product.categoryName || "Pet Supplies",
+        content_ids: [currentSku || product.id],
+        content_type: "product",
+        value: priceVal * quantity,
+        currency: "BDT",
+        num_items: quantity,
+      },
+      eventId,
+    );
+
+    trackMetaAddToCartAction({
+      productId: product.id,
+      productName: product.name,
+      price: priceVal,
+      quantity,
+      category: product.categoryName,
+      sku: currentSku,
+      eventId,
+    }).catch(() => {});
 
     if (product.itemType === "COMBO") {
       await addToCart({ comboProductId: product.id, quantity }, true);

@@ -34,6 +34,8 @@ import {
 } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { trackMetaPixelEvent, generateBrowserEventId } from "@/lib/meta-pixel";
+import { trackMetaSearchAction } from "@/actions/meta";
 import type {
   FilterableStoreProduct,
   StoreFilterMeta,
@@ -93,6 +95,31 @@ export function AllProductsView({
       queueMicrotask(() => setSelectedCategory(initialCategory));
     }
   }, [initialCategory]);
+
+  // Track Meta Search Event (Debounced 800ms)
+  useEffect(() => {
+    const q = searchQuery.trim();
+    if (q.length >= 2) {
+      const timer = setTimeout(() => {
+        const eventId = generateBrowserEventId("srch");
+        trackMetaPixelEvent(
+          "Search",
+          {
+            search_string: q,
+            content_category: selectedCategory !== "ALL" ? selectedCategory : "All Products",
+          },
+          eventId,
+        );
+
+        trackMetaSearchAction({
+          query: q,
+          eventId,
+        }).catch(() => {});
+      }, 800);
+
+      return () => clearTimeout(timer);
+    }
+  }, [searchQuery, selectedCategory]);
 
   const [selectedSubCategories, setSelectedSubCategories] = useState<string[]>(
     [],

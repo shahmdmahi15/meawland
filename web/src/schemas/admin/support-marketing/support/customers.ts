@@ -14,7 +14,6 @@ export const adminUpdateCustomerSchema = z.object({
     .enum(BANGLADESH_DISTRICTS as unknown as [string, ...string[]])
     .or(z.literal("")),
   address: z.string().trim().max(300).optional(),
-  role: z.enum(Role),
 });
 
 export type AdminUpdateCustomerInput = z.infer<

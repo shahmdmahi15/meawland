@@ -4,6 +4,8 @@ import {
   OrderType,
   PaymentMethod,
   PaymentStatus,
+  CourierProvider,
+  CourierStatus,
 } from "@/generated/prisma/enums";
 
 export const customerOrdersFilterSchema = z.object({
@@ -41,6 +43,29 @@ export interface CustomerOrderItemSummary {
   slug?: string | null;
 }
 
+export interface CustomerPaymentSummary {
+  id: string;
+  amount: string;
+  paymentMethod: PaymentMethod;
+  status: PaymentStatus;
+  paymentID: string | null;
+  trxID: string | null;
+  customerMsisdn: string | null;
+  paymentExecuteTime: string | null;
+  refundTrxId?: string | null;
+  refundAmount?: string | null;
+}
+
+export interface CustomerShipmentSummary {
+  id: string;
+  provider: CourierProvider;
+  consignmentId: number | null;
+  trackingCode: string | null;
+  status: CourierStatus;
+  rawStatus: string | null;
+  lastCheckedAt: Date | null;
+}
+
 export interface CustomerOrderSummary {
   id: string;
   code: string;
@@ -60,6 +85,8 @@ export interface CustomerOrderSummary {
   email: string;
   createdAt: Date;
   updatedAt: Date;
+  payment?: CustomerPaymentSummary | null;
+  shipment?: CustomerShipmentSummary | null;
   items: CustomerOrderItemSummary[];
 }
 

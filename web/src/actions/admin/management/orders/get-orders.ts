@@ -10,6 +10,8 @@ import {
   OrderType,
   PaymentMethod,
   PaymentStatus,
+  CourierProvider,
+  CourierStatus,
 } from "@/generated/prisma/enums";
 
 async function safeGetImageBase64(
@@ -48,6 +50,46 @@ export type AdminOrderSummaryItem = {
   comboProductId: string | null;
 };
 
+export type AdminPaymentSummary = {
+  id: string;
+  amount: string;
+  currency: string;
+  paymentMethod: PaymentMethod;
+  status: PaymentStatus;
+  paymentID: string | null;
+  trxID: string | null;
+  customerMsisdn: string | null;
+  payerReference: string | null;
+  paymentCreateTime: string | null;
+  paymentExecuteTime: string | null;
+  refundTrxId: string | null;
+  refundTransactionStatus: string | null;
+  refundAmount: string | null;
+  refundTime: string | null;
+  refundReason: string | null;
+  statusMessage: string | null;
+  statusCode: string | null;
+};
+
+export type AdminShipmentSummary = {
+  id: string;
+  provider: CourierProvider;
+  consignmentId: number | null;
+  trackingCode: string | null;
+  invoice: string;
+  recipientName: string;
+  recipientPhone: string;
+  recipientAddress: string;
+  codAmount: string;
+  deliveryType: number | null;
+  note: string | null;
+  status: CourierStatus;
+  rawStatus: string | null;
+  lastCheckedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 export type AdminOrder = {
   id: string;
   code: string;
@@ -70,6 +112,8 @@ export type AdminOrder = {
   userCode: string | null;
   createdAt: Date;
   updatedAt: Date;
+  payment?: AdminPaymentSummary | null;
+  shipment?: AdminShipmentSummary | null;
   items: AdminOrderSummaryItem[];
 };
 
@@ -186,6 +230,8 @@ export async function getOrdersAdminAction(
       where,
       orderBy: { createdAt: "desc" },
       include: {
+        payment: true,
+        shipment: true,
         user: {
           select: {
             id: true,
@@ -356,6 +402,44 @@ export async function getOrdersAdminAction(
           userCode: o.user?.code || null,
           createdAt: o.createdAt,
           updatedAt: o.updatedAt,
+          payment: o.payment ? {
+            id: o.payment.id,
+            amount: o.payment.amount,
+            currency: o.payment.currency,
+            paymentMethod: o.payment.paymentMethod,
+            status: o.payment.status,
+            paymentID: o.payment.paymentID,
+            trxID: o.payment.trxID,
+            customerMsisdn: o.payment.customerMsisdn,
+            payerReference: o.payment.payerReference,
+            paymentCreateTime: o.payment.paymentCreateTime,
+            paymentExecuteTime: o.payment.paymentExecuteTime,
+            refundTrxId: o.payment.refundTrxId,
+            refundTransactionStatus: o.payment.refundTransactionStatus,
+            refundAmount: o.payment.refundAmount,
+            refundTime: o.payment.refundTime,
+            refundReason: o.payment.refundReason,
+            statusMessage: o.payment.statusMessage,
+            statusCode: o.payment.statusCode,
+          } : null,
+          shipment: o.shipment ? {
+            id: o.shipment.id,
+            provider: o.shipment.provider,
+            consignmentId: o.shipment.consignmentId,
+            trackingCode: o.shipment.trackingCode,
+            invoice: o.shipment.invoice,
+            recipientName: o.shipment.recipientName,
+            recipientPhone: o.shipment.recipientPhone,
+            recipientAddress: o.shipment.recipientAddress,
+            codAmount: o.shipment.codAmount,
+            deliveryType: o.shipment.deliveryType,
+            note: o.shipment.note,
+            status: o.shipment.status,
+            rawStatus: o.shipment.rawStatus,
+            lastCheckedAt: o.shipment.lastCheckedAt,
+            createdAt: o.shipment.createdAt,
+            updatedAt: o.shipment.updatedAt,
+          } : null,
           items,
         };
       }),

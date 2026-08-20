@@ -19,6 +19,7 @@ import {
   Headphones,
   FileText,
   Loader2,
+  Truck,
 } from "lucide-react";
 import { PaymentMethod, PaymentStatus } from "@/generated/prisma/enums";
 import { cn } from "@/lib/utils";
@@ -133,8 +134,56 @@ export function TrackingOrderSummaryCard({
               {order.paymentStatus}
             </Badge>
           </div>
+          {order.paymentMethod === PaymentMethod.BKASH && order.payment?.trxID && (
+            <div className="flex items-center justify-between text-[11px] pt-1 border-t border-gray-100 font-mono text-[#9d174d]">
+              <span>bKash TrxID:</span>
+              <strong className="font-bold">{order.payment.trxID}</strong>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Courier Logistics Details */}
+      {order.shipment && (
+        <div className="space-y-3">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 flex items-center gap-2">
+            <Truck className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Courier Logistics Details</span>
+          </h3>
+
+          <div className="rounded-2xl bg-emerald-50/70 border border-emerald-200/80 p-4 text-xs space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-gray-600">Courier Partner:</span>
+              <strong className="text-gray-900">Steadfast Courier</strong>
+            </div>
+            {order.shipment.trackingCode && (
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">Tracking Code:</span>
+                <span className="font-mono font-bold text-emerald-800">
+                  {order.shipment.trackingCode}
+                </span>
+              </div>
+            )}
+            {order.shipment.consignmentId && (
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">Consignment ID:</span>
+                <span className="font-mono text-gray-900">
+                  #{order.shipment.consignmentId}
+                </span>
+              </div>
+            )}
+            <div className="flex items-center justify-between">
+              <span className="text-gray-600">Courier Status:</span>
+              <Badge
+                variant="outline"
+                className="text-[10px] uppercase font-bold bg-white text-emerald-700 border-emerald-300"
+              >
+                {order.shipment.rawStatus || order.shipment.status}
+              </Badge>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Package Contents */}
       <div className="space-y-3">

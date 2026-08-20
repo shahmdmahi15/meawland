@@ -33,6 +33,12 @@ import {
   ChevronsRight,
   ShoppingCart,
   Package,
+  Truck,
+  Send,
+  Copy,
+  Check,
+  RefreshCw,
+  Loader2,
 } from "lucide-react";
 import {
   OrderStatus,
@@ -45,6 +51,10 @@ import {
   updateOrderStatusAction,
   updatePaymentStatusAction,
 } from "@/actions/admin/management/orders/update-order";
+import {
+  sendOrderToSteadfastAction,
+  syncSteadfastShipmentStatusAction,
+} from "@/actions/admin/management/orders/send-to-steadfast";
 import { OrderDetailModal } from "./order-detail-modal";
 import { OrderInvoiceModal } from "./order-invoice-modal";
 import { DeleteOrderButton } from "./delete-order-button";
@@ -136,6 +146,18 @@ const PAYMENT_STATUS_CONFIG: Record<
     label: "Paid",
     color: "text-emerald-700 bg-emerald-50 border-emerald-200",
   },
+  [PaymentStatus.CANCELLED]: {
+    label: "Cancelled",
+    color: "text-red-700 bg-red-50 border-red-200",
+  },
+  [PaymentStatus.FAILED]: {
+    label: "Failed",
+    color: "text-rose-700 bg-rose-50 border-rose-200",
+  },
+  [PaymentStatus.REFUNDED]: {
+    label: "Refunded",
+    color: "text-purple-700 bg-purple-50 border-purple-200",
+  },
 };
 
 export function OrdersTable({
@@ -149,10 +171,55 @@ export function OrdersTable({
   const urlOrderId = searchParams.get("orderId");
   const urlOrderCode = searchParams.get("orderCode");
   const urlSearch = searchParams.get("search");
-
   const [activeModalOrderId, setActiveModalOrderId] = useState<string | null>(
     null,
   );
+
+  // Steadfast Courier States
+  const [sendingOrderId, setSendingOrderId] = useState<string | null>(null);
+  const [syncingOrderId, setSyncingOrderId] = useState<string | null>(null);
+  const [copiedTrackingId, setCopiedTrackingId] = useState<string | null>(null);
+
+  const handleSendToSteadfast = async (order: AdminOrder) => {
+    try {
+      setSendingOrderId(order.id);
+      const res = await sendOrderToSteadfastAction({ orderId: order.id });
+      if (res.success) {
+        toast.success(res.message || "Order sent to Steadfast Courier!");
+      } else {
+        toast.error(res.message || "Failed to send order to Steadfast.");
+      }
+    } catch (error) {
+      console.error("[OrdersTable.SendToSteadfast] Error:", error);
+      toast.error("Failed to send order to Steadfast.");
+    } finally {
+      setSendingOrderId(null);
+    }
+  };
+
+  const handleSyncCourierStatus = async (orderId: string) => {
+    try {
+      setSyncingOrderId(orderId);
+      const res = await syncSteadfastShipmentStatusAction(orderId);
+      if (res.success) {
+        toast.success(res.message || "Courier delivery status updated.");
+      } else {
+        toast.error(res.message || "Failed to sync status from Steadfast.");
+      }
+    } catch (error) {
+      console.error("[OrdersTable.SyncCourierStatus] Error:", error);
+      toast.error("Failed to sync courier status.");
+    } finally {
+      setSyncingOrderId(null);
+    }
+  };
+
+  const handleCopyTracking = (trackingCode: string) => {
+    navigator.clipboard.writeText(trackingCode);
+    setCopiedTrackingId(trackingCode);
+    toast.success(`Copied Tracking Code: ${trackingCode}`);
+    setTimeout(() => setCopiedTrackingId(null), 2000);
+  };
 
   const urlMatchedOrderId = useMemo(() => {
     if (urlOrderId) {
@@ -277,6 +344,8 @@ export function OrdersTable({
         const matchesPhone = order.phone.toLowerCase().includes(q);
         const matchesDistrict = order.district.toLowerCase().includes(q);
         const matchesAddress = order.address.toLowerCase().includes(q);
+        const matchesTrx = order.payment?.trxID?.toLowerCase().includes(q);
+        const matchesBkashNumber = order.payment?.customerMsisdn?.toLowerCase().includes(q);
         const matchesItems = order.items.some((i) =>
           i.name.toLowerCase().includes(q),
         );
@@ -288,6 +357,8 @@ export function OrdersTable({
           !matchesPhone &&
           !matchesDistrict &&
           !matchesAddress &&
+          !matchesTrx &&
+          !matchesBkashNumber &&
           !matchesItems
         ) {
           return false;
@@ -629,6 +700,9 @@ export function OrdersTable({
                 <TableHead className="w-24 text-center font-bold">
                   Payment
                 </TableHead>
+                <TableHead className="w-36 text-center font-bold">
+                  Steadfast Courier
+                </TableHead>
                 <TableHead className="w-28 text-center font-bold">
                   Date
                 </TableHead>
@@ -641,7 +715,7 @@ export function OrdersTable({
               {paginatedOrders.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={9}
+                    colSpan={10}
                     className="h-48 text-center text-muted-foreground"
                   >
                     <div className="flex flex-col items-center justify-center gap-2">
@@ -746,9 +820,114 @@ export function OrdersTable({
                           {renderStatusBadge(order)}
                         </TableCell>
 
-                        {/* Payment Status Select */}
+                        {/* Payment Status Select & Method */}
                         <TableCell className="text-center">
-                          {renderPaymentBadge(order)}
+                          <div className="flex flex-col items-center gap-1">
+                            {renderPaymentBadge(order)}
+                            {order.paymentMethod === PaymentMethod.BKASH ? (
+                              <div className="flex items-center gap-1">
+                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#fdf2f8] text-[#9d174d] border border-[#fbcfe8]">
+                                  bKash
+                                </span>
+                                {order.payment?.trxID && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(order.payment!.trxID!);
+                                      toast.success(`Copied TrxID: ${order.payment!.trxID!}`);
+                                    }}
+                                    className="text-[10px] font-mono text-muted-foreground hover:text-foreground underline cursor-pointer"
+                                    title="Copy TrxID"
+                                  >
+                                    {order.payment.trxID.slice(0, 7)}...
+                                  </button>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-[10px] text-muted-foreground">
+                                COD
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+
+                        {/* Steadfast Courier Column */}
+                        <TableCell className="text-center">
+                          {order.shipment?.consignmentId ? (
+                            <div className="flex flex-col items-center gap-1">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled
+                                className="h-7 px-2 text-[11px] font-semibold bg-emerald-50/90 border-emerald-300 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-700 dark:text-emerald-300 opacity-95 cursor-default flex items-center gap-1 shadow-xs"
+                                title={`Steadfast Consignment ID: #${order.shipment.consignmentId} | Status: ${order.shipment.rawStatus || order.shipment.status}`}
+                              >
+                                <Truck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                                <span>#{order.shipment.consignmentId}</span>
+                              </Button>
+                              {order.shipment.trackingCode && (
+                                <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                                  <span className="font-mono font-medium">
+                                    {order.shipment.trackingCode}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleCopyTracking(
+                                        order.shipment!.trackingCode!,
+                                      )
+                                    }
+                                    className="p-0.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
+                                    title="Copy Tracking Code"
+                                  >
+                                    {copiedTrackingId ===
+                                    order.shipment.trackingCode ? (
+                                      <Check className="w-3 h-3 text-emerald-600" />
+                                    ) : (
+                                      <Copy className="w-3 h-3" />
+                                    )}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={syncingOrderId === order.id}
+                                    onClick={() =>
+                                      handleSyncCourierStatus(order.id)
+                                    }
+                                    className="p-0.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
+                                    title="Sync Live Courier Status"
+                                  >
+                                    <RefreshCw
+                                      className={cn(
+                                        "w-3 h-3",
+                                        syncingOrderId === order.id &&
+                                          "animate-spin text-primary",
+                                      )}
+                                    />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <Button
+                              size="sm"
+                              disabled={sendingOrderId === order.id}
+                              onClick={() => handleSendToSteadfast(order)}
+                              className="h-7 px-2.5 text-xs font-semibold bg-[#0f766e] hover:bg-[#115e59] text-white shadow-xs transition-all gap-1.5 cursor-pointer"
+                              title="Send consignment to Steadfast Courier"
+                            >
+                              {sendingOrderId === order.id ? (
+                                <>
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  <span>Sending...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Send className="w-3.5 h-3.5" />
+                                  <span>Send</span>
+                                </>
+                              )}
+                            </Button>
+                          )}
                         </TableCell>
 
                         {/* Date */}
@@ -770,11 +949,12 @@ export function OrdersTable({
                               order={order}
                               isOpen={effectiveActiveOrderId === order.id}
                               onOpenChange={(isOpen) => {
-                                if (
-                                  !isOpen &&
-                                  effectiveActiveOrderId === order.id
-                                ) {
-                                  setActiveModalOrderId(null);
+                                if (isOpen) {
+                                  setActiveModalOrderId(order.id);
+                                } else {
+                                  if (effectiveActiveOrderId === order.id) {
+                                    setActiveModalOrderId(null);
+                                  }
                                   if (urlOrderId || urlOrderCode) {
                                     router.replace(pathname, { scroll: false });
                                   }
@@ -793,7 +973,7 @@ export function OrdersTable({
                       {/* Expanded Items Preview Row */}
                       {isExpanded && (
                         <TableRow className="bg-muted/15 border-b border-border/80">
-                          <TableCell colSpan={9} className="p-3 sm:p-4">
+                          <TableCell colSpan={10} className="p-3 sm:p-4">
                             <div className="space-y-3 rounded-lg border border-border/60 bg-background/80 p-3">
                               <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground">
                                 <span className="flex items-center gap-1.5 text-foreground">

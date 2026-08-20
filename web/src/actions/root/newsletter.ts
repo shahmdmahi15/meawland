@@ -6,6 +6,7 @@ import {
   subscribeNewsletterSchema,
   unsubscribeNewsletterSchema,
 } from "@/schemas/root/newsletter";
+import { trackMetaLeadAction } from "@/actions/meta";
 import { revalidatePath } from "next/cache";
 
 /**
@@ -67,6 +68,14 @@ export async function subscribeNewsletterAction(
     });
 
     revalidatePath("/admin/support-marketing/marketing/newsletter");
+
+    // Track Meta CAPI Lead Event
+    trackMetaLeadAction({
+      leadType: "NEWSLETTER",
+      email: cleanEmail,
+    }).catch((err) => {
+      console.error("[Action.Newsletter] Meta CAPI Lead error:", err);
+    });
 
     return {
       success: true,

@@ -23,7 +23,9 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react";
-import { OrderStatus, PaymentStatus } from "@/generated/prisma/enums";
+import { OrderStatus, PaymentMethod, PaymentStatus } from "@/generated/prisma/enums";
+import { retryBkashPaymentAction } from "@/actions/bkash/retry-payment";
+import { Smartphone, Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface CustomerOrderCardProps {
@@ -43,6 +45,32 @@ const isValidImageSrc = (src?: string | null): boolean => {
 export function CustomerOrderCard({ order }: CustomerOrderCardProps) {
   const { addToCart, openDrawer } = useCart();
   const [isReordering, setIsReordering] = useState(false);
+  const [isPaying, setIsPaying] = useState(false);
+  const [copiedTrx, setCopiedTrx] = useState(false);
+
+  const handlePayWithBkash = async () => {
+    setIsPaying(true);
+    try {
+      const res = await retryBkashPaymentAction(order.id);
+      if (res.success && res.bkashURL) {
+        toast.info("Redirecting to bKash Secure Gateway...");
+        window.location.href = res.bkashURL;
+      } else {
+        toast.error(res.message || "Failed to initiate bKash payment.");
+      }
+    } catch {
+      toast.error("Failed to connect to bKash gateway.");
+    } finally {
+      setIsPaying(false);
+    }
+  };
+
+  const handleCopyTrx = (trx: string) => {
+    navigator.clipboard.writeText(trx);
+    setCopiedTrx(true);
+    toast.success("Transaction ID copied!");
+    setTimeout(() => setCopiedTrx(false), 2000);
+  };
 
   const handleReorder = async () => {
     try {
@@ -182,7 +210,43 @@ export function CustomerOrderCard({ order }: CustomerOrderCardProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+          {order.paymentMethod === PaymentMethod.BKASH && (
+            <Badge
+              variant="outline"
+              className="text-[10px] font-bold border-[#fbcfe8] text-[#9d174d] bg-[#fdf2f8] gap-1"
+            >
+              <Smartphone className="w-2.5 h-2.5" />
+              <span>bKash</span>
+            </Badge>
+          )}
+
+          {order.payment?.trxID && (
+            <button
+              type="button"
+              onClick={() => handleCopyTrx(order.payment!.trxID!)}
+              className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold cursor-pointer transition-colors"
+              title="Click to copy TrxID"
+            >
+              <span>Trx: {order.payment.trxID}</span>
+              {copiedTrx ? (
+                <Check className="w-2.5 h-2.5 text-emerald-600" />
+              ) : (
+                <Copy className="w-2.5 h-2.5 text-gray-400" />
+              )}
+            </button>
+          )}
+
+          {order.shipment?.trackingCode && (
+            <span
+              className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold"
+              title={`Steadfast Tracking: ${order.shipment.trackingCode}`}
+            >
+              <Truck className="w-2.5 h-2.5 text-emerald-600" />
+              <span>Track: {order.shipment.trackingCode}</span>
+            </span>
+          )}
+
           <Badge
             variant="outline"
             className={cn(
@@ -255,6 +319,24 @@ export function CustomerOrderCard({ order }: CustomerOrderCardProps) {
 
         {/* Action Button Row */}
         <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+          {order.paymentMethod === PaymentMethod.BKASH &&
+            order.paymentStatus !== PaymentStatus.PAID &&
+            order.status !== OrderStatus.CANCELLED && (
+              <Button
+                size="sm"
+                onClick={handlePayWithBkash}
+                disabled={isPaying}
+                className="h-8.5 rounded-xl bg-[#e2136e] hover:bg-[#c2105e] text-white text-xs font-black gap-1.5 shadow-sm cursor-pointer"
+              >
+                {isPaying ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Smartphone className="w-3.5 h-3.5" />
+                )}
+                <span>Pay with bKash</span>
+              </Button>
+            )}
+
           <CustomerOrderInvoiceModal order={order} />
 
           <Link href={`/account/tracking?orderCode=${order.code}`}>

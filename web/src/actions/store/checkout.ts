@@ -25,6 +25,10 @@ import {
   StockEventType,
   Role,
 } from "@/generated/prisma/enums";
+import { createBkashPaymentAction } from "@/actions/bkash/create-payment";
+import { triggerOrderPlacedSms } from "@/actions/admin/support-marketing/marketing/sms/automations";
+import { triggerOrderPlacedEmail } from "@/actions/admin/support-marketing/marketing/email/automations";
+import { trackMetaPurchaseAction } from "@/actions/meta";
 import { revalidatePath } from "next/cache";
 
 async function safeGetImageBase64(
@@ -127,6 +131,7 @@ export type PlaceOrderResult = {
   message: string;
   orderId?: string;
   orderCode?: string;
+  bkashURL?: string;
 };
 
 /**
@@ -526,7 +531,19 @@ export async function placeOrderAction(
         });
       }
 
-      // 6f. Clear the cart
+      // 6f. Create Payment Record
+      await tx.payment.create({
+        data: {
+          orderId: newOrder.id,
+          userId: orderUserId,
+          amount: grandFinalCost.toString(),
+          currency: "BDT",
+          paymentMethod,
+          status: PaymentStatus.PENDING,
+        },
+      });
+
+      // 6g. Clear the cart
       await tx.cartItem.deleteMany({
         where: { cartId: dbCart.id },
       });
@@ -534,90 +551,121 @@ export async function placeOrderAction(
       return newOrder;
     });
 
-    // 7. Post-transaction Actions (Revalidate & Async Email)
+    // 7. Post-transaction Actions (Revalidate & Handling)
     revalidatePath("/cart");
     revalidatePath("/checkout");
     revalidatePath("/");
 
-    // Send confirmation email asynchronously (does not block order completion)
-    const orderItemsHtml = cart.items
-      .map(
-        (i) =>
-          `<tr>
-            <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${i.name} ${i.variantTitle ? `(${i.variantTitle})` : ""}</td>
-            <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: center;">${i.quantity}</td>
-            <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: right;">৳${i.lineTotal.toLocaleString()}</td>
-          </tr>`,
-      )
-      .join("");
+    // 8. Handle bKash Gateway Payment Redirection
+    if (paymentMethod === PaymentMethod.BKASH) {
+      const bkashRes = await createBkashPaymentAction({
+        amount: grandFinalCost.toFixed(2),
+        merchantInvoiceNumber: result.code,
+        payerReference: phone,
+      });
 
-    sendEmail({
-      to: email,
-      subject: `Order Confirmation - #${result.code} | Meawland`,
-      htmlContent: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #374151;">
-          <div style="background-color: #56C8D8; padding: 24px; border-radius: 12px 12px 0 0; text-align: center; color: white;">
-            <h1 style="margin: 0; font-size: 24px;">Thank you for your order! 🐾</h1>
-            <p style="margin: 4px 0 0 0; font-size: 14px;">Order Code: <strong>${result.code}</strong></p>
-          </div>
-          <div style="padding: 24px; background-color: #ffffff; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
-            <p>Hi <strong>${name}</strong>,</p>
-            <p>We've received your order and are getting it ready for dispatch. Here are your order details:</p>
-            
-            <table style="width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px;">
-              <thead>
-                <tr style="background-color: #f9fafb; color: #4b5563;">
-                  <th style="padding: 8px; text-align: left;">Item</th>
-                  <th style="padding: 8px; text-align: center;">Qty</th>
-                  <th style="padding: 8px; text-align: right;">Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${orderItemsHtml}
-              </tbody>
-            </table>
+      if (bkashRes.success && bkashRes.data?.bkashURL) {
+        // Save bKash metadata into the Payment record
+        await db.payment.update({
+          where: { orderId: result.id },
+          data: {
+            paymentID: bkashRes.data.paymentID,
+            statusCode: bkashRes.data.statusCode,
+            statusMessage: bkashRes.data.statusMessage,
+            paymentCreateTime: bkashRes.data.paymentCreateTime,
+            transactionStatus: bkashRes.data.transactionStatus,
+            rawResponse: bkashRes.data as object,
+          },
+        });
 
-            <div style="border-top: 2px solid #e5e7eb; padding-top: 12px; margin-top: 16px; font-size: 14px;">
-              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                <span>Subtotal:</span>
-                <strong>৳${subtotal.toLocaleString()}</strong>
-              </div>
-              ${
-                couponDiscount > 0
-                  ? `<div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: #16a34a;">
-                      <span>Coupon Discount (${validatedCoupon?.couponCode}):</span>
-                      <strong>-৳${couponDiscount.toLocaleString()}</strong>
-                    </div>`
-                  : ""
-              }
-              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                <span>Delivery Fee (${district}):</span>
-                <strong>${deliveryFee === 0 ? "FREE" : `৳${deliveryFee}`}</strong>
-              </div>
-              <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 16px; color: #56C8D8; font-weight: bold;">
-                <span>Grand Total:</span>
-                <span>৳${grandFinalCost.toLocaleString()}</span>
-              </div>
-            </div>
+        return {
+          success: true,
+          message: "Redirecting to bKash Secure Payment...",
+          orderId: result.id,
+          orderCode: result.code,
+          bkashURL: bkashRes.data.bkashURL,
+        };
+      } else {
+        console.error(
+          "[Action.Store.Checkout.PlaceOrder] bKash payment creation failed:",
+          bkashRes.message,
+        );
+        return {
+          success: false,
+          message:
+            bkashRes.message ||
+            "Failed to connect to bKash payment gateway. Please try again or select Cash on Delivery.",
+          orderId: result.id,
+          orderCode: result.code,
+        };
+      }
+    }
 
-            <div style="margin-top: 24px; padding: 16px; background-color: #f0fdf4; border-radius: 8px; font-size: 13px;">
-              <p style="margin: 0 0 4px 0; font-weight: bold; color: #166534;">Delivery Address:</p>
-              <p style="margin: 0; color: #374151;">${address}, ${district}</p>
-              <p style="margin: 4px 0 0 0; color: #374151;">Phone: ${phone}</p>
-              <p style="margin: 4px 0 0 0; color: #374151;">Payment: ${paymentMethod === PaymentMethod.COD ? "Cash on Delivery" : "bKash"}</p>
-            </div>
-
-            <p style="margin-top: 24px; font-size: 12px; color: #6b7280; text-align: center;">
-              Need help? Contact us on WhatsApp or reply to this email.
-            </p>
-          </div>
-        </div>
-      `,
+    // Send automated order confirmation email asynchronously
+    triggerOrderPlacedEmail({
+      id: result.id,
+      code: result.code,
+      email,
+      name,
+      grandTotal: grandFinalCost.toString(),
+      paymentMethod: paymentMethod === PaymentMethod.COD ? "Cash on Delivery" : "bKash",
+      paymentStatus: PaymentStatus.PENDING,
+      shippingAddress: `${address}, ${district}`,
+      items: cart.items.map((i) => ({
+        name: `${i.name}${i.variantTitle ? ` (${i.variantTitle})` : ""}`,
+        quantity: i.quantity,
+        price: i.lineTotal.toString(),
+      })),
+      subtotal: subtotal.toString(),
+      deliveryFee: deliveryFee.toString(),
+      discount: couponDiscount.toString(),
+      userId: orderUserId,
     }).catch((err) => {
       console.error(
         "[Action.Store.Checkout] Failed to send order confirmation email:",
         err,
       );
+    });
+
+    // Send automated order confirmation SMS asynchronously
+    triggerOrderPlacedSms({
+      id: result.id,
+      code: result.code,
+      phone,
+      name,
+      finalCost: grandFinalCost.toString(),
+      userId: orderUserId,
+    }).catch((err) => {
+      console.error(
+        "[Action.Store.Checkout] Failed to send order confirmation SMS:",
+        err,
+      );
+    });
+
+    // 4. Meta Conversions API (Server CAPI) Purchase Event with deduplication
+    trackMetaPurchaseAction({
+      orderCode: result.code,
+      totalValue: grandFinalCost,
+      currency: "BDT",
+      numItems: cart.items.reduce((s, i) => s + i.quantity, 0),
+      deliveryFee,
+      discount: couponDiscount,
+      items: cart.items.map((i) => ({
+        id: i.variantId || i.productId || i.comboProductId || i.id,
+        name: i.name,
+        price: i.unitPrice,
+        quantity: i.quantity,
+      })),
+      customer: {
+        email,
+        phone,
+        name,
+        district,
+        userId: orderUserId,
+      },
+      eventId: `purch_${result.code}`,
+    }).catch((err) => {
+      console.error("[Action.Store.Checkout] Meta CAPI Purchase error:", err);
     });
 
     return {
@@ -650,9 +698,17 @@ export type OrderConfirmationDetails = {
   district: string;
   note: string | null;
   paymentMethod: PaymentMethod;
+  paymentStatus: PaymentStatus;
   status: OrderStatus;
   type: OrderType;
   createdAt: Date;
+  payment?: {
+    trxID: string | null;
+    paymentID: string | null;
+    customerMsisdn: string | null;
+    status: PaymentStatus;
+    paymentExecuteTime: string | null;
+  } | null;
   items: Array<{
     id: string;
     name: string;
@@ -677,6 +733,15 @@ export async function getOrderConfirmationAction(orderId: string): Promise<{
     const order = await db.order.findUnique({
       where: { id: orderId },
       include: {
+        payment: {
+          select: {
+            trxID: true,
+            paymentID: true,
+            customerMsisdn: true,
+            status: true,
+            paymentExecuteTime: true,
+          },
+        },
         orderItems: {
           include: {
             product: {
@@ -758,9 +823,11 @@ export async function getOrderConfirmationAction(orderId: string): Promise<{
         district: order.district,
         note: order.note,
         paymentMethod: order.paymentMethod,
+        paymentStatus: order.paymentStatus,
         status: order.status,
         type: order.type,
         createdAt: order.createdAt,
+        payment: order.payment,
         items,
       },
     };

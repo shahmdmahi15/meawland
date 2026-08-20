@@ -38,6 +38,12 @@ import {
   Package,
 } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { trackMetaPixelEvent, generateBrowserEventId } from "@/lib/meta-pixel";
+import {
+  trackMetaInitiateCheckoutAction,
+  trackMetaAddPaymentInfoAction,
+} from "@/actions/meta";
 
 interface CheckoutPageViewProps {
   initialData: CheckoutInitialData;
@@ -91,6 +97,58 @@ export function CheckoutPageView({ initialData }: CheckoutPageViewProps) {
 
   const finalSubtotal = Math.max(0, subtotal - couponDiscount);
   const grandTotal = finalSubtotal + deliveryFee;
+
+  // Track InitiateCheckout on page mount with items
+  React.useEffect(() => {
+    if (currentCart.items.length > 0) {
+      const eventId = generateBrowserEventId("ic");
+      trackMetaPixelEvent(
+        "InitiateCheckout",
+        {
+          value: grandTotal,
+          currency: "BDT",
+          num_items: currentCart.items.reduce((sum, i) => sum + i.quantity, 0),
+          content_type: "product",
+          content_ids: currentCart.items.map((i) => i.variantId || i.productId || i.comboProductId || i.id),
+        },
+        eventId,
+      );
+
+      trackMetaInitiateCheckoutAction({
+        totalValue: grandTotal,
+        numItems: currentCart.items.reduce((sum, i) => sum + i.quantity, 0),
+        items: currentCart.items.map((i) => ({
+          id: i.variantId || i.productId || i.comboProductId || i.id,
+          name: i.name,
+          price: i.unitPrice,
+          quantity: i.quantity,
+        })),
+        eventId,
+      }).catch(() => {});
+    }
+  }, []);
+
+  // Track AddPaymentInfo when payment method changes
+  const handlePaymentMethodChange = (method: PaymentMethod) => {
+    setPaymentMethod(method);
+    const eventId = generateBrowserEventId("api");
+
+    trackMetaPixelEvent(
+      "AddPaymentInfo",
+      {
+        value: grandTotal,
+        currency: "BDT",
+        status: method === PaymentMethod.COD ? "COD" : "BKASH",
+      },
+      eventId,
+    );
+
+    trackMetaAddPaymentInfoAction({
+      paymentMethod: method === PaymentMethod.COD ? "COD" : "BKASH",
+      totalValue: grandTotal,
+      eventId,
+    }).catch(() => {});
+  };
 
   // Apply Coupon Handler
   const handleApplyCoupon = async (e?: React.FormEvent) => {
@@ -198,9 +256,14 @@ export function CheckoutPageView({ initialData }: CheckoutPageViewProps) {
       });
 
       if (res.success && res.orderId) {
-        toast.success("Order placed successfully! 🐾");
         await refreshCart();
-        router.push(`/checkout/success/${res.orderId}`);
+        if (res.bkashURL) {
+          toast.info("Redirecting to bKash Secure Payment...");
+          window.location.href = res.bkashURL;
+        } else {
+          toast.success("Order placed successfully! 🐾");
+          router.push(`/checkout/success/${res.orderId}`);
+        }
       } else {
         toast.error(res.message || "Failed to place order. Please try again.");
       }
@@ -440,7 +503,7 @@ export function CheckoutPageView({ initialData }: CheckoutPageViewProps) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 {/* Cash On Delivery */}
                 <label
-                  onClick={() => setPaymentMethod(PaymentMethod.COD)}
+                  onClick={() => handlePaymentMethodChange(PaymentMethod.COD)}
                   className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-start gap-3 ${
                     paymentMethod === PaymentMethod.COD
                       ? "border-[#56C8D8] bg-[#EDF8FD]/50 shadow-2xs"
@@ -451,7 +514,7 @@ export function CheckoutPageView({ initialData }: CheckoutPageViewProps) {
                     type="radio"
                     name="paymentMethod"
                     checked={paymentMethod === PaymentMethod.COD}
-                    onChange={() => setPaymentMethod(PaymentMethod.COD)}
+                    onChange={() => handlePaymentMethodChange(PaymentMethod.COD)}
                     className="mt-1 text-[#56C8D8] focus:ring-[#56C8D8]"
                   />
                   <div className="space-y-1">
@@ -469,7 +532,7 @@ export function CheckoutPageView({ initialData }: CheckoutPageViewProps) {
 
                 {/* bKash Payment */}
                 <label
-                  onClick={() => setPaymentMethod(PaymentMethod.BKASH)}
+                  onClick={() => handlePaymentMethodChange(PaymentMethod.BKASH)}
                   className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-start gap-3 ${
                     paymentMethod === PaymentMethod.BKASH
                       ? "border-[#56C8D8] bg-[#EDF8FD]/50 shadow-2xs"
@@ -480,7 +543,7 @@ export function CheckoutPageView({ initialData }: CheckoutPageViewProps) {
                     type="radio"
                     name="paymentMethod"
                     checked={paymentMethod === PaymentMethod.BKASH}
-                    onChange={() => setPaymentMethod(PaymentMethod.BKASH)}
+                    onChange={() => handlePaymentMethodChange(PaymentMethod.BKASH)}
                     className="mt-1 text-[#56C8D8] focus:ring-[#56C8D8]"
                   />
                   <div className="space-y-1">
@@ -699,15 +762,29 @@ export function CheckoutPageView({ initialData }: CheckoutPageViewProps) {
               <Button
                 type="submit"
                 disabled={isSubmitting || currentCart.isCheckoutDisabled}
-                className="w-full h-13 rounded-2xl bg-[#56C8D8] hover:bg-[#45B0BF] text-white font-black text-sm sm:text-base shadow-lg cursor-pointer transition-all hover:scale-[1.01] active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed"
+                className={cn(
+                  "w-full h-13 rounded-2xl text-white font-black text-sm sm:text-base shadow-lg cursor-pointer transition-all hover:scale-[1.01] active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed",
+                  paymentMethod === PaymentMethod.BKASH
+                    ? "bg-[#e2136e] hover:bg-[#c2105e]"
+                    : "bg-[#56C8D8] hover:bg-[#45B0BF]",
+                )}
               >
                 {isSubmitting ? (
                   <div className="flex items-center gap-2">
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    <span>Placing Your Order...</span>
+                    <span>
+                      {paymentMethod === PaymentMethod.BKASH
+                        ? "Connecting to bKash Gateway..."
+                        : "Placing Your Order..."}
+                    </span>
+                  </div>
+                ) : paymentMethod === PaymentMethod.BKASH ? (
+                  <div className="flex items-center gap-2">
+                    <Smartphone className="w-5 h-5" />
+                    <span>Pay ৳{grandTotal.toLocaleString()} with bKash 🚀</span>
                   </div>
                 ) : (
-                  <span>Confirm &amp; Place Order 🐾</span>
+                  <span>Confirm &amp; Place Order (COD) 🐾</span>
                 )}
               </Button>
 

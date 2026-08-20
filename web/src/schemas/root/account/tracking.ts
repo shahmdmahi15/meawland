@@ -5,7 +5,11 @@ import {
   PaymentMethod,
   PaymentStatus,
 } from "@/generated/prisma/enums";
-import { CustomerOrderItemSummary } from "@/schemas/root/account/orders";
+import {
+  CustomerOrderItemSummary,
+  CustomerPaymentSummary,
+  CustomerShipmentSummary,
+} from "@/schemas/root/account/orders";
 
 export const trackOrderInputSchema = z.object({
   query: z
@@ -48,6 +52,8 @@ export interface TrackedOrderDetails {
   estimatedDeliveryDate: string;
   courierPartner: string;
   milestones: TrackingMilestoneStep[];
+  payment?: CustomerPaymentSummary | null;
+  shipment?: CustomerShipmentSummary | null;
   items: CustomerOrderItemSummary[];
 }
 

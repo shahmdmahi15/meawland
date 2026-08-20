@@ -136,9 +136,16 @@ export function OrderInvoiceModal({ order, trigger }: OrderInvoiceModalProps) {
                 <strong>
                   {order.paymentMethod === PaymentMethod.COD
                     ? "Cash On Delivery"
-                    : "bKash"}
-                </strong>
+                    : "bKash Online Payment"}
+                </strong>{" "}
+                ({order.paymentStatus})
               </p>
+              {order.paymentMethod === PaymentMethod.BKASH && order.payment?.trxID && (
+                <p className="text-[11px] text-neutral-500 font-mono mt-0.5">
+                  bKash TrxID: <strong>{order.payment.trxID}</strong>
+                  {order.payment.customerMsisdn && ` | ${order.payment.customerMsisdn}`}
+                </p>
+              )}
             </div>
           </div>
 

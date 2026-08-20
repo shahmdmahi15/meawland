@@ -127,6 +127,21 @@ export async function getCustomerOrdersAction(
         where,
         orderBy: { createdAt: "desc" },
         include: {
+          payment: {
+            select: {
+              id: true,
+              amount: true,
+              paymentMethod: true,
+              status: true,
+              paymentID: true,
+              trxID: true,
+              customerMsisdn: true,
+              paymentExecuteTime: true,
+              refundTrxId: true,
+              refundAmount: true,
+            },
+          },
+          shipment: true,
           orderItems: {
             include: {
               product: {
@@ -278,6 +293,16 @@ export async function getCustomerOrdersAction(
           email: o.email,
           createdAt: o.createdAt,
           updatedAt: o.updatedAt,
+          payment: o.payment || null,
+          shipment: o.shipment ? {
+            id: o.shipment.id,
+            provider: o.shipment.provider,
+            consignmentId: o.shipment.consignmentId,
+            trackingCode: o.shipment.trackingCode,
+            status: o.shipment.status,
+            rawStatus: o.shipment.rawStatus,
+            lastCheckedAt: o.shipment.lastCheckedAt,
+          } : null,
           items,
         };
       }),
@@ -322,6 +347,21 @@ export async function getCustomerOrderDetailsAction(
         OR: [{ id: orderIdOrCode }, { code: orderIdOrCode }],
       },
       include: {
+        payment: {
+          select: {
+            id: true,
+            amount: true,
+            paymentMethod: true,
+            status: true,
+            paymentID: true,
+            trxID: true,
+            customerMsisdn: true,
+            paymentExecuteTime: true,
+            refundTrxId: true,
+            refundAmount: true,
+          },
+        },
+        shipment: true,
         orderItems: {
           include: {
             product: {
@@ -431,6 +471,16 @@ export async function getCustomerOrderDetailsAction(
         email: order.email,
         createdAt: order.createdAt,
         updatedAt: order.updatedAt,
+        payment: order.payment || null,
+        shipment: order.shipment ? {
+          id: order.shipment.id,
+          provider: order.shipment.provider,
+          consignmentId: order.shipment.consignmentId,
+          trackingCode: order.shipment.trackingCode,
+          status: order.shipment.status,
+          rawStatus: order.shipment.rawStatus,
+          lastCheckedAt: order.shipment.lastCheckedAt,
+        } : null,
         items,
       },
     };

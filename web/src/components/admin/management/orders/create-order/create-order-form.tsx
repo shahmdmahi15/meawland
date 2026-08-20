@@ -572,9 +572,13 @@ export function CreateOrderForm({ formData }: CreateOrderFormProps) {
                     placeholder="e.g. 01712345678"
                     className="h-9 text-xs"
                   />
-                  {errors.phone && (
+                  {errors.phone ? (
                     <p className="text-[11px] text-destructive">
                       {errors.phone.message}
+                    </p>
+                  ) : (
+                    <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                      📱 Customer will receive instant SMS confirmation.
                     </p>
                   )}
                 </div>

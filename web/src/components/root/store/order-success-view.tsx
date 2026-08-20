@@ -20,7 +20,8 @@ import {
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
-import { PaymentMethod } from "@/generated/prisma/enums";
+import { PaymentMethod, PaymentStatus } from "@/generated/prisma/enums";
+import { trackMetaPixelEvent } from "@/lib/meta-pixel";
 
 interface OrderSuccessViewProps {
   order: OrderConfirmationDetails;
@@ -48,6 +49,22 @@ export function OrderSuccessView({ order }: OrderSuccessViewProps) {
 
   const isDhaka = order.district.toLowerCase().includes("dhaka");
   const estimatedDays = isDhaka ? "24–48 Hours" : "2–4 Business Days";
+
+  // Dispatch Meta Pixel Purchase event (Deduplicated with Server CAPI eventId: purch_{order.code})
+  React.useEffect(() => {
+    trackMetaPixelEvent(
+      "Purchase",
+      {
+        value: parseFloat(order.finalCost) || 0,
+        currency: "BDT",
+        order_id: order.code,
+        num_items: order.totalQuantity,
+        content_type: "product",
+        content_ids: order.items.map((i) => i.id),
+      },
+      `purch_${order.code}`,
+    );
+  }, [order.code]);
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-14 space-y-8">
@@ -140,17 +157,54 @@ export function OrderSuccessView({ order }: OrderSuccessViewProps) {
               <span>Payment Information</span>
             </h2>
 
-            <div className="text-xs space-y-1">
-              <p className="font-bold text-gray-900">
-                {order.paymentMethod === PaymentMethod.COD
-                  ? "Cash on Delivery"
-                  : "bKash Payment"}
-              </p>
-              <p className="text-gray-500">
-                {order.paymentMethod === PaymentMethod.COD
-                  ? "Please keep cash ready when the delivery rider arrives."
-                  : "Our team will confirm your bKash payment shortly."}
-              </p>
+            <div className="text-xs space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-gray-900">
+                  {order.paymentMethod === PaymentMethod.COD
+                    ? "Cash on Delivery"
+                    : "bKash Online Payment"}
+                </span>
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                    order.paymentStatus === PaymentStatus.PAID
+                      ? "bg-emerald-100 text-emerald-800"
+                      : "bg-amber-100 text-amber-800"
+                  }`}
+                >
+                  {order.paymentStatus === PaymentStatus.PAID
+                    ? "PAID"
+                    : "PENDING"}
+                </span>
+              </div>
+
+              {order.paymentMethod === PaymentMethod.BKASH && order.payment?.trxID ? (
+                <div className="p-3 bg-[#fdf2f8] border border-[#fbcfe8] rounded-xl space-y-1 text-[11px] text-gray-700">
+                  <p className="font-bold text-[#9d174d] flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Transaction Verified</span>
+                  </p>
+                  <p>
+                    TrxID:{" "}
+                    <strong className="font-mono text-gray-900">
+                      {order.payment.trxID}
+                    </strong>
+                  </p>
+                  {order.payment.customerMsisdn && (
+                    <p>Wallet: {order.payment.customerMsisdn}</p>
+                  )}
+                  {order.payment.paymentExecuteTime && (
+                    <p className="text-gray-500">
+                      Time: {order.payment.paymentExecuteTime}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-gray-500">
+                  {order.paymentMethod === PaymentMethod.COD
+                    ? "Please keep the exact cash ready when the delivery rider arrives at your doorstep."
+                    : "Payment status is pending. You can complete your bKash payment from your account dashboard."}
+                </p>
+              )}
             </div>
           </div>
         </div>

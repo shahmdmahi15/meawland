@@ -5,6 +5,8 @@ import db from "@/lib/db";
 import { getMeAction } from "@/actions/auth/get-me";
 import { generateId } from "@/lib/generate-code";
 import { sendEmail } from "@/lib/mail";
+import { triggerOrderPlacedSms } from "@/actions/admin/support-marketing/marketing/sms/automations";
+import { triggerOrderPlacedEmail } from "@/actions/admin/support-marketing/marketing/email/automations";
 import {
   getDeliveryFee,
   isDhakaDistrict,
@@ -25,7 +27,11 @@ import {
   StockEventType,
   Role,
   Category,
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
 } from "@/generated/prisma/enums";
+import { recordAuditLog } from "@/lib/audit-logger";
 
 export type OrderFormDataCustomer = {
   id: string;
@@ -781,29 +787,64 @@ export async function createAdminOrderAction(
     revalidatePath("/admin/management/inventory/all-products");
     revalidatePath("/admin/management/inventory/modify-stock");
 
-    // Optional confirmation email
-    sendEmail({
-      to: email,
-      subject: `Order Receipt - #${newOrder.code} | Meawland`,
-      htmlContent: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #374151;">
-          <div style="background-color: #56C8D8; padding: 24px; border-radius: 12px 12px 0 0; text-align: center; color: white;">
-            <h1 style="margin: 0; font-size: 24px;">Order Confirmed 🐾</h1>
-            <p style="margin: 4px 0 0 0; font-size: 14px;">Order Code: <strong>${newOrder.code}</strong></p>
-          </div>
-          <div style="padding: 24px; background-color: #ffffff; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
-            <p>Hi <strong>${name}</strong>,</p>
-            <p>Your order #${newOrder.code} has been created. Total amount: <strong>৳${grandFinalCost.toLocaleString()}</strong>.</p>
-            <p>Payment: <strong>${paymentMethod === PaymentMethod.COD ? "Cash on Delivery" : "bKash"} (${paymentStatus})</strong></p>
-            <p>Delivery to: <strong>${address}, ${district}</strong></p>
-          </div>
-        </div>
-      `,
-    }).catch((err) => {
-      console.error(
-        "[Action.Admin.Management.Orders.CreateOrder] Email failure:",
-        err,
-      );
+    // Send automated order confirmation email to customer
+    if (email) {
+      triggerOrderPlacedEmail({
+        id: newOrder.id,
+        code: newOrder.code,
+        email,
+        name,
+        grandTotal: grandFinalCost.toString(),
+        paymentMethod: paymentMethod === PaymentMethod.COD ? "Cash on Delivery" : "bKash",
+        paymentStatus,
+        shippingAddress: `${address}, ${district}`,
+        deliveryFee: deliveryFee.toString(),
+        discount: totalDiscount.toString(),
+        userId: newOrder.userId,
+      }).catch((err) => {
+        console.error(
+          "[Action.Admin.Management.Orders.CreateOrder] Email failure:",
+          err,
+        );
+      });
+    }
+
+    // Send automated order confirmation SMS to customer
+    if (newOrder.phone) {
+      triggerOrderPlacedSms({
+        id: newOrder.id,
+        code: newOrder.code,
+        phone: newOrder.phone,
+        name: newOrder.name,
+        finalCost: grandFinalCost.toString(),
+        userId: newOrder.userId,
+      }).catch((err) => {
+        console.error(
+          "[Action.Admin.Management.Orders.CreateOrder] SMS notification failure:",
+          err,
+        );
+      });
+    }
+
+    // Record Audit Log for forensic order tracking
+    await recordAuditLog({
+      action: AuditAction.CREATE,
+      entity: AuditEntity.ORDER,
+      entityId: newOrder.id,
+      entityName: `Order #${newOrder.code}`,
+      summary: `Manual Order #${newOrder.code} created for customer ${name} (${phone}). Total: ৳${grandFinalCost}`,
+      severity: AuditSeverity.INFO,
+      newState: {
+        code: newOrder.code,
+        name,
+        phone,
+        district,
+        grandTotal: grandFinalCost,
+        paymentMethod,
+        itemsCount: lineCalculations.length,
+      },
+      userId: currentAdmin.id,
+      path: "/admin/management/orders/new-order",
     });
 
     return {

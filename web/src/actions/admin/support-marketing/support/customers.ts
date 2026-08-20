@@ -2,7 +2,8 @@
 
 import db from "@/lib/db";
 import { getMeAction } from "@/actions/auth/get-me";
-import { Role } from "@/generated/prisma/enums";
+import { Role, AuditAction, AuditEntity, AuditSeverity } from "@/generated/prisma/enums";
+import { recordAuditLog } from "@/lib/audit-logger";
 import { getImageBase64 } from "@/lib/storage";
 import { revalidatePath } from "next/cache";
 import {
@@ -233,7 +234,7 @@ export async function adminUpdateCustomerAction(
       };
     }
 
-    const { id, name, phone, district, address, role } = parsed.data;
+    const { id, name, phone, district, address } = parsed.data;
 
     await db.user.update({
       where: { id },
@@ -242,8 +243,20 @@ export async function adminUpdateCustomerAction(
         phone: phone || null,
         district: district || null,
         address: address || null,
-        role,
       },
+    });
+
+    await recordAuditLog({
+      action: AuditAction.UPDATE,
+      entity: AuditEntity.CUSTOMER,
+      entityId: updated.id,
+      entityName: updated.name,
+      summary: `Customer profile updated for ${updated.name} (${updated.email})`,
+      severity: AuditSeverity.INFO,
+      previousState: existing as Record<string, unknown>,
+      newState: { name, phone, district, address },
+      userId: session.id,
+      path: "/admin/support-marketing/support/customers",
     });
 
     revalidatePath("/admin/support-marketing/support/customers");
@@ -275,8 +288,25 @@ export async function adminDeleteCustomerAction(customerId: string): Promise<{
       };
     }
 
+    const existing = await db.user.findUnique({
+      where: { id: customerId },
+      select: { id: true, name: true, email: true, phone: true },
+    });
+
     await db.user.delete({
       where: { id: customerId },
+    });
+
+    await recordAuditLog({
+      action: AuditAction.DELETE,
+      entity: AuditEntity.CUSTOMER,
+      entityId: customerId,
+      entityName: existing?.name || "Customer",
+      summary: `Customer account deleted: ${existing?.name || customerId} (${existing?.email || "No email"})`,
+      severity: AuditSeverity.WARNING,
+      previousState: existing as Record<string, unknown>,
+      userId: session.id,
+      path: "/admin/support-marketing/support/customers",
     });
 
     revalidatePath("/admin/support-marketing/support/customers");

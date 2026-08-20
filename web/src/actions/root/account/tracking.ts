@@ -230,6 +230,21 @@ export async function trackOrderAction(query: string): Promise<{
         ],
       },
       include: {
+        payment: {
+          select: {
+            id: true,
+            amount: true,
+            paymentMethod: true,
+            status: true,
+            paymentID: true,
+            trxID: true,
+            customerMsisdn: true,
+            paymentExecuteTime: true,
+            refundTrxId: true,
+            refundAmount: true,
+          },
+        },
+        shipment: true,
         orderItems: {
           include: {
             product: {
@@ -324,9 +339,11 @@ export async function trackOrderAction(query: string): Promise<{
       order.district,
     );
 
-    const courierPartner = isDhakaDistrict(order.district)
-      ? "Meawland Express Delivery (Same Day / Next Day)"
-      : "Steadfast & Pathao Courier Logistics";
+    const courierPartner = order.shipment?.trackingCode
+      ? `Steadfast Courier (Tracking: ${order.shipment.trackingCode})`
+      : isDhakaDistrict(order.district)
+        ? "Meawland Express Delivery (Same Day / Next Day)"
+        : "Steadfast & Pathao Courier Logistics";
 
     const milestones = buildMilestones(
       order.status,
@@ -359,6 +376,16 @@ export async function trackOrderAction(query: string): Promise<{
         estimatedDeliveryDate,
         courierPartner,
         milestones,
+        payment: order.payment || null,
+        shipment: order.shipment ? {
+          id: order.shipment.id,
+          provider: order.shipment.provider,
+          consignmentId: order.shipment.consignmentId,
+          trackingCode: order.shipment.trackingCode,
+          status: order.shipment.status,
+          rawStatus: order.shipment.rawStatus,
+          lastCheckedAt: order.shipment.lastCheckedAt,
+        } : null,
         items,
       },
     };
