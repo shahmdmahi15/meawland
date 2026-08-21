@@ -6,7 +6,11 @@ import {
   Role,
   SupportTicketStatus,
   SupportTicketPriority,
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
 } from "@/generated/prisma/enums";
+import { recordAuditLog } from "@/lib/audit-logger";
 import { generateId } from "@/lib/generate-code";
 import { getImageBase64 } from "@/lib/storage";
 import { revalidatePath } from "next/cache";
@@ -181,6 +185,17 @@ export async function adminUpdateTicketStatusAction(
     revalidatePath("/admin/support-marketing/support/tickets");
     revalidatePath("/account/support");
 
+    await recordAuditLog({
+      action: AuditAction.STATUS_CHANGE,
+      entity: AuditEntity.SUPPORT_TICKET,
+      entityId: ticketId,
+      summary: `Support Ticket status changed to ${status}`,
+      severity: AuditSeverity.INFO,
+      newState: { status },
+      userId: session.id,
+      path: "/admin/support-marketing/support/tickets",
+    });
+
     return {
       success: true,
       message: `Ticket status updated to ${status}.`,
@@ -278,6 +293,17 @@ export async function adminCreateSupportTicketAction(
     revalidatePath("/admin/support-marketing/support/tickets");
     revalidatePath("/account/support");
 
+    await recordAuditLog({
+      action: AuditAction.CREATE,
+      entity: AuditEntity.SUPPORT_TICKET,
+      entityName: `#${ticketCode}`,
+      summary: `Support Ticket #${ticketCode} created for user (${subject})`,
+      severity: AuditSeverity.INFO,
+      newState: { code: ticketCode, userId, subject, priority, channel },
+      userId: session.id,
+      path: "/admin/support-marketing/support/tickets",
+    });
+
     return {
       success: true,
       message: `Support ticket #${ticketCode} created successfully!`,
@@ -310,6 +336,16 @@ export async function adminDeleteSupportTicketAction(
 
     revalidatePath("/admin/support-marketing/support/tickets");
     revalidatePath("/account/support");
+
+    await recordAuditLog({
+      action: AuditAction.DELETE,
+      entity: AuditEntity.SUPPORT_TICKET,
+      entityId: ticketId,
+      summary: `Support Ticket was permanently deleted`,
+      severity: AuditSeverity.WARNING,
+      userId: session.id,
+      path: "/admin/support-marketing/support/tickets",
+    });
 
     return {
       success: true,

@@ -3,6 +3,12 @@
 import db from "@/lib/db";
 import { deleteFile } from "@/lib/storage";
 import { revalidatePath } from "next/cache";
+import {
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
+} from "@/generated/prisma/enums";
+import { recordAuditLog } from "@/lib/audit-logger";
 
 export async function deleteSubCategoryAction(subCategoryId: string): Promise<{
   success: boolean;
@@ -61,6 +67,21 @@ export async function deleteSubCategoryAction(subCategoryId: string): Promise<{
     revalidatePath("/");
     revalidatePath("/products");
     revalidatePath("/category", "layout");
+
+    await recordAuditLog({
+      action: AuditAction.DELETE,
+      entity: AuditEntity.CATEGORY,
+      entityId: subCategory.id,
+      entityName: subCategory.name,
+      summary: `Subcategory "${subCategory.name}" was permanently deleted`,
+      severity: AuditSeverity.WARNING,
+      previousState: {
+        name: subCategory.name,
+        category: subCategory.category,
+        slug: subCategory.slug,
+      },
+      path: "/admin/management/store/sub-categories",
+    });
 
     return {
       success: true,

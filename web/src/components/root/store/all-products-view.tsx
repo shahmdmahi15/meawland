@@ -106,7 +106,8 @@ export function AllProductsView({
           "Search",
           {
             search_string: q,
-            content_category: selectedCategory !== "ALL" ? selectedCategory : "All Products",
+            content_category:
+              selectedCategory !== "ALL" ? selectedCategory : "All Products",
           },
           eventId,
         );

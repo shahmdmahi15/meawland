@@ -24,11 +24,18 @@ async function sendSingleStandardEvent(
   providedEventId?: string,
 ): Promise<{ success: boolean; eventId: string; message?: string }> {
   try {
-    const eventId = providedEventId || generateMetaEventId(eventName.toLowerCase());
+    const eventId =
+      providedEventId || generateMetaEventId(eventName.toLowerCase());
     const headerCtx = await getClientContextFromHeaders();
 
     // Enrich with session if available
-    let sessionUser: { id: string; email?: string | null; name?: string | null; phone?: string | null; district?: string | null } | null = null;
+    let sessionUser: {
+      id: string;
+      email?: string | null;
+      name?: string | null;
+      phone?: string | null;
+      district?: string | null;
+    } | null = null;
     try {
       sessionUser = await getMeAction();
     } catch {
@@ -41,7 +48,10 @@ async function sendSingleStandardEvent(
       name: userContext?.name || sessionUser?.name,
       district: userContext?.district || sessionUser?.district,
       userId: userContext?.userId || sessionUser?.id,
-      eventSourceUrl: userContext?.eventSourceUrl || headerCtx.referer || "https://meawland.com",
+      eventSourceUrl:
+        userContext?.eventSourceUrl ||
+        headerCtx.referer ||
+        "https://meawland.com",
       clientIp: userContext?.clientIp || headerCtx.ipAddress,
       userAgent: userContext?.userAgent || headerCtx.userAgent,
       fbp: userContext?.fbp || headerCtx.fbp,
@@ -302,12 +312,7 @@ export async function trackMetaPurchaseAction(params: {
     ...params.context,
   };
 
-  return sendSingleStandardEvent(
-    "Purchase",
-    customData,
-    userContext,
-    eventId,
-  );
+  return sendSingleStandardEvent("Purchase", customData, userContext, eventId);
 }
 
 /**
@@ -356,7 +361,12 @@ export async function trackMetaLeadAction(params: {
     ...params.context,
   };
 
-  return sendSingleStandardEvent("Lead", customData, userContext, params.eventId);
+  return sendSingleStandardEvent(
+    "Lead",
+    customData,
+    userContext,
+    params.eventId,
+  );
 }
 
 /**

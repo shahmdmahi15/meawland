@@ -3,7 +3,14 @@
 import db from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { getMeAction } from "@/actions/auth/get-me";
-import { Role, EmailDeliveryStatus } from "@/generated/prisma/enums";
+import {
+  Role,
+  EmailDeliveryStatus,
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
+} from "@/generated/prisma/enums";
+import { recordAuditLog } from "@/lib/audit-logger";
 import { sendEmail } from "@/lib/mail";
 import {
   buildOrderPlacedEmailHtml,
@@ -139,6 +146,22 @@ export async function updateEmailAutomationSettingsAction(
 
     revalidatePath("/admin/support-marketing/marketing/email");
 
+    await recordAuditLog({
+      action: AuditAction.SETTINGS_UPDATE,
+      entity: AuditEntity.SYSTEM_SETTINGS,
+      summary: "Email Automation Lifecycle Settings & Subjects updated",
+      severity: AuditSeverity.INFO,
+      newState: {
+        orderPlacedEmail: input.orderPlacedEmail,
+        orderDispatchedEmail: input.orderDispatchedEmail,
+        orderDeliveredEmail: input.orderDeliveredEmail,
+        bkashPaymentPaidEmail: input.bkashPaymentPaidEmail,
+        welcomeNewUserEmail: input.welcomeNewUserEmail,
+      },
+      userId: session.id,
+      path: "/admin/support-marketing/marketing/email",
+    }).catch(() => {});
+
     return {
       success: true,
       message: "Email automation settings updated successfully.",
@@ -215,7 +238,9 @@ export async function triggerOrderPlacedEmail(params: {
         recipientEmail: cleanEmail,
         recipientName: params.name,
         subject,
-        status: res.success ? EmailDeliveryStatus.SENT : EmailDeliveryStatus.FAILED,
+        status: res.success
+          ? EmailDeliveryStatus.SENT
+          : EmailDeliveryStatus.FAILED,
         messageId: res.messageId || null,
         errorMessage: res.error || null,
         orderId: params.id,
@@ -274,7 +299,9 @@ export async function triggerOrderDispatchedEmail(params: {
         recipientEmail: cleanEmail,
         recipientName: params.name,
         subject,
-        status: res.success ? EmailDeliveryStatus.SENT : EmailDeliveryStatus.FAILED,
+        status: res.success
+          ? EmailDeliveryStatus.SENT
+          : EmailDeliveryStatus.FAILED,
         messageId: res.messageId || null,
         errorMessage: res.error || null,
         orderId: params.id,
@@ -329,7 +356,9 @@ export async function triggerOrderDeliveredEmail(params: {
         recipientEmail: cleanEmail,
         recipientName: params.name,
         subject,
-        status: res.success ? EmailDeliveryStatus.SENT : EmailDeliveryStatus.FAILED,
+        status: res.success
+          ? EmailDeliveryStatus.SENT
+          : EmailDeliveryStatus.FAILED,
         messageId: res.messageId || null,
         errorMessage: res.error || null,
         orderId: params.id,
@@ -388,7 +417,9 @@ export async function triggerBkashPaidEmail(params: {
         recipientEmail: cleanEmail,
         recipientName: params.name,
         subject,
-        status: res.success ? EmailDeliveryStatus.SENT : EmailDeliveryStatus.FAILED,
+        status: res.success
+          ? EmailDeliveryStatus.SENT
+          : EmailDeliveryStatus.FAILED,
         messageId: res.messageId || null,
         errorMessage: res.error || null,
         orderId: params.id,
@@ -441,7 +472,9 @@ export async function triggerWelcomeUserEmail(params: {
         recipientEmail: cleanEmail,
         recipientName: params.name,
         subject,
-        status: res.success ? EmailDeliveryStatus.SENT : EmailDeliveryStatus.FAILED,
+        status: res.success
+          ? EmailDeliveryStatus.SENT
+          : EmailDeliveryStatus.FAILED,
         messageId: res.messageId || null,
         errorMessage: res.error || null,
         userId: params.id,

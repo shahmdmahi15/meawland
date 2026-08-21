@@ -80,9 +80,14 @@ export function SmsDashboardView({
     });
   };
 
-  const totalSent = logs.filter((l) => l.status === "SUBMITTED" || l.status === "DELIVERED").length;
-  const successfulCount = logs.filter((l) => l.status === "DELIVERED" || l.status === "SUBMITTED").length;
-  const deliveryRate = logs.length > 0 ? Math.round((successfulCount / logs.length) * 100) : 100;
+  const totalSent = logs.filter(
+    (l) => l.status === "SUBMITTED" || l.status === "DELIVERED",
+  ).length;
+  const successfulCount = logs.filter(
+    (l) => l.status === "DELIVERED" || l.status === "SUBMITTED",
+  ).length;
+  const deliveryRate =
+    logs.length > 0 ? Math.round((successfulCount / logs.length) * 100) : 100;
   const approxRemainingSms = Math.floor(balance / 0.35);
 
   return (
@@ -99,7 +104,8 @@ export function SmsDashboardView({
                 SMS Marketing &amp; Automation Hub
               </h1>
               <p className="text-xs text-gray-500">
-                Enterprise SMS gateway, dynamic customer segmentation, and automated order notifications.
+                Enterprise SMS gateway, dynamic customer segmentation, and
+                automated order notifications.
               </p>
             </div>
           </div>
@@ -122,7 +128,8 @@ export function SmsDashboardView({
         <div className="p-5 rounded-2xl border border-gray-200/80 bg-white shadow-xs space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
-              <Wallet className="w-3.5 h-3.5 text-[#0097a7]" /> SMS Credit Balance
+              <Wallet className="w-3.5 h-3.5 text-[#0097a7]" /> SMS Credit
+              Balance
             </span>
             <Button
               type="button"
@@ -147,7 +154,8 @@ export function SmsDashboardView({
             <span className="text-[11px] text-emerald-600 font-bold">BDT</span>
           </div>
           <p className="text-[11px] text-gray-500">
-            ≈ <strong>{approxRemainingSms.toLocaleString()}</strong> SMS parts available
+            ≈ <strong>{approxRemainingSms.toLocaleString()}</strong> SMS parts
+            available
           </p>
         </div>
 
@@ -163,7 +171,8 @@ export function SmsDashboardView({
             <span className="text-[11px] text-gray-500">messages</span>
           </div>
           <p className="text-[11px] text-emerald-600 font-medium flex items-center gap-1">
-            <CheckCircle2 className="w-3 h-3" /> {totalSent} successfully delivered
+            <CheckCircle2 className="w-3 h-3" /> {totalSent} successfully
+            delivered
           </p>
         </div>
 
@@ -186,13 +195,16 @@ export function SmsDashboardView({
         {/* 4. Delivery Success Rate */}
         <div className="p-5 rounded-2xl border border-gray-200/80 bg-white shadow-xs space-y-2">
           <span className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
-            <TrendingUp className="w-3.5 h-3.5 text-emerald-600" /> Gateway Success
+            <TrendingUp className="w-3.5 h-3.5 text-emerald-600" /> Gateway
+            Success
           </span>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-black text-gray-900 font-mono">
               {deliveryRate}%
             </span>
-            <span className="text-[11px] text-emerald-600 font-bold">Reliability</span>
+            <span className="text-[11px] text-emerald-600 font-bold">
+              Reliability
+            </span>
           </div>
           <p className="text-[11px] text-gray-500">
             BulkSMSBD Official Masking Gateway
@@ -289,7 +301,8 @@ export function SmsDashboardView({
               Interactive Audience Segmentation &amp; Query Tool
             </h3>
             <p className="text-xs text-gray-500">
-              Test customer filters and inspect matching recipients across your database in real-time.
+              Test customer filters and inspect matching recipients across your
+              database in real-time.
             </p>
           </div>
           <AudienceSegmentBuilder

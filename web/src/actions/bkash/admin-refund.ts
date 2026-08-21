@@ -3,7 +3,14 @@
 import db from "@/lib/db";
 import { getMeAction } from "@/actions/auth/get-me";
 import { refundBkashTransactionAction } from "@/actions/bkash/refund-transaction";
-import { PaymentStatus, Role } from "@/generated/prisma/enums";
+import {
+  PaymentStatus,
+  Role,
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
+} from "@/generated/prisma/enums";
+import { recordAuditLog } from "@/lib/audit-logger";
 import { revalidatePath } from "next/cache";
 
 export type AdminBkashRefundInput = {
@@ -123,6 +130,32 @@ export async function processAdminBkashRefundAction(
 
     revalidatePath("/admin/management/orders");
     revalidatePath(`/admin/management/orders/${order.code}`);
+
+    await recordAuditLog({
+      action: AuditAction.REFUND,
+      entity: AuditEntity.PAYMENT,
+      entityId: order.id,
+      entityName: `Order #${order.code}`,
+      summary: `bKash refund of ৳${refundData.refundAmount} issued for Order #${order.code} (Reason: ${input.reason.trim()}, Refund TrxID: ${refundData.refundTrxId})`,
+      severity: AuditSeverity.CRITICAL,
+      previousState: {
+        paymentStatus: order.paymentStatus,
+        finalCost: order.finalCost,
+        trxID: order.payment?.trxID,
+      },
+      newState: {
+        refundTrxId: refundData.refundTrxId,
+        refundAmount: refundData.refundAmount,
+        refundReason: input.reason.trim(),
+        refundTime: refundData.completedTime,
+        paymentStatus:
+          refundAmountNum >= orderAmountNum
+            ? PaymentStatus.REFUNDED
+            : order.paymentStatus,
+      },
+      userId: sessionUser.id,
+      path: `/admin/management/orders/${order.code}`,
+    });
 
     return {
       success: true,

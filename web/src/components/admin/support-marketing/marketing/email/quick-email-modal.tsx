@@ -97,7 +97,8 @@ export function QuickEmailModal({ trigger, onSuccess }: QuickEmailModalProps) {
                 Quick Direct Email Dispatch
               </DialogTitle>
               <DialogDescription className="text-xs text-gray-500">
-                Send an immediate single email or custom email list broadcast with branded Meawland formatting.
+                Send an immediate single email or custom email list broadcast
+                with branded Meawland formatting.
               </DialogDescription>
             </div>
           </div>
@@ -166,7 +167,9 @@ export function QuickEmailModal({ trigger, onSuccess }: QuickEmailModalProps) {
           <div>
             <TestEmailModal
               defaultSubject={subject || "Meawland Test Preview"}
-              defaultMessage={message || "Previewing email message formatting..."}
+              defaultMessage={
+                message || "Previewing email message formatting..."
+              }
               trigger={
                 <Button
                   type="button"

@@ -14,9 +14,7 @@ import { sendSingleSmsAction } from "./send-sms";
  * Sends an OTP verification SMS adhering to the required gateway format:
  * "Your {Brand/Company Name} OTP is XXXX"
  */
-export async function sendOtpSmsAction(
-  input: OtpSmsInput,
-): Promise<{
+export async function sendOtpSmsAction(input: OtpSmsInput): Promise<{
   success: boolean;
   message?: string;
   data?: SmsApiResponse;

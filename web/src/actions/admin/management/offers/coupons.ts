@@ -3,7 +3,15 @@
 import { revalidatePath } from "next/cache";
 import db from "@/lib/db";
 import { getMeAction } from "@/actions/auth/get-me";
-import { Role, DiscountType, Category } from "@/generated/prisma/enums";
+import {
+  Role,
+  DiscountType,
+  Category,
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
+} from "@/generated/prisma/enums";
+import { recordAuditLog } from "@/lib/audit-logger";
 import { getImageBase64 } from "@/lib/storage";
 import { CATEGORY_MAP } from "@/lib/category-helpers";
 import {
@@ -703,6 +711,23 @@ export async function createCouponAction(rawInput: unknown): Promise<{
     });
 
     revalidatePath("/admin/management/offers/coupons");
+
+    await recordAuditLog({
+      action: AuditAction.CREATE,
+      entity: AuditEntity.COUPON,
+      entityId: created.id,
+      entityName: created.couponCode,
+      summary: `Coupon "${created.couponCode}" (${created.discountType}: ${created.discount}) created`,
+      severity: AuditSeverity.INFO,
+      newState: {
+        id: created.id,
+        code: created.couponCode,
+        discount: created.discount,
+        discountType: created.discountType,
+      },
+      userId: current.id,
+      path: "/admin/management/offers/coupons",
+    });
     return {
       success: true,
       message: `Coupon "${created.couponCode}" created successfully`,
@@ -804,6 +829,23 @@ export async function updateCouponAction(rawInput: unknown): Promise<{
     });
 
     revalidatePath("/admin/management/offers/coupons");
+
+    await recordAuditLog({
+      action: AuditAction.UPDATE,
+      entity: AuditEntity.COUPON,
+      entityId: data.couponId,
+      entityName: data.couponCode,
+      summary: `Coupon "${data.couponCode}" updated`,
+      severity: AuditSeverity.INFO,
+      newState: {
+        code: data.couponCode,
+        discount: data.discount,
+        discountType: data.discountType,
+        expiresAt: data.expiresAt,
+      },
+      userId: current.id,
+      path: "/admin/management/offers/coupons",
+    });
     return {
       success: true,
       message: `Coupon "${data.couponCode}" updated successfully`,
@@ -854,6 +896,18 @@ export async function deleteCouponAction(rawInput: unknown): Promise<{
     });
 
     revalidatePath("/admin/management/offers/coupons");
+
+    await recordAuditLog({
+      action: AuditAction.DELETE,
+      entity: AuditEntity.COUPON,
+      entityId: couponId,
+      entityName: existing.couponCode,
+      summary: `Coupon "${existing.couponCode}" was permanently deleted`,
+      severity: AuditSeverity.WARNING,
+      previousState: { id: couponId, code: existing.couponCode },
+      userId: current.id,
+      path: "/admin/management/offers/coupons",
+    });
     return {
       success: true,
       message: `Coupon "${existing.couponCode}" has been removed`,

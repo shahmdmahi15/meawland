@@ -19,13 +19,26 @@ export async function logoutAction() {
       .update(rawToken)
       .digest("hex");
 
-    await db.session.delete({
+    const deletedSession = await db.session.delete({
       where: {
         tokenHash,
       },
     });
 
     cookieStore.delete("__Host-SESSION_TOKEN");
+
+    const { recordAuditLog } = await import("@/lib/audit-logger");
+    const { AuditAction, AuditEntity, AuditSeverity } =
+      await import("@/generated/prisma/enums");
+
+    await recordAuditLog({
+      action: AuditAction.LOGOUT,
+      entity: AuditEntity.AUTH,
+      userId: deletedSession.userId,
+      summary: "User signed out of active session",
+      severity: AuditSeverity.INFO,
+      path: "/logout",
+    }).catch(() => {});
 
     return {
       success: true,

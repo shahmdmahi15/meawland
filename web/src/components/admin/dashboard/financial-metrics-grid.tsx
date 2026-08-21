@@ -59,7 +59,8 @@ export function FinancialMetricsGrid({
                 ৳{financials.totalRevenue.toLocaleString()}
               </p>
               <p className="text-[11px] text-gray-500 font-semibold mt-1">
-                From {financials.totalOrdersCount.toLocaleString()} completed orders
+                From {financials.totalOrdersCount.toLocaleString()} completed
+                orders
               </p>
             </div>
           </CardContent>

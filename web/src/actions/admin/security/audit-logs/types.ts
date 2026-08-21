@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { AuditAction, AuditEntity, AuditSeverity, Role } from "@/generated/prisma/enums";
+import {
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
+  Role,
+} from "@/generated/prisma/enums";
 
 export const adminAuditLogFilterSchema = z.object({
   page: z.number().int().positive().default(1),
@@ -13,7 +18,9 @@ export const adminAuditLogFilterSchema = z.object({
   endDate: z.string().optional(),
 });
 
-export type AdminAuditLogFilterInput = z.infer<typeof adminAuditLogFilterSchema>;
+export type AdminAuditLogFilterInput = z.infer<
+  typeof adminAuditLogFilterSchema
+>;
 
 export interface AdminAuditLogSummary {
   id: string;

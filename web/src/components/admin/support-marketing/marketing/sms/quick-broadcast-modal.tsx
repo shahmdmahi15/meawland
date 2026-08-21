@@ -97,7 +97,8 @@ export function QuickBroadcastModal({
                 Quick Direct SMS Dispatch
               </DialogTitle>
               <DialogDescription className="text-xs text-gray-500">
-                Send an immediate single SMS or custom list broadcast without saving a full campaign.
+                Send an immediate single SMS or custom list broadcast without
+                saving a full campaign.
               </DialogDescription>
             </div>
           </div>
@@ -124,13 +125,16 @@ export function QuickBroadcastModal({
 
           <div>
             <div className="flex justify-between items-center mb-1">
-              <Label className="font-bold text-gray-700">Message Content *</Label>
+              <Label className="font-bold text-gray-700">
+                Message Content *
+              </Label>
               <span
                 className={`font-mono font-bold text-[10px] ${
                   currentChars > charLimit ? "text-amber-600" : "text-gray-500"
                 }`}
               >
-                {currentChars} chars ({partsCount} SMS {isUnicode ? "Unicode" : "GSM"})
+                {currentChars} chars ({partsCount} SMS{" "}
+                {isUnicode ? "Unicode" : "GSM"})
               </span>
             </div>
             <Textarea

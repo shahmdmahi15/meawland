@@ -31,8 +31,15 @@ export async function sendQuickDirectEmailAction(
       return { success: false, message: "Unauthorized." };
     }
 
-    if (!input.recipients?.trim() || !input.subject?.trim() || !input.message?.trim()) {
-      return { success: false, message: "Recipients, Subject, and Message are required." };
+    if (
+      !input.recipients?.trim() ||
+      !input.subject?.trim() ||
+      !input.message?.trim()
+    ) {
+      return {
+        success: false,
+        message: "Recipients, Subject, and Message are required.",
+      };
     }
 
     const emailList = input.recipients
@@ -108,6 +115,25 @@ export async function sendQuickDirectEmailAction(
     }
 
     revalidatePath("/admin/support-marketing/marketing/email");
+
+    const { recordAuditLog } = await import("@/lib/audit-logger");
+    const { AuditAction, AuditEntity, AuditSeverity } =
+      await import("@/generated/prisma/enums");
+
+    await recordAuditLog({
+      action: AuditAction.BROADCAST_SENT,
+      entity: AuditEntity.EMAIL,
+      summary: `Quick Direct Email ("${input.subject.trim()}") sent to ${emailList.length} recipients (${sentCount} sent, ${failedCount} failed)`,
+      severity: failedCount > 0 ? AuditSeverity.WARNING : AuditSeverity.INFO,
+      newState: {
+        recipientsCount: emailList.length,
+        subject: input.subject.trim(),
+        sentCount,
+        failedCount,
+      },
+      userId: session.id,
+      path: "/admin/support-marketing/marketing/email",
+    }).catch(() => {});
 
     return {
       success: sentCount > 0,

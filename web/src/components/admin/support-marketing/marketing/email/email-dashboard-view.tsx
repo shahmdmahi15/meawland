@@ -95,7 +95,8 @@ export function EmailDashboardView({
               </Badge>
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              Design high-converting pet campaigns, segment VIP buyers, and automate transactional order lifecycle emails.
+              Design high-converting pet campaigns, segment VIP buyers, and
+              automate transactional order lifecycle emails.
             </p>
           </div>
         </div>
@@ -295,7 +296,9 @@ export function EmailDashboardView({
                 Audience Segmentation Studio
               </h2>
               <p className="text-xs text-gray-500">
-                Test and preview real-time customer reach criteria across registered users, past buyers, cart abandoners, and newsletter subscribers.
+                Test and preview real-time customer reach criteria across
+                registered users, past buyers, cart abandoners, and newsletter
+                subscribers.
               </p>
             </div>
 

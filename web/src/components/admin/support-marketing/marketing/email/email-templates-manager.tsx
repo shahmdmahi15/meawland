@@ -183,7 +183,8 @@ export function EmailTemplatesManager({
                     Create Email Message Template
                   </DialogTitle>
                   <DialogDescription className="text-xs text-gray-500">
-                    Save reusable marketing, transactional, or newsletter email designs.
+                    Save reusable marketing, transactional, or newsletter email
+                    designs.
                   </DialogDescription>
                 </div>
               </div>
@@ -227,7 +228,9 @@ export function EmailTemplatesManager({
                   >
                     <SelectTrigger className="h-9 text-xs bg-white">
                       <SelectValue>
-                        {category ? category.replace(/_/g, " ") : "Select Category"}
+                        {category
+                          ? category.replace(/_/g, " ")
+                          : "Select Category"}
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent className="z-50 bg-white">
@@ -399,7 +402,8 @@ export function EmailTemplatesManager({
           <DialogContent className="sm:max-w-[750px] w-[min(96vw,750px)] max-w-full max-h-[90vh] overflow-y-auto bg-white border border-gray-200 rounded-3xl shadow-2xl p-6 sm:p-8 space-y-4">
             <DialogHeader>
               <DialogTitle className="text-base font-bold text-gray-900 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-primary" /> {previewTemplate.title}
+                <Sparkles className="w-4 h-4 text-primary" />{" "}
+                {previewTemplate.title}
               </DialogTitle>
               <DialogDescription className="text-xs text-gray-500">
                 Subject: {previewTemplate.subject}
@@ -414,7 +418,10 @@ export function EmailTemplatesManager({
                   previewText: previewTemplate.previewText || undefined,
                   bodyContent: previewTemplate.htmlContent
                     .replace(/\{name\}/gi, "Sarah Khan")
-                    .replace(/\{storeUrl\}/gi, process.env.NEXT_PUBLIC_APP_URL || "https://meawland.com"),
+                    .replace(
+                      /\{storeUrl\}/gi,
+                      process.env.NEXT_PUBLIC_APP_URL || "https://meawland.com",
+                    ),
                   recipientEmail: "sarah@example.com",
                   showUnsubscribe: true,
                 })}

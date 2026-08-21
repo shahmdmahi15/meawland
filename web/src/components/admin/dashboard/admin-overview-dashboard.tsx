@@ -16,12 +16,7 @@ import { SystemHealthCard } from "./system-health-card";
 import { QuickActionsToolbar } from "./quick-actions-toolbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  LayoutDashboard,
-  RefreshCw,
-  Sparkles,
-  Calendar,
-} from "lucide-react";
+import { LayoutDashboard, RefreshCw, Sparkles, Calendar } from "lucide-react";
 import { toast } from "sonner";
 
 interface AdminOverviewDashboardProps {
@@ -54,7 +49,9 @@ export function AdminOverviewDashboard({
       const res = await getAdminOverviewDashboardDataAction(timeRange);
       if (res.success && res.data) {
         setData(res.data);
-        toast.success("Executive dashboard updated with latest live telemetry!");
+        toast.success(
+          "Executive dashboard updated with latest live telemetry!",
+        );
       } else {
         toast.error("Failed to refresh dashboard.");
       }
@@ -83,7 +80,8 @@ export function AdminOverviewDashboard({
               </Badge>
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              At-a-glance telemetry across finances, inventory, courier balances, SMS, emails, and server infrastructure.
+              At-a-glance telemetry across finances, inventory, courier
+              balances, SMS, emails, and server infrastructure.
             </p>
           </div>
         </div>

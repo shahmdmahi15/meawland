@@ -45,10 +45,15 @@ export async function createSteadfastBulkOrderAction(
         recipient_name: (order.recipient_name || "").trim().slice(0, 100),
         recipient_phone: cleanedPhone.slice(-11),
         recipient_address: (order.recipient_address || "").trim().slice(0, 250),
-        cod_amount: typeof order.cod_amount === "number" ? order.cod_amount : Number(order.cod_amount) || 0,
+        cod_amount:
+          typeof order.cod_amount === "number"
+            ? order.cod_amount
+            : Number(order.cod_amount) || 0,
         note: order.note ? String(order.note).trim() : null,
         ...(order.alternative_phone && {
-          alternative_phone: order.alternative_phone.replace(/\D/g, "").slice(-11),
+          alternative_phone: order.alternative_phone
+            .replace(/\D/g, "")
+            .slice(-11),
         }),
         ...(order.recipient_email && {
           recipient_email: order.recipient_email.trim().toLowerCase(),

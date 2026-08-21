@@ -21,9 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import {
-  SmsCampaignType,
-} from "@/generated/prisma/enums";
+import { SmsCampaignType } from "@/generated/prisma/enums";
 import {
   type AudienceFilterInput,
   type AdminSmsTemplateSummary,
@@ -163,7 +161,8 @@ export function CreateCampaignModal({
                 Create SMS Marketing Campaign
               </DialogTitle>
               <DialogDescription className="text-xs text-gray-500">
-                Segment your audience, compose rich promotional messages, and broadcast across Bangladesh.
+                Segment your audience, compose rich promotional messages, and
+                broadcast across Bangladesh.
               </DialogDescription>
             </div>
           </div>
@@ -242,25 +241,37 @@ export function CreateCampaignModal({
                       {campaignType === SmsCampaignType.TARGETED_SEGMENT
                         ? "Targeted Audience Segment"
                         : campaignType === SmsCampaignType.PROMOTIONAL_FLASH
-                        ? "Flash Sale & Promotional Offer"
-                        : campaignType === SmsCampaignType.CART_RECOVERY
-                        ? "Abandoned Cart Recovery"
-                        : campaignType === SmsCampaignType.MANUAL_BROADCAST
-                        ? "Manual List Broadcast"
-                        : "Campaign Category"}
+                          ? "Flash Sale & Promotional Offer"
+                          : campaignType === SmsCampaignType.CART_RECOVERY
+                            ? "Abandoned Cart Recovery"
+                            : campaignType === SmsCampaignType.MANUAL_BROADCAST
+                              ? "Manual List Broadcast"
+                              : "Campaign Category"}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="z-50 bg-white">
-                    <SelectItem value={SmsCampaignType.TARGETED_SEGMENT} className="text-xs">
+                    <SelectItem
+                      value={SmsCampaignType.TARGETED_SEGMENT}
+                      className="text-xs"
+                    >
                       Targeted Audience Segment
                     </SelectItem>
-                    <SelectItem value={SmsCampaignType.PROMOTIONAL_FLASH} className="text-xs">
+                    <SelectItem
+                      value={SmsCampaignType.PROMOTIONAL_FLASH}
+                      className="text-xs"
+                    >
                       Flash Sale &amp; Promotional Offer
                     </SelectItem>
-                    <SelectItem value={SmsCampaignType.CART_RECOVERY} className="text-xs">
+                    <SelectItem
+                      value={SmsCampaignType.CART_RECOVERY}
+                      className="text-xs"
+                    >
                       Abandoned Cart Recovery
                     </SelectItem>
-                    <SelectItem value={SmsCampaignType.MANUAL_BROADCAST} className="text-xs">
+                    <SelectItem
+                      value={SmsCampaignType.MANUAL_BROADCAST}
+                      className="text-xs"
+                    >
                       Manual List Broadcast
                     </SelectItem>
                   </SelectContent>
@@ -375,7 +386,8 @@ export function CreateCampaignModal({
             <div className="p-4 rounded-2xl bg-gray-900 text-white space-y-1.5 text-xs shadow-inner">
               <div className="flex justify-between items-center text-gray-400 text-[10px]">
                 <span className="flex items-center gap-1">
-                  <Megaphone className="w-3 h-3 text-[#56C8D8]" /> Live SMS Preview
+                  <Megaphone className="w-3 h-3 text-[#56C8D8]" /> Live SMS
+                  Preview
                 </span>
                 <span>From: 8809648910523</span>
               </div>
@@ -432,12 +444,16 @@ export function CreateCampaignModal({
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">SMS Parts per Recipient:</span>
-                <span className="font-bold text-gray-900">{smsPartsCount} SMS</span>
+                <span className="font-bold text-gray-900">
+                  {smsPartsCount} SMS
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Encoding Format:</span>
                 <span className="font-bold text-gray-900">
-                  {isUnicode ? "Unicode (Bangla / Special)" : "GSM Standard (English)"}
+                  {isUnicode
+                    ? "Unicode (Bangla / Special)"
+                    : "GSM Standard (English)"}
                 </span>
               </div>
             </div>
@@ -465,7 +481,8 @@ export function CreateCampaignModal({
               {isScheduled && (
                 <div className="space-y-1.5 pt-2 border-t border-gray-100 text-xs">
                   <Label className="font-bold text-gray-700 flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-primary" /> Choose Schedule Date &amp; Time
+                    <Calendar className="w-3.5 h-3.5 text-primary" /> Choose
+                    Schedule Date &amp; Time
                   </Label>
                   <Input
                     type="datetime-local"
@@ -505,7 +522,9 @@ export function CreateCampaignModal({
                     <>
                       <Send className="w-4 h-4" />
                       <span>
-                        {isScheduled ? "Schedule Campaign" : "Broadcast Campaign Now"}
+                        {isScheduled
+                          ? "Schedule Campaign"
+                          : "Broadcast Campaign Now"}
                       </span>
                     </>
                   )}

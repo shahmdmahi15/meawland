@@ -377,15 +377,17 @@ export async function trackOrderAction(query: string): Promise<{
         courierPartner,
         milestones,
         payment: order.payment || null,
-        shipment: order.shipment ? {
-          id: order.shipment.id,
-          provider: order.shipment.provider,
-          consignmentId: order.shipment.consignmentId,
-          trackingCode: order.shipment.trackingCode,
-          status: order.shipment.status,
-          rawStatus: order.shipment.rawStatus,
-          lastCheckedAt: order.shipment.lastCheckedAt,
-        } : null,
+        shipment: order.shipment
+          ? {
+              id: order.shipment.id,
+              provider: order.shipment.provider,
+              consignmentId: order.shipment.consignmentId,
+              trackingCode: order.shipment.trackingCode,
+              status: order.shipment.status,
+              rawStatus: order.shipment.rawStatus,
+              lastCheckedAt: order.shipment.lastCheckedAt,
+            }
+          : null,
         items,
       },
     };

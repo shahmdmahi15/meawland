@@ -24,6 +24,8 @@ export const env = createEnv({
     SMS_BASE_URL: z.string(),
     META_ACCESS_TOKEN: z.string(),
     META_TEST_EVENT_CODE: z.string().optional(),
+    FRAUD_CHECKER_API_KEY: z.string(),
+    FRAUD_CHECKER_BASE_URL: z.url(),
   },
   client: {
     NEXT_PUBLIC_META_PIXEL_ID: z.string(),
@@ -52,6 +54,8 @@ export const env = createEnv({
     SMS_BASE_URL: process.env.SMS_BASE_URL,
     META_ACCESS_TOKEN: process.env.META_ACCESS_TOKEN,
     META_TEST_EVENT_CODE: process.env.META_TEST_EVENT_CODE,
+    FRAUD_CHECKER_API_KEY: process.env.FRAUD_CHECKER_API_KEY,
+    FRAUD_CHECKER_BASE_URL: process.env.FRAUD_CHECKER_BASE_URL,
     NEXT_PUBLIC_META_PIXEL_ID: process.env.NEXT_PUBLIC_META_PIXEL_ID,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,

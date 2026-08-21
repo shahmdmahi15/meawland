@@ -43,7 +43,11 @@ interface EmailLogsTableProps {
 
 const STATUS_CONFIG: Record<
   EmailDeliveryStatus,
-  { label: string; variant: "default" | "secondary" | "destructive" | "outline"; icon: React.ComponentType<{ className?: string }> }
+  {
+    label: string;
+    variant: "default" | "secondary" | "destructive" | "outline";
+    icon: React.ComponentType<{ className?: string }>;
+  }
 > = {
   [EmailDeliveryStatus.PENDING]: {
     label: "Pending",
@@ -138,7 +142,8 @@ export function EmailLogsTable({
               <SelectValue>
                 {statusFilter === "ALL"
                   ? "All Statuses"
-                  : STATUS_CONFIG[statusFilter as EmailDeliveryStatus]?.label || statusFilter}
+                  : STATUS_CONFIG[statusFilter as EmailDeliveryStatus]?.label ||
+                    statusFilter}
               </SelectValue>
             </SelectTrigger>
             <SelectContent className="z-50 bg-white">
@@ -206,7 +211,8 @@ export function EmailLogsTable({
                       No email delivery logs recorded yet
                     </p>
                     <p className="text-[11px] text-gray-400">
-                      Dispatched emails and automated notifications will appear here in real-time.
+                      Dispatched emails and automated notifications will appear
+                      here in real-time.
                     </p>
                   </div>
                 </TableCell>
@@ -218,7 +224,10 @@ export function EmailLogsTable({
                 const isRetrying = retryingId === log.id;
 
                 return (
-                  <TableRow key={log.id} className="hover:bg-gray-50/60 transition-colors">
+                  <TableRow
+                    key={log.id}
+                    className="hover:bg-gray-50/60 transition-colors"
+                  >
                     <TableCell className="pl-4 py-3">
                       <div>
                         <p className="font-bold text-xs text-gray-900 leading-tight">
@@ -255,7 +264,10 @@ export function EmailLogsTable({
 
                     <TableCell className="text-xs text-gray-600">
                       {log.orderCode ? (
-                        <Badge variant="outline" className="text-[10px] font-mono">
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] font-mono"
+                        >
                           #{log.orderCode}
                         </Badge>
                       ) : log.campaignTitle ? (
@@ -263,7 +275,9 @@ export function EmailLogsTable({
                           {log.campaignTitle}
                         </span>
                       ) : (
-                        <span className="text-gray-400 text-[11px]">Direct</span>
+                        <span className="text-gray-400 text-[11px]">
+                          Direct
+                        </span>
                       )}
                     </TableCell>
 
@@ -303,7 +317,9 @@ export function EmailLogsTable({
 
       {total > 0 && (
         <div className="flex justify-between items-center text-xs text-gray-500 px-2">
-          <span>Showing {logs.length} of {total} total delivery records</span>
+          <span>
+            Showing {logs.length} of {total} total delivery records
+          </span>
         </div>
       )}
     </div>

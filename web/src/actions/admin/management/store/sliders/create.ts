@@ -9,6 +9,12 @@ import {
 } from "@/schemas/admin/management/store/sliders/create";
 import crypto from "crypto";
 import { revalidatePath } from "next/cache";
+import {
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
+} from "@/generated/prisma/enums";
+import { recordAuditLog } from "@/lib/audit-logger";
 
 export async function createSliderAction(input: CreateSliderInput): Promise<{
   success: boolean;
@@ -71,6 +77,22 @@ export async function createSliderAction(input: CreateSliderInput): Promise<{
     // Revalidate paths for admin and homepage
     revalidatePath("/admin/management/store/sliders");
     revalidatePath("/");
+
+    await recordAuditLog({
+      action: AuditAction.CREATE,
+      entity: AuditEntity.SYSTEM_SETTINGS,
+      entityId: slider.id,
+      entityName: slider.text,
+      summary: `Hero Banner Slider "${slider.text}" created`,
+      severity: AuditSeverity.INFO,
+      newState: {
+        id: slider.id,
+        text: slider.text,
+        buttonText: slider.buttonText,
+        buttonLink: slider.buttonLink,
+      },
+      path: "/admin/management/store/sliders",
+    });
 
     return {
       success: true,

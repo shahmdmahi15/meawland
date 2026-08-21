@@ -134,12 +134,13 @@ export function TrackingOrderSummaryCard({
               {order.paymentStatus}
             </Badge>
           </div>
-          {order.paymentMethod === PaymentMethod.BKASH && order.payment?.trxID && (
-            <div className="flex items-center justify-between text-[11px] pt-1 border-t border-gray-100 font-mono text-[#9d174d]">
-              <span>bKash TrxID:</span>
-              <strong className="font-bold">{order.payment.trxID}</strong>
-            </div>
-          )}
+          {order.paymentMethod === PaymentMethod.BKASH &&
+            order.payment?.trxID && (
+              <div className="flex items-center justify-between text-[11px] pt-1 border-t border-gray-100 font-mono text-[#9d174d]">
+                <span>bKash TrxID:</span>
+                <strong className="font-bold">{order.payment.trxID}</strong>
+              </div>
+            )}
         </div>
       </div>
 

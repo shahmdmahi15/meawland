@@ -140,7 +140,8 @@ export function SmsLogsTable({ initialLogs, totalLogs }: SmsLogsTableProps) {
               <SelectValue>
                 {statusFilter === "ALL"
                   ? "All Statuses"
-                  : STATUS_CONFIG[statusFilter as SmsDeliveryStatus]?.label || statusFilter}
+                  : STATUS_CONFIG[statusFilter as SmsDeliveryStatus]?.label ||
+                    statusFilter}
               </SelectValue>
             </SelectTrigger>
             <SelectContent className="z-50 bg-white">
@@ -163,8 +164,12 @@ export function SmsLogsTable({ initialLogs, totalLogs }: SmsLogsTableProps) {
           <TableHeader className="bg-gray-50/70">
             <TableRow>
               <TableHead className="font-bold text-xs">Recipient</TableHead>
-              <TableHead className="font-bold text-xs">Message Content</TableHead>
-              <TableHead className="font-bold text-xs">Source / Linked</TableHead>
+              <TableHead className="font-bold text-xs">
+                Message Content
+              </TableHead>
+              <TableHead className="font-bold text-xs">
+                Source / Linked
+              </TableHead>
               <TableHead className="text-center font-bold text-xs">
                 Status
               </TableHead>

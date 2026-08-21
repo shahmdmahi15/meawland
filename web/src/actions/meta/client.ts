@@ -24,7 +24,9 @@ export async function sendMetaConversionApiEvents(
     const testEventCode = env.META_TEST_EVENT_CODE;
 
     if (!pixelId || !accessToken) {
-      console.warn("[Meta.CAPI] Missing NEXT_PUBLIC_META_PIXEL_ID or META_ACCESS_TOKEN.");
+      console.warn(
+        "[Meta.CAPI] Missing NEXT_PUBLIC_META_PIXEL_ID or META_ACCESS_TOKEN.",
+      );
       return {
         success: false,
         message: "Meta Conversions API is not configured.",
@@ -63,10 +65,15 @@ export async function sendMetaConversionApiEvents(
     const data = (await response.json()) as MetaCapiResponse;
 
     if (!response.ok || data.error) {
-      console.error("[Meta.CAPI] Error from Meta Graph API:", data.error || data);
+      console.error(
+        "[Meta.CAPI] Error from Meta Graph API:",
+        data.error || data,
+      );
       return {
         success: false,
-        message: data.error?.message || "Failed to dispatch events to Meta Conversions API.",
+        message:
+          data.error?.message ||
+          "Failed to dispatch events to Meta Conversions API.",
         fbtraceId: data.error?.fbtrace_id,
         error: data.error,
       };

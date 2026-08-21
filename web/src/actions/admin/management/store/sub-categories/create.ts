@@ -9,6 +9,12 @@ import {
 } from "@/schemas/admin/management/store/sub-categories/create";
 import crypto from "crypto";
 import { revalidatePath } from "next/cache";
+import {
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
+} from "@/generated/prisma/enums";
+import { recordAuditLog } from "@/lib/audit-logger";
 
 export async function createSubCategoryAction(
   input: CreateSubCategoryInput,
@@ -90,6 +96,21 @@ export async function createSubCategoryAction(
     revalidatePath("/");
     revalidatePath("/products");
     revalidatePath("/category", "layout");
+
+    await recordAuditLog({
+      action: AuditAction.CREATE,
+      entity: AuditEntity.CATEGORY,
+      entityId: subCategory.id,
+      entityName: subCategory.name,
+      summary: `Subcategory "${subCategory.name}" (Parent: ${subCategory.category}) created`,
+      severity: AuditSeverity.INFO,
+      newState: {
+        id: subCategory.id,
+        name: subCategory.name,
+        category: subCategory.category,
+      },
+      path: "/admin/management/store/sub-categories",
+    });
 
     return {
       success: true,

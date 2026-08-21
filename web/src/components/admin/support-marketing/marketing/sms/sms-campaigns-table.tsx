@@ -26,10 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  SmsCampaignStatus,
-  SmsCampaignType,
-} from "@/generated/prisma/enums";
+import { SmsCampaignStatus, SmsCampaignType } from "@/generated/prisma/enums";
 import type { AdminSmsCampaignSummary } from "@/actions/admin/support-marketing/marketing/sms/types";
 import { deleteSmsCampaignAction } from "@/actions/admin/support-marketing/marketing/sms/campaigns";
 import { toast } from "sonner";
@@ -142,7 +139,8 @@ export function SmsCampaignsTable({
               <SelectValue>
                 {statusFilter === "ALL"
                   ? "All Statuses"
-                  : STATUS_CONFIG[statusFilter as SmsCampaignStatus]?.label || statusFilter}
+                  : STATUS_CONFIG[statusFilter as SmsCampaignStatus]?.label ||
+                    statusFilter}
               </SelectValue>
             </SelectTrigger>
             <SelectContent className="z-50 bg-white">
@@ -165,7 +163,9 @@ export function SmsCampaignsTable({
           <TableHeader className="bg-gray-50/70">
             <TableRow>
               <TableHead className="font-bold text-xs">Campaign</TableHead>
-              <TableHead className="font-bold text-xs">Target Segment</TableHead>
+              <TableHead className="font-bold text-xs">
+                Target Segment
+              </TableHead>
               <TableHead className="text-center font-bold text-xs">
                 Recipients
               </TableHead>
@@ -196,7 +196,8 @@ export function SmsCampaignsTable({
                       No SMS Campaigns Found
                     </p>
                     <p className="text-xs text-gray-500">
-                      Create your first marketing broadcast to engage pet owners across Bangladesh.
+                      Create your first marketing broadcast to engage pet owners
+                      across Bangladesh.
                     </p>
                   </div>
                 </TableCell>
@@ -220,7 +221,10 @@ export function SmsCampaignsTable({
                     </TableCell>
 
                     <TableCell>
-                      <Badge variant="outline" className="text-[10px] uppercase font-bold">
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] uppercase font-bold"
+                      >
                         {c.targetSegment?.replace(/_/g, " ") || "All Customers"}
                       </Badge>
                     </TableCell>

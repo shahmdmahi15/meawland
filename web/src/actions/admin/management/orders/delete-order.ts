@@ -3,7 +3,14 @@
 import { revalidatePath } from "next/cache";
 import db from "@/lib/db";
 import { getMeAction } from "@/actions/auth/get-me";
-import { Role, StockEventType } from "@/generated/prisma/enums";
+import {
+  Role,
+  StockEventType,
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
+} from "@/generated/prisma/enums";
+import { recordAuditLog } from "@/lib/audit-logger";
 import {
   deleteOrderSchema,
   type DeleteOrderInput,
@@ -165,6 +172,25 @@ export async function deleteOrderAction(rawInput: DeleteOrderInput): Promise<{
     revalidatePath("/admin/management/orders/other-orders");
     revalidatePath("/admin/management/inventory/all-products");
     revalidatePath("/admin/management/inventory/modify-stock");
+
+    await recordAuditLog({
+      action: AuditAction.DELETE,
+      entity: AuditEntity.ORDER,
+      entityId: order.id,
+      entityName: `Order #${order.code}`,
+      summary: `Order #${order.code} was permanently deleted by admin. (Restore Stock: ${restoreStock})`,
+      severity: AuditSeverity.CRITICAL,
+      previousState: {
+        code: order.code,
+        finalCost: order.finalCost,
+        name: order.name,
+        phone: order.phone,
+        itemsCount: order.orderItems.length,
+      },
+      metadata: { restoreStock },
+      userId: sessionUser.id,
+      path: "/admin/management/orders",
+    });
 
     return {
       success: true,

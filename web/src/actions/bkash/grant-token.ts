@@ -82,8 +82,7 @@ export async function grantBkashTokenAction(): Promise<{
     );
 
     const data = (await response.json()) as
-      | BkashGrantTokenResponse
-      | BkashTokenErrorResponse;
+      BkashGrantTokenResponse | BkashTokenErrorResponse;
 
     if (!response.ok || !("id_token" in data) || !data.id_token) {
       const errorData = data as BkashTokenErrorResponse;
@@ -152,8 +151,7 @@ async function refreshBkashToken(
     );
 
     const data = (await response.json()) as
-      | BkashGrantTokenResponse
-      | BkashTokenErrorResponse;
+      BkashGrantTokenResponse | BkashTokenErrorResponse;
 
     if (!response.ok || !("id_token" in data) || !data.id_token) {
       console.error("[Actions.Bkash.RefreshToken] API error:", data);

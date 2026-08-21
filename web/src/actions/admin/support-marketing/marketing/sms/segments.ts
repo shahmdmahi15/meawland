@@ -1,10 +1,7 @@
 "use server";
 
 import db from "@/lib/db";
-import {
-  AudienceFilterSchema,
-  type AudienceFilterInput,
-} from "./types";
+import { AudienceFilterSchema, type AudienceFilterInput } from "./types";
 import { sanitizeBangladeshiPhoneNumber } from "@/actions/sms/client";
 import { Category, OrderStatus } from "@/generated/prisma/enums";
 
@@ -124,7 +121,13 @@ export async function resolveAudienceRecipients(
 
       const userTotals = new Map<
         string,
-        { name: string; district: string | null; total: number; userId?: string | null; orderId?: string }
+        {
+          name: string;
+          district: string | null;
+          total: number;
+          userId?: string | null;
+          orderId?: string;
+        }
       >();
 
       for (const o of orders) {
@@ -175,7 +178,13 @@ export async function resolveAudienceRecipients(
 
       const counts = new Map<
         string,
-        { count: number; name: string; district: string | null; userId?: string | null; orderId?: string }
+        {
+          count: number;
+          name: string;
+          district: string | null;
+          userId?: string | null;
+          orderId?: string;
+        }
       >();
 
       for (const o of orders) {
@@ -225,7 +234,13 @@ export async function resolveAudienceRecipients(
 
       const counts = new Map<
         string,
-        { count: number; name: string; district: string | null; userId?: string | null; orderId?: string }
+        {
+          count: number;
+          name: string;
+          district: string | null;
+          userId?: string | null;
+          orderId?: string;
+        }
       >();
 
       for (const o of orders) {

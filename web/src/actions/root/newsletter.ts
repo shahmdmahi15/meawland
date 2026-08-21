@@ -1,11 +1,17 @@
 "use server";
 
 import db from "@/lib/db";
-import { NewsletterStatus } from "@/generated/prisma/enums";
+import {
+  NewsletterStatus,
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
+} from "@/generated/prisma/enums";
 import {
   subscribeNewsletterSchema,
   unsubscribeNewsletterSchema,
 } from "@/schemas/root/newsletter";
+import { recordAuditLog } from "@/lib/audit-logger";
 import { trackMetaLeadAction } from "@/actions/meta";
 import { revalidatePath } from "next/cache";
 
@@ -77,6 +83,20 @@ export async function subscribeNewsletterAction(
       console.error("[Action.Newsletter] Meta CAPI Lead error:", err);
     });
 
+    await recordAuditLog({
+      action: AuditAction.CREATE,
+      entity: AuditEntity.NEWSLETTER,
+      entityName: cleanEmail,
+      summary: `Newsletter subscription received for "${cleanEmail}" (Source: ${parsed.data.source})`,
+      severity: AuditSeverity.INFO,
+      newState: {
+        email: cleanEmail,
+        source: parsed.data.source,
+        status: "SUBSCRIBED",
+      },
+      path: "/newsletter",
+    }).catch(() => {});
+
     return {
       success: true,
       message: "Thank you for subscribing to Meawland VIP updates! 🐾",
@@ -127,6 +147,16 @@ export async function unsubscribeNewsletterAction(email: string): Promise<{
     });
 
     revalidatePath("/admin/support-marketing/marketing/newsletter");
+
+    await recordAuditLog({
+      action: AuditAction.STATUS_CHANGE,
+      entity: AuditEntity.NEWSLETTER,
+      entityName: cleanEmail,
+      summary: `Newsletter unsubscribed for "${cleanEmail}"`,
+      severity: AuditSeverity.INFO,
+      newState: { email: cleanEmail, status: "UNSUBSCRIBED" },
+      path: "/unsubscribe",
+    }).catch(() => {});
 
     return {
       success: true,

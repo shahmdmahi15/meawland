@@ -1,6 +1,11 @@
 import db from "@/lib/db";
 import { getMeAction } from "@/actions/auth/get-me";
-import { AuditAction, AuditEntity, AuditSeverity, Prisma } from "@/generated/prisma/client";
+import {
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
+  Prisma,
+} from "@/generated/prisma/client";
 
 export interface RecordAuditLogParams {
   action: AuditAction;
@@ -22,7 +27,9 @@ export interface RecordAuditLogParams {
  * Universal background-safe Audit Logger.
  * Records immutable historical diffs, actor attribution, and forensic telemetry across Meawland.
  */
-export async function recordAuditLog(params: RecordAuditLogParams): Promise<void> {
+export async function recordAuditLog(
+  params: RecordAuditLogParams,
+): Promise<void> {
   try {
     let resolvedUserId = params.userId || null;
 
@@ -45,7 +52,8 @@ export async function recordAuditLog(params: RecordAuditLogParams): Promise<void
         entityName: params.entityName || null,
         summary: params.summary,
         severity: params.severity || AuditSeverity.INFO,
-        previousState: (params.previousState as Prisma.InputJsonValue) ?? Prisma.JsonNull,
+        previousState:
+          (params.previousState as Prisma.InputJsonValue) ?? Prisma.JsonNull,
         newState: (params.newState as Prisma.InputJsonValue) ?? Prisma.JsonNull,
         metadata: (params.metadata as Prisma.InputJsonValue) ?? Prisma.JsonNull,
         userId: resolvedUserId,

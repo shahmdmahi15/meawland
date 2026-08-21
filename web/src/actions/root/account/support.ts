@@ -74,6 +74,28 @@ export async function createSupportTicketAction(
 
     revalidatePath("/account/support");
 
+    const { recordAuditLog } = await import("@/lib/audit-logger");
+    const { AuditAction, AuditEntity, AuditSeverity } =
+      await import("@/generated/prisma/enums");
+
+    await recordAuditLog({
+      action: AuditAction.CREATE,
+      entity: AuditEntity.SUPPORT_TICKET,
+      entityName: `#${ticketCode}`,
+      summary: `Support Ticket #${ticketCode} submitted by customer (${subject}, ${category})`,
+      severity: AuditSeverity.INFO,
+      newState: {
+        code: ticketCode,
+        subject,
+        category,
+        priority,
+        channel,
+        orderId: validOrderId,
+      },
+      userId: sessionUser.id,
+      path: "/account/support",
+    }).catch(() => {});
+
     return {
       success: true,
       message: `Support ticket #${ticketCode} submitted successfully! Our team will get back to you shortly.`,

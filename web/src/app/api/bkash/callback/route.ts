@@ -6,7 +6,8 @@ import { queryBkashPaymentAction } from "@/actions/bkash/query-payment";
 import { PaymentStatus } from "@/generated/prisma/enums";
 import { triggerBkashPaidSms } from "@/actions/admin/support-marketing/marketing/sms/automations";
 import { triggerBkashPaidEmail } from "@/actions/admin/support-marketing/marketing/email/automations";
-import { trackMetaPurchaseAction } from "@/actions/meta";
+import { buildMetaUserData } from "@/actions/meta/crypto";
+import { sendMetaConversionApiEvents } from "@/actions/meta/client";
 
 export async function GET(request: NextRequest) {
   try {
@@ -174,30 +175,90 @@ export async function GET(request: NextRequest) {
         }
 
         // Meta Conversions API (Server CAPI) Purchase Event
-        trackMetaPurchaseAction({
-          orderCode: order.code,
-          totalValue: parseFloat(order.finalCost) || 0,
-          currency: "BDT",
-          numItems: order.totalQuantity,
-          deliveryFee: parseFloat(order.deliveryFee) || 0,
-          discount: parseFloat(order.discountCost) || 0,
-          items: order.orderItems.map((oi) => ({
-            id: oi.variantId || oi.productId || oi.comboProductId || oi.id,
-            name: oi.variant?.product?.name || oi.product?.name || oi.comboProduct?.name || "Pet Item",
-            price: parseFloat(oi.finalCost) || 0,
-            quantity: oi.quanitity,
-          })),
-          customer: {
-            email: order.email,
-            phone: order.phone,
-            name: order.name,
-            district: order.district,
-            userId: order.userId,
-          },
-          eventId: `purch_${order.code}`,
-        }).catch((err) => {
-          console.error("[API.Bkash.Callback] Meta CAPI Purchase error:", err);
-        });
+        try {
+          const clientIp =
+            request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+            null;
+          const userAgent = request.headers.get("user-agent") || null;
+          const fbp = request.cookies.get("_fbp")?.value || null;
+          const fbc = request.cookies.get("_fbc")?.value || null;
+
+          const userData = buildMetaUserData(
+            {
+              userId: order.userId,
+              email: order.email,
+              phone: order.phone,
+              name: order.name,
+              district: order.district,
+              clientIp,
+              userAgent,
+              fbp,
+              fbc,
+            },
+            { ipAddress: clientIp, userAgent, fbp, fbc },
+          );
+
+          sendMetaConversionApiEvents([
+            {
+              event_name: "Purchase",
+              event_time: Math.floor(Date.now() / 1000),
+              event_id: `purch_${order.code}`,
+              action_source: "website",
+              user_data: userData,
+              custom_data: {
+                order_id: order.code,
+                value: parseFloat(order.finalCost) || 0,
+                currency: "BDT",
+                num_items: order.totalQuantity,
+                content_type: "product",
+                content_ids: order.orderItems.map(
+                  (oi) =>
+                    oi.variantId || oi.productId || oi.comboProductId || oi.id,
+                ),
+                contents: order.orderItems.map((oi) => ({
+                  id:
+                    oi.variantId || oi.productId || oi.comboProductId || oi.id,
+                  quantity: oi.quanitity,
+                  item_price: parseFloat(oi.finalCost) || 0,
+                  title:
+                    oi.variant?.product?.name ||
+                    oi.product?.name ||
+                    oi.comboProduct?.name ||
+                    "Pet Item",
+                })),
+              },
+            },
+          ]).catch((err) => {
+            console.error(
+              "[API.Bkash.Callback] Meta CAPI Purchase error:",
+              err,
+            );
+          });
+        } catch {
+          // Ignored
+        }
+
+        // Record Audit Log
+        await db.auditLog
+          .create({
+            data: {
+              action: "PAYMENT_RECEIVED",
+              entity: "PAYMENT",
+              entityId: order.id,
+              entityName: `Order #${order.code}`,
+              summary: `bKash Payment Verified & Completed for Order #${order.code} - BDT ${order.finalCost} (TrxID: ${executeData.trxID})`,
+              severity: "INFO",
+              newState: {
+                trxID: executeData.trxID,
+                amount: order.finalCost,
+                customerMsisdn: executeData.customerMsisdn,
+                orderCode: order.code,
+              },
+              userId: order.userId,
+              path: "/api/bkash/callback",
+            },
+          })
+          .catch(() => {});
 
         // Redirect to order success page with bKash flag
         return NextResponse.redirect(

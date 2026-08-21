@@ -9,6 +9,12 @@ import {
   type UpdateProductError,
   type UpdateProductInput,
 } from "@/schemas/admin/management/inventory/update-product";
+import {
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
+} from "@/generated/prisma/enums";
+import { recordAuditLog } from "@/lib/audit-logger";
 
 export async function updateProductAction(input: UpdateProductInput): Promise<{
   success: boolean;
@@ -417,6 +423,60 @@ export async function updateProductAction(input: UpdateProductInput): Promise<{
     revalidatePath("/products");
     revalidatePath("/category", "layout");
     revalidatePath("/product", "layout");
+
+    const changesList: string[] = [];
+    if (data.name && data.name !== existing.name)
+      changesList.push(`Title: "${existing.name}" → "${data.name}"`);
+    if (
+      data.regularPrice !== undefined &&
+      data.regularPrice !== existing.regularPrice
+    )
+      changesList.push(
+        `Regular Price: ${existing.regularPrice ?? "N/A"} → ${data.regularPrice}`,
+      );
+    if (data.salePrice !== undefined && data.salePrice !== existing.salePrice)
+      changesList.push(
+        `Sale Price: ${existing.salePrice ?? "N/A"} → ${data.salePrice}`,
+      );
+    if (data.costPrice !== undefined && data.costPrice !== existing.costPrice)
+      changesList.push(
+        `Cost Price: ${existing.costPrice ?? "N/A"} → ${data.costPrice}`,
+      );
+    if (data.stock !== undefined && data.stock !== existing.stock)
+      changesList.push(`Stock: ${existing.stock} → ${data.stock}`);
+
+    const changeSummary =
+      changesList.length > 0
+        ? changesList.join("; ")
+        : "Specifications / variants updated";
+
+    await recordAuditLog({
+      action:
+        data.salePrice !== existing.salePrice ||
+        data.regularPrice !== existing.regularPrice
+          ? AuditAction.PRICE_CHANGE
+          : AuditAction.UPDATE,
+      entity: AuditEntity.PRODUCT,
+      entityId: existing.id,
+      entityName: data.name || existing.name,
+      summary: `Product "${data.name || existing.name}" (${existing.code}) updated: ${changeSummary}`,
+      severity: AuditSeverity.INFO,
+      previousState: {
+        name: existing.name,
+        regularPrice: existing.regularPrice,
+        salePrice: existing.salePrice,
+        costPrice: existing.costPrice,
+        stock: existing.stock,
+      },
+      newState: {
+        name: data.name,
+        regularPrice: data.regularPrice,
+        salePrice: data.salePrice,
+        costPrice: data.costPrice,
+        stock: data.stock,
+      },
+      path: `/admin/management/inventory/all-products`,
+    });
 
     return {
       success: true,

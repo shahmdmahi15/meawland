@@ -109,7 +109,9 @@ export async function retryFailedEmailLogAction(logId: string): Promise<{
       return { success: false, message: "Log record not found." };
     }
 
-    const html = log.campaign?.contentHtml || `<p>Retrying email dispatch: ${log.subject}</p>`;
+    const html =
+      log.campaign?.contentHtml ||
+      `<p>Retrying email dispatch: ${log.subject}</p>`;
 
     const res = await sendEmail({
       to: log.recipientEmail,
@@ -149,6 +151,9 @@ export async function retryFailedEmailLogAction(logId: string): Promise<{
     }
   } catch (error) {
     console.error("[Action.Email.RetryLog] Error:", error);
-    return { success: false, message: "An unexpected error occurred during retry." };
+    return {
+      success: false,
+      message: "An unexpected error occurred during retry.",
+    };
   }
 }

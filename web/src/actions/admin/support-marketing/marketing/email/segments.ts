@@ -2,7 +2,11 @@
 
 import db from "@/lib/db";
 import { EmailAudienceFilter } from "./types";
-import { OrderStatus, Category, NewsletterStatus } from "@/generated/prisma/enums";
+import {
+  OrderStatus,
+  Category,
+  NewsletterStatus,
+} from "@/generated/prisma/enums";
 
 export interface EmailRecipientInfo {
   email: string;
@@ -21,7 +25,11 @@ export async function resolveEmailAudienceRecipients(
 
   const addRecipient = (info: EmailRecipientInfo) => {
     const cleanEmail = info.email.toLowerCase().trim();
-    if (cleanEmail && cleanEmail.includes("@") && !recipientMap.has(cleanEmail)) {
+    if (
+      cleanEmail &&
+      cleanEmail.includes("@") &&
+      !recipientMap.has(cleanEmail)
+    ) {
       recipientMap.set(cleanEmail, {
         ...info,
         email: cleanEmail,
@@ -79,7 +87,13 @@ export async function resolveEmailAudienceRecipients(
 
       // 2. From Order table (guest checkouts)
       const orders = await db.order.findMany({
-        select: { id: true, name: true, email: true, district: true, userId: true },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          district: true,
+          userId: true,
+        },
       });
       for (const o of orders) {
         addRecipient({
@@ -108,14 +122,33 @@ export async function resolveEmailAudienceRecipients(
       const threshold = filters.minSpend || 5000;
       const orders = await db.order.findMany({
         where: { status: { not: OrderStatus.CANCELLED } },
-        select: { email: true, name: true, finalCost: true, userId: true, district: true },
+        select: {
+          email: true,
+          name: true,
+          finalCost: true,
+          userId: true,
+          district: true,
+        },
       });
 
-      const spendMap = new Map<string, { totalSpend: number; name: string; userId?: string | null; district?: string | null }>();
+      const spendMap = new Map<
+        string,
+        {
+          totalSpend: number;
+          name: string;
+          userId?: string | null;
+          district?: string | null;
+        }
+      >();
       for (const o of orders) {
         const cost = parseFloat(o.finalCost) || 0;
         const key = o.email.toLowerCase().trim();
-        const current = spendMap.get(key) || { totalSpend: 0, name: o.name, userId: o.userId, district: o.district };
+        const current = spendMap.get(key) || {
+          totalSpend: 0,
+          name: o.name,
+          userId: o.userId,
+          district: o.district,
+        };
         current.totalSpend += cost;
         spendMap.set(key, current);
       }
@@ -140,10 +173,23 @@ export async function resolveEmailAudienceRecipients(
         select: { email: true, name: true, userId: true, district: true },
       });
 
-      const countMap = new Map<string, { count: number; name: string; userId?: string | null; district?: string | null }>();
+      const countMap = new Map<
+        string,
+        {
+          count: number;
+          name: string;
+          userId?: string | null;
+          district?: string | null;
+        }
+      >();
       for (const o of orders) {
         const key = o.email.toLowerCase().trim();
-        const current = countMap.get(key) || { count: 0, name: o.name, userId: o.userId, district: o.district };
+        const current = countMap.get(key) || {
+          count: 0,
+          name: o.name,
+          userId: o.userId,
+          district: o.district,
+        };
         current.count += 1;
         countMap.set(key, current);
       }
@@ -330,15 +376,20 @@ export async function calculateEmailAudienceCountAction(
 ): Promise<{
   success: boolean;
   count: number;
-  sampleRecipients?: Array<{ maskedEmail: string; name: string; district?: string | null }>;
+  sampleRecipients?: Array<{
+    maskedEmail: string;
+    name: string;
+    district?: string | null;
+  }>;
 }> {
   try {
     const recipients = await resolveEmailAudienceRecipients(filters);
     const sample = recipients.slice(0, 5).map((r) => {
       const parts = r.email.split("@");
-      const maskedName = parts[0].length > 3
-        ? `${parts[0].slice(0, 2)}***${parts[0].slice(-1)}`
-        : `${parts[0].slice(0, 1)}***`;
+      const maskedName =
+        parts[0].length > 3
+          ? `${parts[0].slice(0, 2)}***${parts[0].slice(-1)}`
+          : `${parts[0].slice(0, 1)}***`;
       return {
         maskedEmail: `${maskedName}@${parts[1]}`,
         name: r.name,

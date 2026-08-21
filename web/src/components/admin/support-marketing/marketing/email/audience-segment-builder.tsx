@@ -47,13 +47,15 @@ const SEGMENT_OPTIONS: Array<{
   {
     id: "ALL_CUSTOMERS",
     label: "All Customers & VIPs",
-    description: "Every registered user, customer, and verified newsletter subscriber.",
+    description:
+      "Every registered user, customer, and verified newsletter subscriber.",
     icon: Users,
   },
   {
     id: "NEWSLETTER_SUBSCRIBERS",
     label: "Newsletter Subscribers",
-    description: "Active subscribers from footer club, checkout opt-ins, and popups.",
+    description:
+      "Active subscribers from footer club, checkout opt-ins, and popups.",
     icon: Mail,
   },
   {
@@ -71,7 +73,8 @@ const SEGMENT_OPTIONS: Array<{
   {
     id: "CART_ABANDONERS",
     label: "Cart Abandoners",
-    description: "Users with unpurchased pet items currently saved in their cart.",
+    description:
+      "Users with unpurchased pet items currently saved in their cart.",
     icon: ShoppingCart,
   },
   {
@@ -95,13 +98,15 @@ const SEGMENT_OPTIONS: Array<{
   {
     id: "BRAND_BUYERS",
     label: "Brand Admirers",
-    description: "Customers who bought specific brands (Me-O, Royal Canin, etc.).",
+    description:
+      "Customers who bought specific brands (Me-O, Royal Canin, etc.).",
     icon: Sparkles,
   },
   {
     id: "CUSTOM_EMAILS",
     label: "Custom Email List",
-    description: "Paste a manual list of comma or newline-separated email addresses.",
+    description:
+      "Paste a manual list of comma or newline-separated email addresses.",
     icon: List,
   },
 ];
@@ -220,7 +225,9 @@ export function AudienceSegmentBuilder({
       {/* Segment Parameters */}
       {value.targetType === "VIP_SPENDERS" && (
         <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200 space-y-2 text-xs">
-          <Label className="font-bold text-gray-700">Minimum Lifetime Spend (BDT)</Label>
+          <Label className="font-bold text-gray-700">
+            Minimum Lifetime Spend (BDT)
+          </Label>
           <Input
             type="number"
             placeholder="e.g. 5000"
@@ -238,7 +245,9 @@ export function AudienceSegmentBuilder({
 
       {value.targetType === "REPEAT_BUYERS" && (
         <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200 space-y-2 text-xs">
-          <Label className="font-bold text-gray-700">Minimum Placed Orders</Label>
+          <Label className="font-bold text-gray-700">
+            Minimum Placed Orders
+          </Label>
           <Input
             type="number"
             placeholder="e.g. 2"
@@ -256,7 +265,9 @@ export function AudienceSegmentBuilder({
 
       {value.targetType === "INACTIVE_CUSTOMERS" && (
         <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200 space-y-2 text-xs">
-          <Label className="font-bold text-gray-700">Days Since Last Order</Label>
+          <Label className="font-bold text-gray-700">
+            Days Since Last Order
+          </Label>
           <Input
             type="number"
             placeholder="e.g. 30"
@@ -274,7 +285,9 @@ export function AudienceSegmentBuilder({
 
       {value.targetType === "DISTRICT_TARGET" && (
         <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200 space-y-2 text-xs">
-          <Label className="font-bold text-gray-700">Select Target District</Label>
+          <Label className="font-bold text-gray-700">
+            Select Target District
+          </Label>
           <Select
             value={value.district || "Dhaka"}
             onValueChange={(val) =>
@@ -285,9 +298,7 @@ export function AudienceSegmentBuilder({
             }
           >
             <SelectTrigger className="h-8 max-w-xs text-xs bg-white">
-              <SelectValue>
-                {value.district || "Dhaka"}
-              </SelectValue>
+              <SelectValue>{value.district || "Dhaka"}</SelectValue>
             </SelectTrigger>
             <SelectContent className="max-h-56 z-50 bg-white">
               {districts.map((d) => (
@@ -302,7 +313,9 @@ export function AudienceSegmentBuilder({
 
       {value.targetType === "PRODUCT_CATEGORY_BUYERS" && (
         <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200 space-y-2 text-xs">
-          <Label className="font-bold text-gray-700">Select Product Category</Label>
+          <Label className="font-bold text-gray-700">
+            Select Product Category
+          </Label>
           <Select
             value={value.category || "PET_FOOD"}
             onValueChange={(val) =>
@@ -314,8 +327,9 @@ export function AudienceSegmentBuilder({
           >
             <SelectTrigger className="h-8 max-w-xs text-xs bg-white">
               <SelectValue>
-                {categories.find((c) => c.value === (value.category || "PET_FOOD"))?.label ||
-                  (value.category || "Pet Food").replace(/_/g, " ")}
+                {categories.find(
+                  (c) => c.value === (value.category || "PET_FOOD"),
+                )?.label || (value.category || "Pet Food").replace(/_/g, " ")}
               </SelectValue>
             </SelectTrigger>
             <SelectContent className="max-h-56 z-50 bg-white">
@@ -343,7 +357,8 @@ export function AudienceSegmentBuilder({
           >
             <SelectTrigger className="h-8 max-w-xs text-xs bg-white">
               <SelectValue>
-                {brands.find((b) => b.id === value.brandId)?.name || "Select Brand"}
+                {brands.find((b) => b.id === value.brandId)?.name ||
+                  "Select Brand"}
               </SelectValue>
             </SelectTrigger>
             <SelectContent className="max-h-56 z-50 bg-white">
@@ -359,7 +374,9 @@ export function AudienceSegmentBuilder({
 
       {value.targetType === "CUSTOM_EMAILS" && (
         <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200 space-y-2 text-xs">
-          <Label className="font-bold text-gray-700">Paste Custom Email Addresses</Label>
+          <Label className="font-bold text-gray-700">
+            Paste Custom Email Addresses
+          </Label>
           <Textarea
             placeholder="customer1@example.com, customer2@example.com&#10;vip@domain.com"
             value={value.customEmails || ""}
@@ -386,7 +403,8 @@ export function AudienceSegmentBuilder({
               Estimated Audience Reach
             </p>
             <p className="text-[11px] text-gray-500">
-              Deduplicated and validated email contacts matching selected criteria.
+              Deduplicated and validated email contacts matching selected
+              criteria.
             </p>
           </div>
         </div>
@@ -400,7 +418,9 @@ export function AudienceSegmentBuilder({
           ) : (
             <div className="text-right">
               <span className="text-lg font-black text-[#0097a7]">
-                {recipientCount !== null ? recipientCount.toLocaleString() : "0"}
+                {recipientCount !== null
+                  ? recipientCount.toLocaleString()
+                  : "0"}
               </span>
               <span className="text-xs text-gray-500 font-semibold ml-1">
                 recipients
@@ -413,10 +433,15 @@ export function AudienceSegmentBuilder({
       {/* Sample Recipients Preview */}
       {sampleRecipients.length > 0 && (
         <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 text-[11px] text-gray-600 space-y-1">
-          <span className="font-bold text-gray-800">Sample Audience Preview: </span>
+          <span className="font-bold text-gray-800">
+            Sample Audience Preview:{" "}
+          </span>
           <span className="text-gray-600">
             {sampleRecipients
-              .map((s) => `${s.maskedEmail} (${s.name}${s.district ? ` • ${s.district}` : ""})`)
+              .map(
+                (s) =>
+                  `${s.maskedEmail} (${s.name}${s.district ? ` • ${s.district}` : ""})`,
+              )
               .join(" • ")}
           </span>
         </div>
@@ -426,7 +451,8 @@ export function AudienceSegmentBuilder({
         <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs">
           <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
           <span>
-            No email recipients matched this segment. Try selecting <strong>All Customers</strong> or widening the criteria.
+            No email recipients matched this segment. Try selecting{" "}
+            <strong>All Customers</strong> or widening the criteria.
           </span>
         </div>
       )}

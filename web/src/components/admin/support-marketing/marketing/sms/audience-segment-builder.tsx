@@ -1,9 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useTransition } from "react";
-import {
-  type AudienceFilterInput,
-} from "@/actions/admin/support-marketing/marketing/sms/types";
+import { type AudienceFilterInput } from "@/actions/admin/support-marketing/marketing/sms/types";
 import { calculateAudienceCountAction } from "@/actions/admin/support-marketing/marketing/sms/segments";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -55,7 +53,8 @@ const SEGMENT_OPTIONS: Array<{
   {
     id: "ALL_CUSTOMERS",
     label: "All Customers & Members",
-    description: "Every registered user and customer with a valid mobile number.",
+    description:
+      "Every registered user and customer with a valid mobile number.",
     icon: Users,
     badgeColor: "bg-blue-50 text-blue-700 border-blue-200",
   },
@@ -104,21 +103,24 @@ const SEGMENT_OPTIONS: Array<{
   {
     id: "DISTRICT_TARGET",
     label: "District / City Location",
-    description: "Customers located in a specific district (e.g. Dhaka, Narail).",
+    description:
+      "Customers located in a specific district (e.g. Dhaka, Narail).",
     icon: MapPin,
     badgeColor: "bg-indigo-50 text-indigo-700 border-indigo-200",
   },
   {
     id: "PRODUCT_CATEGORY_BUYERS",
     label: "Category Buyers",
-    description: "Customers who purchased Cat Food, Accessories, Medicine, etc.",
+    description:
+      "Customers who purchased Cat Food, Accessories, Medicine, etc.",
     icon: Layers,
     badgeColor: "bg-teal-50 text-teal-700 border-teal-200",
   },
   {
     id: "BRAND_BUYERS",
     label: "Brand Enthusiasts",
-    description: "Customers who bought specific pet brands (e.g. Me-O, SmartHeart).",
+    description:
+      "Customers who bought specific pet brands (e.g. Me-O, SmartHeart).",
     icon: Tag,
     badgeColor: "bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200",
   },
@@ -176,7 +178,16 @@ export function AudienceSegmentBuilder({
 
   useEffect(() => {
     calculateCount();
-  }, [value.targetType, value.district, value.category, value.brandId, value.minSpend, value.minOrders, value.inactiveDays, value.customNumbers]);
+  }, [
+    value.targetType,
+    value.district,
+    value.category,
+    value.brandId,
+    value.minSpend,
+    value.minOrders,
+    value.inactiveDays,
+    value.customNumbers,
+  ]);
 
   return (
     <div className="space-y-4">
@@ -236,7 +247,9 @@ export function AudienceSegmentBuilder({
       {/* Segment Parameter Configs */}
       {value.targetType === "VIP_SPENDERS" && (
         <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200 space-y-2 text-xs">
-          <Label className="font-bold text-gray-700">Minimum Lifetime Spend (৳)</Label>
+          <Label className="font-bold text-gray-700">
+            Minimum Lifetime Spend (৳)
+          </Label>
           <Input
             type="number"
             placeholder="e.g. 5000"
@@ -272,7 +285,9 @@ export function AudienceSegmentBuilder({
 
       {value.targetType === "INACTIVE_USERS" && (
         <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200 space-y-2 text-xs">
-          <Label className="font-bold text-gray-700">Days Since Last Order</Label>
+          <Label className="font-bold text-gray-700">
+            Days Since Last Order
+          </Label>
           <Input
             type="number"
             placeholder="e.g. 60"
@@ -290,7 +305,9 @@ export function AudienceSegmentBuilder({
 
       {value.targetType === "DISTRICT_TARGET" && (
         <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200 space-y-2 text-xs">
-          <Label className="font-bold text-gray-700">Select Target District</Label>
+          <Label className="font-bold text-gray-700">
+            Select Target District
+          </Label>
           <Select
             value={value.district || "Dhaka"}
             onValueChange={(val) =>
@@ -301,9 +318,7 @@ export function AudienceSegmentBuilder({
             }
           >
             <SelectTrigger className="h-8 max-w-xs text-xs bg-white">
-              <SelectValue>
-                {value.district || "Dhaka"}
-              </SelectValue>
+              <SelectValue>{value.district || "Dhaka"}</SelectValue>
             </SelectTrigger>
             <SelectContent className="max-h-56 z-50 bg-white">
               {districts.map((d) => (
@@ -318,7 +333,9 @@ export function AudienceSegmentBuilder({
 
       {value.targetType === "PRODUCT_CATEGORY_BUYERS" && (
         <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200 space-y-2 text-xs">
-          <Label className="font-bold text-gray-700">Select Product Category</Label>
+          <Label className="font-bold text-gray-700">
+            Select Product Category
+          </Label>
           <Select
             value={value.category || "PET_FOOD"}
             onValueChange={(val) =>
@@ -330,8 +347,9 @@ export function AudienceSegmentBuilder({
           >
             <SelectTrigger className="h-8 max-w-xs text-xs bg-white">
               <SelectValue>
-                {categories.find((c) => c.value === (value.category || "PET_FOOD"))?.label ||
-                  (value.category || "Pet Food").replace(/_/g, " ")}
+                {categories.find(
+                  (c) => c.value === (value.category || "PET_FOOD"),
+                )?.label || (value.category || "Pet Food").replace(/_/g, " ")}
               </SelectValue>
             </SelectTrigger>
             <SelectContent className="max-h-56 z-50 bg-white">
@@ -359,7 +377,8 @@ export function AudienceSegmentBuilder({
           >
             <SelectTrigger className="h-8 max-w-xs text-xs bg-white">
               <SelectValue>
-                {brands.find((b) => b.id === value.brandId)?.name || "Select Brand"}
+                {brands.find((b) => b.id === value.brandId)?.name ||
+                  "Select Brand"}
               </SelectValue>
             </SelectTrigger>
             <SelectContent className="max-h-56 z-50 bg-white">
@@ -405,9 +424,13 @@ export function AudienceSegmentBuilder({
             <Users className="w-3.5 h-3.5" />
           </div>
           <div>
-            <span className="text-gray-600 font-medium">Matching Audience: </span>
+            <span className="text-gray-600 font-medium">
+              Matching Audience:{" "}
+            </span>
             <strong className="font-black text-sm text-[#0097a7]">
-              {isCalculating ? "Calculating..." : `${recipientCount ?? 0} Recipients`}
+              {isCalculating
+                ? "Calculating..."
+                : `${recipientCount ?? 0} Recipients`}
             </strong>
           </div>
         </div>
@@ -420,14 +443,18 @@ export function AudienceSegmentBuilder({
           onClick={calculateCount}
           className="h-7 text-xs bg-white gap-1 cursor-pointer"
         >
-          <RefreshCw className={`w-3 h-3 ${isCalculating ? "animate-spin" : ""}`} />
+          <RefreshCw
+            className={`w-3 h-3 ${isCalculating ? "animate-spin" : ""}`}
+          />
           <span>Refresh Count</span>
         </Button>
       </div>
 
       {sampleRecipients.length > 0 && (
         <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-200 text-[11px] text-gray-600 space-y-1">
-          <span className="font-bold text-gray-700 block">Sample Recipients:</span>
+          <span className="font-bold text-gray-700 block">
+            Sample Recipients:
+          </span>
           <div className="flex flex-wrap gap-1.5">
             {sampleRecipients.map((s, idx) => (
               <Badge

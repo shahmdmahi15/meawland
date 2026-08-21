@@ -2,7 +2,12 @@
 
 import React, { useState, useTransition } from "react";
 import { AdminAuditLogSummary } from "@/actions/admin/security/audit-logs/types";
-import { AuditAction, AuditEntity, AuditSeverity, Role } from "@/generated/prisma/enums";
+import {
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
+  Role,
+} from "@/generated/prisma/enums";
 import {
   Table,
   TableBody,
@@ -83,7 +88,9 @@ export function AuditLogsTable({
   const [severityFilter, setSeverityFilter] = useState<string>("ALL");
   const [userFilter, setUserFilter] = useState<string>("ALL");
 
-  const [selectedLog, setSelectedLog] = useState<AdminAuditLogSummary | null>(null);
+  const [selectedLog, setSelectedLog] = useState<AdminAuditLogSummary | null>(
+    null,
+  );
   const [isRefreshing, startTransition] = useTransition();
 
   const handleFetch = (
@@ -101,7 +108,8 @@ export function AuditLogsTable({
         search: nextSearch.trim() || undefined,
         entity: nextEntity !== "ALL" ? (nextEntity as AuditEntity) : undefined,
         action: nextAction !== "ALL" ? (nextAction as AuditAction) : undefined,
-        severity: nextSeverity !== "ALL" ? (nextSeverity as AuditSeverity) : undefined,
+        severity:
+          nextSeverity !== "ALL" ? (nextSeverity as AuditSeverity) : undefined,
         userId: nextUser !== "ALL" ? nextUser : undefined,
       });
 
@@ -128,7 +136,14 @@ export function AuditLogsTable({
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
-                handleFetch(1, e.target.value, entityFilter, actionFilter, severityFilter, userFilter);
+                handleFetch(
+                  1,
+                  e.target.value,
+                  entityFilter,
+                  actionFilter,
+                  severityFilter,
+                  userFilter,
+                );
               }}
               className="pl-8.5 h-9 text-xs bg-white rounded-xl"
             />
@@ -159,7 +174,14 @@ export function AuditLogsTable({
             value={entityFilter}
             onValueChange={(val) => {
               setEntityFilter(val);
-              handleFetch(1, search, val, actionFilter, severityFilter, userFilter);
+              handleFetch(
+                1,
+                search,
+                val,
+                actionFilter,
+                severityFilter,
+                userFilter,
+              );
             }}
           >
             <SelectTrigger className="h-8 text-xs bg-white rounded-xl">
@@ -184,7 +206,14 @@ export function AuditLogsTable({
             value={actionFilter}
             onValueChange={(val) => {
               setActionFilter(val);
-              handleFetch(1, search, entityFilter, val, severityFilter, userFilter);
+              handleFetch(
+                1,
+                search,
+                entityFilter,
+                val,
+                severityFilter,
+                userFilter,
+              );
             }}
           >
             <SelectTrigger className="h-8 text-xs bg-white rounded-xl">
@@ -209,7 +238,14 @@ export function AuditLogsTable({
             value={severityFilter}
             onValueChange={(val) => {
               setSeverityFilter(val);
-              handleFetch(1, search, entityFilter, actionFilter, val, userFilter);
+              handleFetch(
+                1,
+                search,
+                entityFilter,
+                actionFilter,
+                val,
+                userFilter,
+              );
             }}
           >
             <SelectTrigger className="h-8 text-xs bg-white rounded-xl">
@@ -234,14 +270,22 @@ export function AuditLogsTable({
             value={userFilter}
             onValueChange={(val) => {
               setUserFilter(val);
-              handleFetch(1, search, entityFilter, actionFilter, severityFilter, val);
+              handleFetch(
+                1,
+                search,
+                entityFilter,
+                actionFilter,
+                severityFilter,
+                val,
+              );
             }}
           >
             <SelectTrigger className="h-8 text-xs bg-white rounded-xl">
               <SelectValue>
                 {userFilter === "ALL"
                   ? "All Actors"
-                  : adminUsers.find((u) => u.id === userFilter)?.name || "Selected Actor"}
+                  : adminUsers.find((u) => u.id === userFilter)?.name ||
+                    "Selected Actor"}
               </SelectValue>
             </SelectTrigger>
             <SelectContent className="max-h-56 z-50 bg-white">
@@ -296,17 +340,23 @@ export function AuditLogsTable({
                       No audit log entries found
                     </p>
                     <p className="text-[11px] text-gray-400">
-                      Administrative mutations and system changes will be permanently tracked here.
+                      Administrative mutations and system changes will be
+                      permanently tracked here.
                     </p>
                   </div>
                 </TableCell>
               </TableRow>
             ) : (
               logs.map((log) => {
-                const sevConfig = SEVERITY_BADGE_STYLE[log.severity] || SEVERITY_BADGE_STYLE.INFO;
+                const sevConfig =
+                  SEVERITY_BADGE_STYLE[log.severity] ||
+                  SEVERITY_BADGE_STYLE.INFO;
 
                 return (
-                  <TableRow key={log.id} className="hover:bg-gray-50/60 transition-colors">
+                  <TableRow
+                    key={log.id}
+                    className="hover:bg-gray-50/60 transition-colors"
+                  >
                     {/* Timestamp */}
                     <TableCell className="pl-5 py-3.5 text-xs text-gray-600 whitespace-nowrap">
                       <div>
@@ -367,7 +417,9 @@ export function AuditLogsTable({
                     <TableCell className="whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <div className="h-6 w-6 rounded-full bg-[#56C8D8] text-white flex items-center justify-center text-[10px] font-black shrink-0">
-                          {log.actor?.name ? log.actor.name[0].toUpperCase() : "S"}
+                          {log.actor?.name
+                            ? log.actor.name[0].toUpperCase()
+                            : "S"}
                         </div>
                         <div>
                           <p className="text-xs font-bold text-gray-900 leading-tight">
@@ -414,7 +466,9 @@ export function AuditLogsTable({
       {totalPages > 1 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500 px-3">
           <span>
-            Showing {(page - 1) * pageSize + 1} &ndash; {Math.min(page * pageSize, total)} of {total.toLocaleString()} total events
+            Showing {(page - 1) * pageSize + 1} &ndash;{" "}
+            {Math.min(page * pageSize, total)} of {total.toLocaleString()} total
+            events
           </span>
 
           <div className="flex items-center gap-1.5">

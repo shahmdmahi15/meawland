@@ -2,7 +2,12 @@
 
 import db from "@/lib/db";
 import { getMeAction } from "@/actions/auth/get-me";
-import { Role, AuditAction, AuditEntity, AuditSeverity } from "@/generated/prisma/enums";
+import {
+  Role,
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
+} from "@/generated/prisma/enums";
 import { recordAuditLog } from "@/lib/audit-logger";
 import { getImageBase64 } from "@/lib/storage";
 import { revalidatePath } from "next/cache";

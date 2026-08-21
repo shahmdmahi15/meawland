@@ -8,7 +8,11 @@ import {
   OrderStatus,
   PaymentStatus,
   StockEventType,
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
 } from "@/generated/prisma/enums";
+import { recordAuditLog } from "@/lib/audit-logger";
 import {
   updateOrderStatusSchema,
   updatePaymentStatusSchema,
@@ -99,6 +103,22 @@ export async function updateOrderStatusAction(
     revalidatePath("/admin/management/orders/other-orders");
     revalidatePath(`/admin/management/orders/${existingOrder.code}`);
 
+    await recordAuditLog({
+      action: AuditAction.STATUS_CHANGE,
+      entity: AuditEntity.ORDER,
+      entityId: existingOrder.id,
+      entityName: `Order #${existingOrder.code}`,
+      summary: `Order #${existingOrder.code} status changed from ${existingOrder.status} to ${status}`,
+      severity:
+        status === OrderStatus.CANCELLED
+          ? AuditSeverity.WARNING
+          : AuditSeverity.INFO,
+      previousState: { status: existingOrder.status, note: existingOrder.note },
+      newState: { status, note },
+      userId: sessionUser.id,
+      path: `/admin/management/orders/${existingOrder.code}`,
+    });
+
     return {
       success: true,
       message: `Order #${existingOrder.code} status updated to ${status}.`,
@@ -155,6 +175,23 @@ export async function updatePaymentStatusAction(
     revalidatePath("/admin/management/orders/web-orders");
     revalidatePath("/admin/management/orders/other-orders");
     revalidatePath(`/admin/management/orders/${order.code}`);
+
+    await recordAuditLog({
+      action: AuditAction.STATUS_CHANGE,
+      entity: AuditEntity.PAYMENT,
+      entityId: order.id,
+      entityName: `Order #${order.code}`,
+      summary: `Order #${order.code} payment status marked as ${paymentStatus}`,
+      previousState: {
+        paymentStatus:
+          parsed.data.paymentStatus === PaymentStatus.PAID
+            ? PaymentStatus.PENDING
+            : PaymentStatus.PAID,
+      },
+      newState: { paymentStatus },
+      userId: sessionUser.id,
+      path: `/admin/management/orders/${order.code}`,
+    });
 
     return {
       success: true,
@@ -213,6 +250,18 @@ export async function updateOrderItemStatusAction(
     revalidatePath("/admin/management/orders/web-orders");
     revalidatePath("/admin/management/orders/other-orders");
     revalidatePath(`/admin/management/orders/${updatedItem.order.code}`);
+
+    await recordAuditLog({
+      action: AuditAction.STATUS_CHANGE,
+      entity: AuditEntity.ORDER,
+      entityId: updatedItem.order.id,
+      entityName: `Order #${updatedItem.order.code}`,
+      summary: `Order #${updatedItem.order.code} item status changed to ${status}`,
+      severity: AuditSeverity.INFO,
+      newState: { orderItemId, status },
+      userId: sessionUser.id,
+      path: `/admin/management/orders/${updatedItem.order.code}`,
+    });
 
     return {
       success: true,
@@ -278,6 +327,17 @@ export async function updateOrderCustomerAction(
     revalidatePath("/admin/management/orders/web-orders");
     revalidatePath("/admin/management/orders/other-orders");
     revalidatePath(`/admin/management/orders/${updatedOrder.code}`);
+
+    await recordAuditLog({
+      action: AuditAction.UPDATE,
+      entity: AuditEntity.ORDER,
+      entityId: updatedOrder.id,
+      entityName: `Order #${updatedOrder.code}`,
+      summary: `Customer details updated for Order #${updatedOrder.code} (${name}, ${phone})`,
+      newState: { name, email, phone, district, address, note },
+      userId: sessionUser.id,
+      path: `/admin/management/orders/${updatedOrder.code}`,
+    });
 
     return {
       success: true,

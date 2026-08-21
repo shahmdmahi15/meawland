@@ -153,7 +153,10 @@ export function CreateEmailCampaignModal({
     bodyContent: contentHtml
       .replace(/\{name\}/gi, "Sarah Khan")
       .replace(/\{email\}/gi, "customer@example.com")
-      .replace(/\{storeUrl\}/gi, process.env.NEXT_PUBLIC_APP_URL || "https://meawland.com"),
+      .replace(
+        /\{storeUrl\}/gi,
+        process.env.NEXT_PUBLIC_APP_URL || "https://meawland.com",
+      ),
     recipientEmail: "customer@example.com",
     showUnsubscribe: true,
   });
@@ -187,7 +190,8 @@ export function CreateEmailCampaignModal({
                 Create Email Marketing Campaign
               </DialogTitle>
               <DialogDescription className="text-xs text-gray-500">
-                Segment your audience, design rich branded email newsletters, and broadcast across Bangladesh.
+                Segment your audience, design rich branded email newsletters,
+                and broadcast across Bangladesh.
               </DialogDescription>
             </div>
           </div>
@@ -272,28 +276,43 @@ export function CreateEmailCampaignModal({
                       {campaignType === EmailCampaignType.PROMOTIONAL_FLASH
                         ? "Flash Sale & Promotional Offer"
                         : campaignType === EmailCampaignType.TARGETED_SEGMENT
-                        ? "Targeted Audience Segment"
-                        : campaignType === EmailCampaignType.NEWSLETTER_DIGEST
-                        ? "Newsletter Club Digest"
-                        : campaignType === EmailCampaignType.CART_RECOVERY
-                        ? "Abandoned Cart Recovery"
-                        : "Manual List Broadcast"}
+                          ? "Targeted Audience Segment"
+                          : campaignType === EmailCampaignType.NEWSLETTER_DIGEST
+                            ? "Newsletter Club Digest"
+                            : campaignType === EmailCampaignType.CART_RECOVERY
+                              ? "Abandoned Cart Recovery"
+                              : "Manual List Broadcast"}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="z-50 bg-white">
-                    <SelectItem value={EmailCampaignType.PROMOTIONAL_FLASH} className="text-xs">
+                    <SelectItem
+                      value={EmailCampaignType.PROMOTIONAL_FLASH}
+                      className="text-xs"
+                    >
                       Flash Sale &amp; Promotional Offer
                     </SelectItem>
-                    <SelectItem value={EmailCampaignType.TARGETED_SEGMENT} className="text-xs">
+                    <SelectItem
+                      value={EmailCampaignType.TARGETED_SEGMENT}
+                      className="text-xs"
+                    >
                       Targeted Audience Segment
                     </SelectItem>
-                    <SelectItem value={EmailCampaignType.NEWSLETTER_DIGEST} className="text-xs">
+                    <SelectItem
+                      value={EmailCampaignType.NEWSLETTER_DIGEST}
+                      className="text-xs"
+                    >
                       Newsletter Club Digest
                     </SelectItem>
-                    <SelectItem value={EmailCampaignType.CART_RECOVERY} className="text-xs">
+                    <SelectItem
+                      value={EmailCampaignType.CART_RECOVERY}
+                      className="text-xs"
+                    >
                       Abandoned Cart Recovery
                     </SelectItem>
-                    <SelectItem value={EmailCampaignType.MANUAL_BROADCAST} className="text-xs">
+                    <SelectItem
+                      value={EmailCampaignType.MANUAL_BROADCAST}
+                      className="text-xs"
+                    >
                       Manual List Broadcast
                     </SelectItem>
                   </SelectContent>
@@ -381,7 +400,9 @@ export function CreateEmailCampaignModal({
 
             {/* Variable Chips */}
             <div className="flex flex-wrap items-center gap-1.5 text-xs">
-              <span className="font-bold text-gray-500 mr-1">Insert Dynamic Tag:</span>
+              <span className="font-bold text-gray-500 mr-1">
+                Insert Dynamic Tag:
+              </span>
               {["name", "email", "storeUrl"].map((tag) => (
                 <Badge
                   key={tag}
@@ -419,7 +440,8 @@ export function CreateEmailCampaignModal({
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
                   <Label className="text-xs font-bold text-gray-700 flex items-center gap-1">
-                    <Eye className="w-3.5 h-3.5 text-primary" /> Live Render Preview
+                    <Eye className="w-3.5 h-3.5 text-primary" /> Live Render
+                    Preview
                   </Label>
                   <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full">
                     Responsive
@@ -501,14 +523,23 @@ export function CreateEmailCampaignModal({
                 </div>
                 <div>
                   <span className="text-gray-500 block">Target Audience:</span>
-                  <strong className="text-gray-900">{filters.targetType}</strong>
+                  <strong className="text-gray-900">
+                    {filters.targetType}
+                  </strong>
                 </div>
               </div>
 
               <div className="p-3 rounded-xl bg-white border border-gray-200 space-y-1">
-                <span className="font-bold text-gray-700 block">Email Gateway:</span>
+                <span className="font-bold text-gray-700 block">
+                  Email Gateway:
+                </span>
                 <p className="text-[11px] text-gray-500">
-                  Broadcast will be delivered via <strong>AWS SES v2</strong> from <code className="text-primary font-bold">no-reply@meawland.com</code> with automatic SPF, DKIM, and DMARC verification.
+                  Broadcast will be delivered via <strong>AWS SES v2</strong>{" "}
+                  from{" "}
+                  <code className="text-primary font-bold">
+                    no-reply@meawland.com
+                  </code>{" "}
+                  with automatic SPF, DKIM, and DMARC verification.
                 </p>
               </div>
             </div>
@@ -521,7 +552,8 @@ export function CreateEmailCampaignModal({
                     Schedule for Future Dispatch
                   </p>
                   <p className="text-[11px] text-gray-500">
-                    Broadcast immediately upon submission or schedule for a specific date and time.
+                    Broadcast immediately upon submission or schedule for a
+                    specific date and time.
                   </p>
                 </div>
                 <input
@@ -574,7 +606,9 @@ export function CreateEmailCampaignModal({
                   <>
                     <CheckCircle2 className="w-4 h-4" />
                     <span>
-                      {isScheduled ? "Schedule Campaign" : "Confirm & Launch Campaign"}
+                      {isScheduled
+                        ? "Schedule Campaign"
+                        : "Confirm & Launch Campaign"}
                     </span>
                   </>
                 )}

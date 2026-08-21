@@ -72,7 +72,8 @@ export interface MetaServerEventPayload {
   event_time: number; // Unix timestamp in seconds
   event_id?: string; // Matching deduplication ID
   event_source_url?: string;
-  action_source: "website" | "app" | "physical_store" | "system_generated" | "other";
+  action_source:
+    "website" | "app" | "physical_store" | "system_generated" | "other";
   user_data: MetaUserData;
   custom_data?: MetaCustomData;
   opt_out?: boolean;

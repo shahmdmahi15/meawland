@@ -3,6 +3,12 @@
 import db from "@/lib/db";
 import { deleteFile } from "@/lib/storage";
 import { revalidatePath } from "next/cache";
+import {
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
+} from "@/generated/prisma/enums";
+import { recordAuditLog } from "@/lib/audit-logger";
 
 export async function deleteBrandAction(brandId: string): Promise<{
   success: boolean;
@@ -60,6 +66,17 @@ export async function deleteBrandAction(brandId: string): Promise<{
     revalidatePath("/admin/management/inventory");
     revalidatePath("/");
     revalidatePath("/products");
+
+    await recordAuditLog({
+      action: AuditAction.DELETE,
+      entity: AuditEntity.BRAND,
+      entityId: brand.id,
+      entityName: brand.name,
+      summary: `Brand "${brand.name}" was permanently deleted`,
+      severity: AuditSeverity.WARNING,
+      previousState: { name: brand.name, slug: brand.slug },
+      path: "/admin/management/store/brands",
+    });
 
     return {
       success: true,

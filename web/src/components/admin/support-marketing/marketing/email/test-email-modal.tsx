@@ -85,7 +85,8 @@ export function TestEmailModal({
                 Send Live Email Test Preview
               </DialogTitle>
               <DialogDescription className="text-xs text-gray-500">
-                Dispatch a test email to your inbox to inspect rendering, subject line, and responsiveness.
+                Dispatch a test email to your inbox to inspect rendering,
+                subject line, and responsiveness.
               </DialogDescription>
             </div>
           </div>
@@ -120,7 +121,10 @@ export function TestEmailModal({
           <div className="p-3.5 rounded-2xl bg-gray-50 border border-gray-200 text-gray-600 space-y-1">
             <p className="font-bold text-gray-800">Email Gateway: AWS SES v2</p>
             <p className="text-[11px]">
-              Sender: <code className="text-primary font-bold">no-reply@meawland.com</code>
+              Sender:{" "}
+              <code className="text-primary font-bold">
+                no-reply@meawland.com
+              </code>
             </p>
           </div>
         </div>

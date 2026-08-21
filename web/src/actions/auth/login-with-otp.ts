@@ -11,6 +11,12 @@ import crypto from "crypto";
 import { cookies } from "next/headers";
 import { mergeGuestCartIntoUser } from "@/actions/store/cart";
 import { trackMetaCompleteRegistrationAction } from "@/actions/meta";
+import {
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
+} from "@/generated/prisma/enums";
+import { recordAuditLog } from "@/lib/audit-logger";
 
 export async function loginWithOtpAction(
   input: LoginOtpInput,
@@ -111,11 +117,24 @@ export async function loginWithOtpAction(
         phone: userExists.phone,
         name: userExists.name,
       }).catch((err) => {
-        console.error("[Actions.Auth.LoginWithOtp] Meta CAPI Registration error:", err);
+        console.error(
+          "[Actions.Auth.LoginWithOtp] Meta CAPI Registration error:",
+          err,
+        );
       });
     } catch {
       // Non-blocking telemetry
     }
+
+    await recordAuditLog({
+      action: AuditAction.LOGIN,
+      entity: AuditEntity.AUTH,
+      userId: userExists.id,
+      entityName: userExists.name,
+      summary: `User "${userExists.name}" (${userExists.email || userExists.phone}) logged in via OTP`,
+      severity: AuditSeverity.INFO,
+      path: "/login",
+    }).catch(() => {});
 
     return {
       success: true,

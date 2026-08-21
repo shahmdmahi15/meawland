@@ -71,9 +71,7 @@ export async function sendQuickDirectSmsAction(input: {
         success: res.success,
         message:
           res.message ||
-          (res.success
-            ? "SMS submitted successfully."
-            : "Failed to send SMS."),
+          (res.success ? "SMS submitted successfully." : "Failed to send SMS."),
         sentCount: res.success ? 1 : 0,
       };
     }
@@ -104,6 +102,23 @@ export async function sendQuickDirectSmsAction(input: {
     });
 
     revalidatePath("/admin/support-marketing/marketing/sms");
+
+    const { recordAuditLog } = await import("@/lib/audit-logger");
+    const { AuditAction, AuditEntity, AuditSeverity } =
+      await import("@/generated/prisma/enums");
+
+    await recordAuditLog({
+      action: AuditAction.BROADCAST_SENT,
+      entity: AuditEntity.SMS,
+      summary: `Quick Direct SMS sent to ${sanitizedNumbers.length} recipients`,
+      severity: AuditSeverity.INFO,
+      newState: {
+        recipientsCount: sanitizedNumbers.length,
+        message: input.message.trim(),
+        senderId: input.senderId,
+      },
+      path: "/admin/support-marketing/marketing/sms",
+    }).catch(() => {});
 
     return {
       success: isSuccess,

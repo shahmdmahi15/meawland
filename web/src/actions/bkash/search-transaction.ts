@@ -78,15 +78,11 @@ export async function searchBkashTransactionAction(trxID: string): Promise<{
     );
 
     const data = (await response.json()) as
-      | BkashSearchTransactionResponse
-      | BkashSearchTransactionErrorResponse;
+      BkashSearchTransactionResponse | BkashSearchTransactionErrorResponse;
 
     if (!response.ok || !("trxID" in data)) {
       const errorData = data as BkashSearchTransactionErrorResponse;
-      console.error(
-        "[Actions.Bkash.SearchTransaction] API error:",
-        errorData,
-      );
+      console.error("[Actions.Bkash.SearchTransaction] API error:", errorData);
       return {
         success: false,
         message:

@@ -1,7 +1,11 @@
 "use server";
 
 import db from "@/lib/db";
-import { OrderStatus, PaymentMethod, PaymentStatus } from "@/generated/prisma/enums";
+import {
+  OrderStatus,
+  PaymentMethod,
+  PaymentStatus,
+} from "@/generated/prisma/enums";
 import {
   DashboardFinancialMetrics,
   DashboardSalesChartPoint,
@@ -21,7 +25,14 @@ export async function getDashboardFinancials(
   let startDate: Date;
 
   if (timeRange === "today") {
-    startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+    startDate = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      0,
+      0,
+      0,
+    );
   } else if (timeRange === "week") {
     startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   } else if (timeRange === "month") {
@@ -34,7 +45,14 @@ export async function getDashboardFinancials(
   }
 
   // Today start date for today metric
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+  const todayStart = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    0,
+    0,
+    0,
+  );
 
   // Fetch all orders with orderItems
   const allOrders = await db.order.findMany({
@@ -67,7 +85,10 @@ export async function getDashboardFinancials(
   let todayOrdersCount = 0;
 
   // Grouping map for chart points
-  const chartMap = new Map<string, { revenue: number; orders: number; profit: number }>();
+  const chartMap = new Map<
+    string,
+    { revenue: number; orders: number; profit: number }
+  >();
 
   // Determine chart format
   const isToday = timeRange === "today";
@@ -101,7 +122,9 @@ export async function getDashboardFinancials(
           const unitCost =
             parseFloat(item.variant?.costPrice || "") ||
             parseFloat(item.product?.costPrice || "") ||
-            (parseFloat(item.comboProduct?.salePrice || "") ? parseFloat(item.comboProduct?.salePrice || "") * 0.7 : 0) ||
+            (parseFloat(item.comboProduct?.salePrice || "")
+              ? parseFloat(item.comboProduct?.salePrice || "") * 0.7
+              : 0) ||
             0;
           itemCost = unitCost * (item.quanitity || 1);
         }
@@ -132,7 +155,11 @@ export async function getDashboardFinancials(
         });
       }
 
-      const existing = chartMap.get(key) || { revenue: 0, orders: 0, profit: 0 };
+      const existing = chartMap.get(key) || {
+        revenue: 0,
+        orders: 0,
+        profit: 0,
+      };
       existing.revenue += orderFinalCost;
       existing.orders += 1;
       existing.profit += orderFinalCost - orderCost;
@@ -142,8 +169,7 @@ export async function getDashboardFinancials(
 
   const validOrdersCount = allOrders.filter(
     (o) =>
-      o.status !== OrderStatus.CANCELLED &&
-      o.status !== OrderStatus.RETURNED,
+      o.status !== OrderStatus.CANCELLED && o.status !== OrderStatus.RETURNED,
   ).length;
 
   const netProfit = Math.max(0, totalRevenue - totalCostOfGoods);

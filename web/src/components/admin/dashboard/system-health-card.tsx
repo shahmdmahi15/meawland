@@ -29,7 +29,8 @@ export function SystemHealthCard({ system }: SystemHealthCardProps) {
             <span>Infrastructure &amp; Server Telemetry</span>
           </h2>
           <p className="text-xs text-gray-500">
-            Node {system.nodeVersion} • Next.js {system.nextVersion} • {system.platform}
+            Node {system.nodeVersion} • Next.js {system.nextVersion} •{" "}
+            {system.platform}
           </p>
         </div>
 
@@ -83,9 +84,7 @@ export function SystemHealthCard({ system }: SystemHealthCardProps) {
             <span className="text-[10px] font-bold uppercase">Storage</span>
             <Cloud className="w-3.5 h-3.5 text-blue-600" />
           </div>
-          <p className="text-base font-black text-gray-900 truncate">
-            AWS S3
-          </p>
+          <p className="text-base font-black text-gray-900 truncate">AWS S3</p>
         </div>
       </div>
 
@@ -93,14 +92,21 @@ export function SystemHealthCard({ system }: SystemHealthCardProps) {
       <div className="space-y-1.5 pt-2 border-t border-gray-100 text-xs">
         <div className="flex justify-between text-[11px] font-semibold text-gray-700">
           <span className="flex items-center gap-1">
-            <HardDrive className="w-3.5 h-3.5 text-gray-400" /> Server Memory Load
+            <HardDrive className="w-3.5 h-3.5 text-gray-400" /> Server Memory
+            Load
           </span>
-          <span className="font-mono">{system.memoryUsageMb.heapUsed} MB / {system.memoryUsageMb.heapTotal} MB Heap ({system.memoryUsageMb.systemUsagePct}% Sys RAM)</span>
+          <span className="font-mono">
+            {system.memoryUsageMb.heapUsed} MB /{" "}
+            {system.memoryUsageMb.heapTotal} MB Heap (
+            {system.memoryUsageMb.systemUsagePct}% Sys RAM)
+          </span>
         </div>
         <div className="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
           <div
             className="h-full rounded-full bg-[#56C8D8]"
-            style={{ width: `${Math.min(100, Math.max(10, system.memoryUsageMb.systemUsagePct))}%` }}
+            style={{
+              width: `${Math.min(100, Math.max(10, system.memoryUsageMb.systemUsagePct))}%`,
+            }}
           />
         </div>
       </div>

@@ -109,7 +109,9 @@ export function CheckoutPageView({ initialData }: CheckoutPageViewProps) {
           currency: "BDT",
           num_items: currentCart.items.reduce((sum, i) => sum + i.quantity, 0),
           content_type: "product",
-          content_ids: currentCart.items.map((i) => i.variantId || i.productId || i.comboProductId || i.id),
+          content_ids: currentCart.items.map(
+            (i) => i.variantId || i.productId || i.comboProductId || i.id,
+          ),
         },
         eventId,
       );
@@ -514,7 +516,9 @@ export function CheckoutPageView({ initialData }: CheckoutPageViewProps) {
                     type="radio"
                     name="paymentMethod"
                     checked={paymentMethod === PaymentMethod.COD}
-                    onChange={() => handlePaymentMethodChange(PaymentMethod.COD)}
+                    onChange={() =>
+                      handlePaymentMethodChange(PaymentMethod.COD)
+                    }
                     className="mt-1 text-[#56C8D8] focus:ring-[#56C8D8]"
                   />
                   <div className="space-y-1">
@@ -543,7 +547,9 @@ export function CheckoutPageView({ initialData }: CheckoutPageViewProps) {
                     type="radio"
                     name="paymentMethod"
                     checked={paymentMethod === PaymentMethod.BKASH}
-                    onChange={() => handlePaymentMethodChange(PaymentMethod.BKASH)}
+                    onChange={() =>
+                      handlePaymentMethodChange(PaymentMethod.BKASH)
+                    }
                     className="mt-1 text-[#56C8D8] focus:ring-[#56C8D8]"
                   />
                   <div className="space-y-1">
@@ -781,7 +787,9 @@ export function CheckoutPageView({ initialData }: CheckoutPageViewProps) {
                 ) : paymentMethod === PaymentMethod.BKASH ? (
                   <div className="flex items-center gap-2">
                     <Smartphone className="w-5 h-5" />
-                    <span>Pay ৳{grandTotal.toLocaleString()} with bKash 🚀</span>
+                    <span>
+                      Pay ৳{grandTotal.toLocaleString()} with bKash 🚀
+                    </span>
                   </div>
                 ) : (
                   <span>Confirm &amp; Place Order (COD) 🐾</span>

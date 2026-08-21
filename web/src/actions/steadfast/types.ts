@@ -16,11 +16,7 @@ export type SteadfastDeliveryStatus =
   | "unknown";
 
 export type SteadfastReturnStatus =
-  | "pending"
-  | "approved"
-  | "processing"
-  | "completed"
-  | "cancelled";
+  "pending" | "approved" | "processing" | "completed" | "cancelled";
 
 // ────────────────────────────────────────────────────────────────────────────────
 // 1. Create Single Order
@@ -229,5 +225,4 @@ export type SteadfastTrackingUpdateWebhookPayload = {
 };
 
 export type SteadfastWebhookPayload =
-  | SteadfastDeliveryStatusWebhookPayload
-  | SteadfastTrackingUpdateWebhookPayload;
+  SteadfastDeliveryStatusWebhookPayload | SteadfastTrackingUpdateWebhookPayload;

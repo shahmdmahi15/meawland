@@ -105,7 +105,8 @@ export async function getSmsMarketingPageDataAction(): Promise<{
         templates: templatesRes.templates || [],
         logs: logsRes.logs || [],
         totalLogs: logsRes.total || 0,
-        automationSettings: automationsRes.settings || defaultAutomationSettings,
+        automationSettings:
+          automationsRes.settings || defaultAutomationSettings,
         categories,
         brands,
         districts,

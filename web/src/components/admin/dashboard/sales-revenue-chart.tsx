@@ -19,15 +19,18 @@ interface SalesRevenueChartProps {
 }
 
 export function SalesRevenueChart({ data }: SalesRevenueChartProps) {
-  const chartData = data && data.length > 0 ? data : [
-    { date: "Day 1", revenue: 4200, orders: 3, profit: 1800 },
-    { date: "Day 2", revenue: 6800, orders: 5, profit: 2900 },
-    { date: "Day 3", revenue: 5400, orders: 4, profit: 2400 },
-    { date: "Day 4", revenue: 9100, orders: 7, profit: 4100 },
-    { date: "Day 5", revenue: 12500, orders: 9, profit: 5600 },
-    { date: "Day 6", revenue: 8700, orders: 6, profit: 3800 },
-    { date: "Day 7", revenue: 14200, orders: 11, profit: 6400 },
-  ];
+  const chartData =
+    data && data.length > 0
+      ? data
+      : [
+          { date: "Day 1", revenue: 4200, orders: 3, profit: 1800 },
+          { date: "Day 2", revenue: 6800, orders: 5, profit: 2900 },
+          { date: "Day 3", revenue: 5400, orders: 4, profit: 2400 },
+          { date: "Day 4", revenue: 9100, orders: 7, profit: 4100 },
+          { date: "Day 5", revenue: 12500, orders: 9, profit: 5600 },
+          { date: "Day 6", revenue: 8700, orders: 6, profit: 3800 },
+          { date: "Day 7", revenue: 14200, orders: 11, profit: 6400 },
+        ];
 
   return (
     <Card className="rounded-3xl border-gray-200 bg-white p-5 shadow-xs">
@@ -90,8 +93,12 @@ export function SalesRevenueChart({ data }: SalesRevenueChartProps) {
             <Tooltip
               content={({ active, payload, label }) => {
                 if (active && payload && payload.length) {
-                  const rev = payload.find((p) => p.dataKey === "revenue")?.value as number || 0;
-                  const prof = payload.find((p) => p.dataKey === "profit")?.value as number || 0;
+                  const rev =
+                    (payload.find((p) => p.dataKey === "revenue")
+                      ?.value as number) || 0;
+                  const prof =
+                    (payload.find((p) => p.dataKey === "profit")
+                      ?.value as number) || 0;
                   const orders = payload[0]?.payload?.orders || 0;
 
                   return (
@@ -100,16 +107,28 @@ export function SalesRevenueChart({ data }: SalesRevenueChartProps) {
                         {label}
                       </p>
                       <div className="flex justify-between items-center text-gray-600">
-                        <span className="text-[#0097a7] font-bold">Revenue:</span>
-                        <strong className="text-gray-900">৳{rev.toLocaleString()}</strong>
+                        <span className="text-[#0097a7] font-bold">
+                          Revenue:
+                        </span>
+                        <strong className="text-gray-900">
+                          ৳{rev.toLocaleString()}
+                        </strong>
                       </div>
                       <div className="flex justify-between items-center text-gray-600">
-                        <span className="text-emerald-600 font-bold">Net Profit:</span>
-                        <strong className="text-emerald-700">৳{prof.toLocaleString()}</strong>
+                        <span className="text-emerald-600 font-bold">
+                          Net Profit:
+                        </span>
+                        <strong className="text-emerald-700">
+                          ৳{prof.toLocaleString()}
+                        </strong>
                       </div>
                       <div className="flex justify-between items-center text-gray-600">
-                        <span className="text-purple-600 font-bold">Orders:</span>
-                        <strong className="text-purple-700">{orders} orders</strong>
+                        <span className="text-purple-600 font-bold">
+                          Orders:
+                        </span>
+                        <strong className="text-purple-700">
+                          {orders} orders
+                        </strong>
                       </div>
                     </div>
                   );

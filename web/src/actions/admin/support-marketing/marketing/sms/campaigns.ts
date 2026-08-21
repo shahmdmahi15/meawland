@@ -76,7 +76,8 @@ export async function getSmsCampaignsAction(options?: {
       message: c.message,
       senderId: c.senderId,
       targetSegment: c.targetSegment,
-      segmentFilters: c.segmentFilters as AdminSmsCampaignSummary["segmentFilters"],
+      segmentFilters:
+        c.segmentFilters as AdminSmsCampaignSummary["segmentFilters"],
       totalRecipients: c.totalRecipients,
       sentCount: c.sentCount,
       failedCount: c.failedCount,
@@ -122,7 +123,8 @@ export async function createSmsCampaignAction(
     if (!validated.success) {
       return {
         success: false,
-        message: validated.error.issues[0]?.message || "Invalid campaign input.",
+        message:
+          validated.error.issues[0]?.message || "Invalid campaign input.",
       };
     }
 
@@ -143,13 +145,16 @@ export async function createSmsCampaignAction(
     const partsPerMsg = Math.max(1, Math.ceil(charLength / maxCharsPerSms));
     const estimatedCost = (recipients.length * partsPerMsg * 0.35).toFixed(2);
 
-    const isScheduled = !!data.scheduleAt && new Date(data.scheduleAt) > new Date();
+    const isScheduled =
+      !!data.scheduleAt && new Date(data.scheduleAt) > new Date();
 
     const campaign = await db.smsCampaign.create({
       data: {
         title: data.title.trim(),
         type: data.type,
-        status: isScheduled ? SmsCampaignStatus.SCHEDULED : SmsCampaignStatus.PROCESSING,
+        status: isScheduled
+          ? SmsCampaignStatus.SCHEDULED
+          : SmsCampaignStatus.PROCESSING,
         message: data.message.trim(),
         senderId: data.senderId || env.SMS_SENDER_ID,
         targetSegment: data.filters.targetType,
@@ -163,7 +168,12 @@ export async function createSmsCampaignAction(
     // If not scheduled for later, execute immediately
     if (!isScheduled) {
       // Execute in background
-      executeCampaignDispatch(campaign.id, recipients, data.message, data.senderId);
+      executeCampaignDispatch(
+        campaign.id,
+        recipients,
+        data.message,
+        data.senderId,
+      );
     }
 
     revalidatePath("/admin/support-marketing/marketing/sms");
@@ -175,7 +185,8 @@ export async function createSmsCampaignAction(
       entityId: campaign.id,
       entityName: campaign.title,
       summary: `SMS Campaign "${campaign.title}" launched to ${recipients.length} recipients. Est Cost: ৳${estimatedCost}`,
-      severity: recipients.length > 500 ? AuditSeverity.WARNING : AuditSeverity.INFO,
+      severity:
+        recipients.length > 500 ? AuditSeverity.WARNING : AuditSeverity.INFO,
       newState: {
         title: campaign.title,
         type: campaign.type,
@@ -287,7 +298,10 @@ async function executeCampaignDispatch(
       },
     });
   } catch (error) {
-    console.error(`[Campaign.Dispatch] Error in campaign ${campaignId}:`, error);
+    console.error(
+      `[Campaign.Dispatch] Error in campaign ${campaignId}:`,
+      error,
+    );
     await db.smsCampaign.update({
       where: { id: campaignId },
       data: {
@@ -306,11 +320,30 @@ export async function deleteSmsCampaignAction(campaignId: string): Promise<{
   message?: string;
 }> {
   try {
+    const existing = await db.smsCampaign.findUnique({
+      where: { id: campaignId },
+      select: { title: true, totalRecipients: true },
+    });
+
     await db.smsCampaign.delete({
       where: { id: campaignId },
     });
 
     revalidatePath("/admin/support-marketing/marketing/sms");
+
+    await recordAuditLog({
+      action: AuditAction.DELETE,
+      entity: AuditEntity.SMS,
+      entityId: campaignId,
+      entityName: existing?.title || "SMS Campaign",
+      summary: `SMS Campaign "${existing?.title || campaignId}" deleted`,
+      severity: AuditSeverity.INFO,
+      previousState: {
+        title: existing?.title,
+        totalRecipients: existing?.totalRecipients,
+      },
+      path: "/admin/support-marketing/marketing/sms",
+    });
 
     return {
       success: true,

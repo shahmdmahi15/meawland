@@ -56,15 +56,31 @@ export async function createSteadfastReturnRequestAction(
     if (!result.success || !result.data) {
       return {
         success: false,
-        message: result.message || "Failed to create return request on Steadfast.",
+        message:
+          result.message || "Failed to create return request on Steadfast.",
       };
     }
 
     const returnData = (
-      "data" in result.data && result.data.data
-        ? result.data.data
-        : result.data
+      "data" in result.data && result.data.data ? result.data.data : result.data
     ) as SteadfastReturnRequest;
+
+    const { recordAuditLog } = await import("@/lib/audit-logger");
+    const { AuditAction, AuditEntity, AuditSeverity } =
+      await import("@/generated/prisma/enums");
+
+    await recordAuditLog({
+      action: AuditAction.STATUS_CHANGE,
+      entity: AuditEntity.SHIPMENT,
+      entityId: input.consignment_id
+        ? String(input.consignment_id)
+        : input.tracking_code || input.invoice,
+      entityName: `Consignment Return (${input.invoice || input.tracking_code || input.consignment_id})`,
+      summary: `Courier Return Request submitted to Steadfast for Consignment (Reason: ${input.reason || "N/A"})`,
+      severity: AuditSeverity.WARNING,
+      newState: { returnData },
+      path: "/admin/management/orders",
+    }).catch(() => {});
 
     return {
       success: true,
@@ -112,9 +128,7 @@ export async function getSteadfastReturnRequestByIdAction(
     }
 
     const returnData = (
-      "data" in result.data && result.data.data
-        ? result.data.data
-        : result.data
+      "data" in result.data && result.data.data ? result.data.data : result.data
     ) as SteadfastReturnRequest;
 
     return {

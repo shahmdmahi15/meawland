@@ -100,9 +100,7 @@ export default function EntryLayout({
     >
       <body className="min-h-full flex flex-col">
         <Suspense fallback={null}>
-          <MetaPixelProvider>
-            {children}
-          </MetaPixelProvider>
+          <MetaPixelProvider>{children}</MetaPixelProvider>
         </Suspense>
         <Toaster richColors />
       </body>

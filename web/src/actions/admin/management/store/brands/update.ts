@@ -9,6 +9,12 @@ import {
   type UpdateBrandError,
   type UpdateBrandInput,
 } from "@/schemas/admin/management/store/brands/update";
+import {
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
+} from "@/generated/prisma/enums";
+import { recordAuditLog } from "@/lib/audit-logger";
 
 export async function updateBrandAction(input: UpdateBrandInput): Promise<{
   success: boolean;
@@ -101,6 +107,18 @@ export async function updateBrandAction(input: UpdateBrandInput): Promise<{
     revalidatePath("/admin/management/inventory");
     revalidatePath("/");
     revalidatePath("/products");
+
+    await recordAuditLog({
+      action: AuditAction.UPDATE,
+      entity: AuditEntity.BRAND,
+      entityId: existing.id,
+      entityName: data.name || existing.name,
+      summary: `Brand "${data.name || existing.name}" updated`,
+      severity: AuditSeverity.INFO,
+      previousState: { name: existing.name, slug: existing.slug },
+      newState: { name: data.name, slug: data.slug },
+      path: "/admin/management/store/brands",
+    });
 
     return {
       success: true,

@@ -204,7 +204,8 @@ export function ProductDetailsView({
 
     if (nextState) {
       const eventId = generateBrowserEventId("atw");
-      const priceVal = numericCurrentPrice || product.salePrice || product.regularPrice || 0;
+      const priceVal =
+        numericCurrentPrice || product.salePrice || product.regularPrice || 0;
 
       trackMetaPixelEvent(
         "AddToWishlist",
@@ -276,7 +277,8 @@ export function ProductDetailsView({
     }
 
     const eventId = generateBrowserEventId("atc");
-    const priceVal = numericCurrentPrice || product.salePrice || product.regularPrice || 0;
+    const priceVal =
+      numericCurrentPrice || product.salePrice || product.regularPrice || 0;
 
     trackMetaPixelEvent(
       "AddToCart",

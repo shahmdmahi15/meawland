@@ -95,7 +95,8 @@ export function TestSmsModal({ messageContent, trigger }: TestSmsModalProps) {
                 Send Live Test Preview
               </DialogTitle>
               <DialogDescription className="text-xs text-gray-500">
-                Dispatch a test SMS to your mobile phone to inspect formatting, character length, and delivery speed.
+                Dispatch a test SMS to your mobile phone to inspect formatting,
+                character length, and delivery speed.
               </DialogDescription>
             </div>
           </div>
@@ -116,7 +117,9 @@ export function TestSmsModal({ messageContent, trigger }: TestSmsModalProps) {
           </div>
 
           <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 space-y-1">
-            <span className="font-bold text-gray-700 block">Preview Content:</span>
+            <span className="font-bold text-gray-700 block">
+              Preview Content:
+            </span>
             <p className="text-[11px] text-gray-600 font-mono whitespace-pre-wrap leading-relaxed">
               {messageContent || "No message content entered yet."}
             </p>

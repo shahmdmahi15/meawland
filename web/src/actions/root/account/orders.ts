@@ -294,15 +294,17 @@ export async function getCustomerOrdersAction(
           createdAt: o.createdAt,
           updatedAt: o.updatedAt,
           payment: o.payment || null,
-          shipment: o.shipment ? {
-            id: o.shipment.id,
-            provider: o.shipment.provider,
-            consignmentId: o.shipment.consignmentId,
-            trackingCode: o.shipment.trackingCode,
-            status: o.shipment.status,
-            rawStatus: o.shipment.rawStatus,
-            lastCheckedAt: o.shipment.lastCheckedAt,
-          } : null,
+          shipment: o.shipment
+            ? {
+                id: o.shipment.id,
+                provider: o.shipment.provider,
+                consignmentId: o.shipment.consignmentId,
+                trackingCode: o.shipment.trackingCode,
+                status: o.shipment.status,
+                rawStatus: o.shipment.rawStatus,
+                lastCheckedAt: o.shipment.lastCheckedAt,
+              }
+            : null,
           items,
         };
       }),
@@ -472,15 +474,17 @@ export async function getCustomerOrderDetailsAction(
         createdAt: order.createdAt,
         updatedAt: order.updatedAt,
         payment: order.payment || null,
-        shipment: order.shipment ? {
-          id: order.shipment.id,
-          provider: order.shipment.provider,
-          consignmentId: order.shipment.consignmentId,
-          trackingCode: order.shipment.trackingCode,
-          status: order.shipment.status,
-          rawStatus: order.shipment.rawStatus,
-          lastCheckedAt: order.shipment.lastCheckedAt,
-        } : null,
+        shipment: order.shipment
+          ? {
+              id: order.shipment.id,
+              provider: order.shipment.provider,
+              consignmentId: order.shipment.consignmentId,
+              trackingCode: order.shipment.trackingCode,
+              status: order.shipment.status,
+              rawStatus: order.shipment.rawStatus,
+              lastCheckedAt: order.shipment.lastCheckedAt,
+            }
+          : null,
         items,
       },
     };

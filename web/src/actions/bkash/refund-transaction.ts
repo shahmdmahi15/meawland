@@ -132,9 +132,7 @@ export async function refundBkashTransactionAction(
       statusMessage: data.statusMessage || "Successful",
     };
 
-    if (
-      normalizedData.refundTransactionStatus.toLowerCase() !== "completed"
-    ) {
+    if (normalizedData.refundTransactionStatus.toLowerCase() !== "completed") {
       console.error(
         "[Actions.Bkash.RefundTransaction] Non-completed status:",
         data,
@@ -152,9 +150,7 @@ export async function refundBkashTransactionAction(
     };
   } catch (error) {
     if (error instanceof DOMException && error.name === "TimeoutError") {
-      console.error(
-        "[Actions.Bkash.RefundTransaction] Request timed out.",
-      );
+      console.error("[Actions.Bkash.RefundTransaction] Request timed out.");
       return {
         success: false,
         message:

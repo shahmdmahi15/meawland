@@ -60,6 +60,9 @@ export function trackMetaPixelCustomEvent(
       }
     }
   } catch (error) {
-    console.warn("[MetaPixel.Browser] Error sending custom pixel event:", error);
+    console.warn(
+      "[MetaPixel.Browser] Error sending custom pixel event:",
+      error,
+    );
   }
 }

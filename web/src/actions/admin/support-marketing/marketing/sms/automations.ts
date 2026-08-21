@@ -5,6 +5,12 @@ import {
   UpdateSmsAutomationSettingsSchema,
   type UpdateSmsAutomationSettingsInput,
 } from "./types";
+import {
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
+} from "@/generated/prisma/enums";
+import { recordAuditLog } from "@/lib/audit-logger";
 import { revalidatePath } from "next/cache";
 
 export type SmsAutomationSettingsSummary = {
@@ -120,6 +126,20 @@ export async function updateSmsAutomationSettingsAction(
     });
 
     revalidatePath("/admin/support-marketing/marketing/sms");
+
+    await recordAuditLog({
+      action: AuditAction.SETTINGS_UPDATE,
+      entity: AuditEntity.SYSTEM_SETTINGS,
+      summary: "SMS Automation Lifecycle Settings & Templates updated",
+      severity: AuditSeverity.INFO,
+      newState: {
+        orderPlacedSms: data.orderPlacedSms,
+        orderDispatchedSms: data.orderDispatchedSms,
+        orderDeliveredSms: data.orderDeliveredSms,
+        bkashPaymentPaidSms: data.bkashPaymentPaidSms,
+      },
+      path: "/admin/support-marketing/marketing/sms",
+    }).catch(() => {});
 
     return {
       success: true,
@@ -375,4 +395,3 @@ export async function triggerBkashPaidSms(order: {
     console.error("[SMS.Trigger.BkashPaid] Error:", err);
   }
 }
-

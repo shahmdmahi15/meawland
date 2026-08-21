@@ -205,7 +205,8 @@ export async function getDashboardSystemAndIntegrations(): Promise<{
     steadfast: {
       connected: steadfastBalanceRes.success,
       currentBalance:
-        steadfastBalanceRes.success && steadfastBalanceRes.current_balance !== undefined
+        steadfastBalanceRes.success &&
+        steadfastBalanceRes.current_balance !== undefined
           ? steadfastBalanceRes.current_balance
           : 0,
       totalConsignments,

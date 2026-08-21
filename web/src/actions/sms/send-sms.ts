@@ -1,11 +1,7 @@
 "use server";
 
 import { env } from "@/env";
-import type {
-  SingleSmsInput,
-  BulkSmsInput,
-  SmsApiResponse,
-} from "./types";
+import type { SingleSmsInput, BulkSmsInput, SmsApiResponse } from "./types";
 import {
   sanitizeBangladeshiPhoneNumber,
   sanitizePhoneNumbers,
@@ -16,9 +12,7 @@ import {
 /**
  * Sends a single SMS to a recipient phone number via BulkSMSBD API
  */
-export async function sendSingleSmsAction(
-  input: SingleSmsInput,
-): Promise<{
+export async function sendSingleSmsAction(input: SingleSmsInput): Promise<{
   success: boolean;
   message?: string;
   data?: SmsApiResponse;
@@ -101,16 +95,18 @@ export async function sendSingleSmsAction(
 /**
  * Sends a single message to multiple phone numbers (One-to-Many Bulk SMS)
  */
-export async function sendBulkSmsAction(
-  input: BulkSmsInput,
-): Promise<{
+export async function sendBulkSmsAction(input: BulkSmsInput): Promise<{
   success: boolean;
   message?: string;
   sentCount?: number;
   data?: SmsApiResponse;
 }> {
   try {
-    if (!input.recipients || input.recipients.length === 0 || !input.message?.trim()) {
+    if (
+      !input.recipients ||
+      input.recipients.length === 0 ||
+      !input.message?.trim()
+    ) {
       return {
         success: false,
         message: "At least one recipient and a message body are required.",

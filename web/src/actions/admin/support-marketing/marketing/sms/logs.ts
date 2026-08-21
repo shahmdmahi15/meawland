@@ -119,8 +119,12 @@ export async function retryFailedSmsLogAction(logId: string): Promise<{
     await db.smsLog.update({
       where: { id: logId },
       data: {
-        status: res.success ? SmsDeliveryStatus.SUBMITTED : SmsDeliveryStatus.FAILED,
-        responseCode: res.data?.response_code ? Number(res.data.response_code) : undefined,
+        status: res.success
+          ? SmsDeliveryStatus.SUBMITTED
+          : SmsDeliveryStatus.FAILED,
+        responseCode: res.data?.response_code
+          ? Number(res.data.response_code)
+          : undefined,
         statusMessage: res.message,
         rawResponse: res.data ? (res.data as object) : undefined,
       },
@@ -130,7 +134,9 @@ export async function retryFailedSmsLogAction(logId: string): Promise<{
 
     return {
       success: res.success,
-      message: res.message || (res.success ? "SMS resent successfully." : "Retry failed."),
+      message:
+        res.message ||
+        (res.success ? "SMS resent successfully." : "Retry failed."),
     };
   } catch (error) {
     console.error("[Action.SMS.RetryLog] Error:", error);

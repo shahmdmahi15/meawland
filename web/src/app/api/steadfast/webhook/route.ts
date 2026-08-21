@@ -93,7 +93,10 @@ export async function POST(request: NextRequest) {
           "[API.Steadfast.Webhook] Missing Authorization header in request.",
         );
         return NextResponse.json(
-          { status: "error", message: "Unauthorized. Missing authorization token." },
+          {
+            status: "error",
+            message: "Unauthorized. Missing authorization token.",
+          },
           { status: 401 },
         );
       }
@@ -113,7 +116,10 @@ export async function POST(request: NextRequest) {
           rawToken,
         );
         return NextResponse.json(
-          { status: "error", message: "Unauthorized. Invalid authorization token." },
+          {
+            status: "error",
+            message: "Unauthorized. Invalid authorization token.",
+          },
           { status: 401 },
         );
       }

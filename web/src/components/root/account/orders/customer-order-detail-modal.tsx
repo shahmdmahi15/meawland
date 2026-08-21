@@ -282,49 +282,53 @@ export function CustomerOrderDetailModal({
                   </Badge>
                 </div>
 
-                {order.paymentMethod === PaymentMethod.BKASH && order.payment && (
-                  <div className="mt-2 p-2.5 rounded-xl bg-white border border-[#fbcfe8] text-[11px] space-y-1 text-gray-700">
-                    {order.payment.trxID && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-500">Transaction ID:</span>
-                        <button
-                          type="button"
-                          onClick={() => handleCopyTrx(order.payment!.trxID!)}
-                          className="inline-flex items-center gap-1 font-mono font-bold text-[#9d174d] hover:underline cursor-pointer"
-                        >
-                          <span>{order.payment.trxID}</span>
-                          {copiedTrx ? (
-                            <Check className="w-3 h-3 text-emerald-600" />
-                          ) : (
-                            <Copy className="w-3 h-3 text-gray-400" />
-                          )}
-                        </button>
-                      </div>
-                    )}
-                    {order.payment.customerMsisdn && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-500">bKash Account:</span>
-                        <span className="font-semibold text-gray-900">
-                          {order.payment.customerMsisdn}
-                        </span>
-                      </div>
-                    )}
-                    {order.payment.paymentExecuteTime && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-500">Paid At:</span>
-                        <span className="text-gray-600">
-                          {order.payment.paymentExecuteTime}
-                        </span>
-                      </div>
-                    )}
-                    {order.payment.refundTrxId && (
-                      <div className="flex items-center justify-between pt-1 border-t border-gray-100 text-purple-700 font-bold">
-                        <span>Refund TrxID:</span>
-                        <span className="font-mono">{order.payment.refundTrxId} (৳{order.payment.refundAmount})</span>
-                      </div>
-                    )}
-                  </div>
-                )}
+                {order.paymentMethod === PaymentMethod.BKASH &&
+                  order.payment && (
+                    <div className="mt-2 p-2.5 rounded-xl bg-white border border-[#fbcfe8] text-[11px] space-y-1 text-gray-700">
+                      {order.payment.trxID && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-500">Transaction ID:</span>
+                          <button
+                            type="button"
+                            onClick={() => handleCopyTrx(order.payment!.trxID!)}
+                            className="inline-flex items-center gap-1 font-mono font-bold text-[#9d174d] hover:underline cursor-pointer"
+                          >
+                            <span>{order.payment.trxID}</span>
+                            {copiedTrx ? (
+                              <Check className="w-3 h-3 text-emerald-600" />
+                            ) : (
+                              <Copy className="w-3 h-3 text-gray-400" />
+                            )}
+                          </button>
+                        </div>
+                      )}
+                      {order.payment.customerMsisdn && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-500">bKash Account:</span>
+                          <span className="font-semibold text-gray-900">
+                            {order.payment.customerMsisdn}
+                          </span>
+                        </div>
+                      )}
+                      {order.payment.paymentExecuteTime && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-500">Paid At:</span>
+                          <span className="text-gray-600">
+                            {order.payment.paymentExecuteTime}
+                          </span>
+                        </div>
+                      )}
+                      {order.payment.refundTrxId && (
+                        <div className="flex items-center justify-between pt-1 border-t border-gray-100 text-purple-700 font-bold">
+                          <span>Refund TrxID:</span>
+                          <span className="font-mono">
+                            {order.payment.refundTrxId} (৳
+                            {order.payment.refundAmount})
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                 {order.note && (
                   <p className="text-[11px] text-gray-500 pt-1">

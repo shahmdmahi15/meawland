@@ -1,7 +1,13 @@
 "use server";
 
 import db from "@/lib/db";
-import { SmsTemplateCategory } from "@/generated/prisma/enums";
+import {
+  SmsTemplateCategory,
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
+} from "@/generated/prisma/enums";
+import { recordAuditLog } from "@/lib/audit-logger";
 import {
   CreateSmsTemplateSchema,
   type CreateSmsTemplateInput,
@@ -144,6 +150,21 @@ export async function createSmsTemplateAction(
 
     revalidatePath("/admin/support-marketing/marketing/sms");
 
+    await recordAuditLog({
+      action: AuditAction.CREATE,
+      entity: AuditEntity.SMS,
+      entityId: template.id,
+      entityName: template.title,
+      summary: `SMS Template "${template.title}" created (${template.category})`,
+      severity: AuditSeverity.INFO,
+      newState: {
+        title: template.title,
+        category: template.category,
+        body: template.body,
+      },
+      path: "/admin/support-marketing/marketing/sms",
+    });
+
     return {
       success: true,
       message: "Template created successfully.",
@@ -180,6 +201,15 @@ export async function deleteSmsTemplateAction(templateId: string): Promise<{
     });
 
     revalidatePath("/admin/support-marketing/marketing/sms");
+
+    await recordAuditLog({
+      action: AuditAction.DELETE,
+      entity: AuditEntity.SMS,
+      entityId: templateId,
+      summary: `SMS Template was deleted`,
+      severity: AuditSeverity.INFO,
+      path: "/admin/support-marketing/marketing/sms",
+    });
 
     return {
       success: true,

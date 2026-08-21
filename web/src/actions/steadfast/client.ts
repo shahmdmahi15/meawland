@@ -91,7 +91,11 @@ export async function steadfastRequest<T>(
 
     // Some Steadfast endpoints return { status: 400/404, message: "..." } with HTTP 200
     if (typeof json === "object" && json !== null) {
-      if (json.status && typeof json.status === "number" && json.status >= 400) {
+      if (
+        json.status &&
+        typeof json.status === "number" &&
+        json.status >= 400
+      ) {
         return {
           success: false,
           status: json.status,
@@ -120,7 +124,10 @@ export async function steadfastRequest<T>(
       };
     }
 
-    console.error(`[Actions.Steadfast.Client] Unexpected error on ${endpoint}:`, error);
+    console.error(
+      `[Actions.Steadfast.Client] Unexpected error on ${endpoint}:`,
+      error,
+    );
     return {
       success: false,
       status: 500,

@@ -79,8 +79,7 @@ export async function executeBkashPaymentAction(paymentID: string): Promise<{
     );
 
     const data = (await response.json()) as
-      | BkashExecutePaymentResponse
-      | BkashExecutePaymentErrorResponse;
+      BkashExecutePaymentResponse | BkashExecutePaymentErrorResponse;
 
     if (!response.ok || !("trxID" in data)) {
       const errorData = data as BkashExecutePaymentErrorResponse;

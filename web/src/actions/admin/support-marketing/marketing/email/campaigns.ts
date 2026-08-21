@@ -121,8 +121,15 @@ export async function createEmailCampaignAction(
       return { success: false, message: "Unauthorized." };
     }
 
-    if (!input.title?.trim() || !input.subject?.trim() || !input.contentHtml?.trim()) {
-      return { success: false, message: "Title, Subject, and Email Content are required." };
+    if (
+      !input.title?.trim() ||
+      !input.subject?.trim() ||
+      !input.contentHtml?.trim()
+    ) {
+      return {
+        success: false,
+        message: "Title, Subject, and Email Content are required.",
+      };
     }
 
     // 1. Resolve audience recipients
@@ -130,11 +137,13 @@ export async function createEmailCampaignAction(
     if (recipients.length === 0) {
       return {
         success: false,
-        message: "Audience segment resolved to 0 email recipients. Please expand your criteria.",
+        message:
+          "Audience segment resolved to 0 email recipients. Please expand your criteria.",
       };
     }
 
-    const isScheduled = !!input.scheduleAt && new Date(input.scheduleAt) > new Date();
+    const isScheduled =
+      !!input.scheduleAt && new Date(input.scheduleAt) > new Date();
 
     // 2. Create campaign record
     const campaign = await db.emailCampaign.create({
@@ -145,7 +154,9 @@ export async function createEmailCampaignAction(
         contentHtml: input.contentHtml,
         contentText: input.contentText || null,
         type: input.type || EmailCampaignType.PROMOTIONAL_FLASH,
-        status: isScheduled ? EmailCampaignStatus.SCHEDULED : EmailCampaignStatus.SENDING,
+        status: isScheduled
+          ? EmailCampaignStatus.SCHEDULED
+          : EmailCampaignStatus.SENDING,
         targetSegment: input.filters.targetType,
         segmentFilters: JSON.parse(JSON.stringify(input.filters)),
         totalRecipients: recipients.length,
@@ -161,7 +172,10 @@ export async function createEmailCampaignAction(
         contentHtml: input.contentHtml,
         contentText: input.contentText,
       }).catch((err) => {
-        console.error(`[EmailCampaign.Dispatch] Background error for ${campaign.id}:`, err);
+        console.error(
+          `[EmailCampaign.Dispatch] Background error for ${campaign.id}:`,
+          err,
+        );
       });
     }
 
@@ -173,7 +187,8 @@ export async function createEmailCampaignAction(
       entityId: campaign.id,
       entityName: campaign.title,
       summary: `Email Campaign "${campaign.title}" launched to ${recipients.length} recipients. Subject: ${campaign.subject}`,
-      severity: recipients.length > 500 ? AuditSeverity.WARNING : AuditSeverity.INFO,
+      severity:
+        recipients.length > 500 ? AuditSeverity.WARNING : AuditSeverity.INFO,
       newState: {
         title: campaign.title,
         subject: campaign.subject,
@@ -224,7 +239,10 @@ export async function executeEmailCampaignDispatch(
           const personalizedHtml = content.contentHtml
             .replace(/\{name\}/gi, r.name || "Valued Customer")
             .replace(/\{email\}/gi, r.email)
-            .replace(/\{storeUrl\}/gi, process.env.NEXT_PUBLIC_APP_URL || "https://meawland.com");
+            .replace(
+              /\{storeUrl\}/gi,
+              process.env.NEXT_PUBLIC_APP_URL || "https://meawland.com",
+            );
 
           const fullHtml = personalizedHtml.includes("<html")
             ? personalizedHtml
@@ -238,7 +256,10 @@ export async function executeEmailCampaignDispatch(
 
           const res = await sendEmail({
             to: r.email,
-            subject: content.subject.replace(/\{name\}/gi, r.name || "Customer"),
+            subject: content.subject.replace(
+              /\{name\}/gi,
+              r.name || "Customer",
+            ),
             htmlContent: fullHtml,
             textContent: content.contentText
               ? content.contentText.replace(/\{name\}/gi, r.name || "Customer")
@@ -290,7 +311,10 @@ export async function executeEmailCampaignDispatch(
       },
     });
   } catch (error) {
-    console.error(`[EmailCampaign.Dispatch] Error in campaign ${campaignId}:`, error);
+    console.error(
+      `[EmailCampaign.Dispatch] Error in campaign ${campaignId}:`,
+      error,
+    );
     await db.emailCampaign.update({
       where: { id: campaignId },
       data: {
@@ -314,11 +338,32 @@ export async function deleteEmailCampaignAction(campaignId: string): Promise<{
       return { success: false, message: "Unauthorized." };
     }
 
+    const existing = await db.emailCampaign.findUnique({
+      where: { id: campaignId },
+      select: { title: true, subject: true, totalRecipients: true },
+    });
+
     await db.emailCampaign.delete({
       where: { id: campaignId },
     });
 
     revalidatePath("/admin/support-marketing/marketing/email");
+
+    await recordAuditLog({
+      action: AuditAction.DELETE,
+      entity: AuditEntity.EMAIL,
+      entityId: campaignId,
+      entityName: existing?.title || "Email Campaign",
+      summary: `Email Campaign "${existing?.title || campaignId}" deleted`,
+      severity: AuditSeverity.INFO,
+      previousState: {
+        title: existing?.title,
+        subject: existing?.subject,
+        totalRecipients: existing?.totalRecipients,
+      },
+      userId: session.id,
+      path: "/admin/support-marketing/marketing/email",
+    });
 
     return {
       success: true,

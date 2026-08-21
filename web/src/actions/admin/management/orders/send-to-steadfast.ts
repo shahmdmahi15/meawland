@@ -150,7 +150,9 @@ export async function sendOrderToSteadfastAction(
 
     // Determine COD Amount: If paid (e.g. bKash / prepaid), COD is 0 BDT
     const isPrepaid = order.paymentStatus === PaymentStatus.PAID;
-    const codAmount = isPrepaid ? 0 : Math.max(0, Math.round(parseFloat(order.finalCost) || 0));
+    const codAmount = isPrepaid
+      ? 0
+      : Math.max(0, Math.round(parseFloat(order.finalCost) || 0));
 
     const fullAddress = [order.address, order.district]
       .filter(Boolean)
@@ -263,7 +265,9 @@ export async function sendOrderToSteadfastAction(
     await recordAuditLog({
       action: AuditAction.COURIER_DISPATCH,
       entity: AuditEntity.SHIPMENT,
-      entityId: consignment.consignment_id ? String(consignment.consignment_id) : order.id,
+      entityId: consignment.consignment_id
+        ? String(consignment.consignment_id)
+        : order.id,
       entityName: `Order #${order.code}`,
       summary: `Order #${order.code} dispatched via Steadfast Courier. Consignment: ${consignment.consignment_id}, Tracking: ${consignment.tracking_code}`,
       severity: AuditSeverity.INFO,
@@ -331,10 +335,7 @@ export async function bulkSendOrdersToSteadfastAction(
     const orders = await db.order.findMany({
       where: {
         id: { in: orderIds },
-        OR: [
-          { shipment: null },
-          { shipment: { consignmentId: null } },
-        ],
+        OR: [{ shipment: null }, { shipment: { consignmentId: null } }],
       },
       include: {
         shipment: true,
@@ -493,7 +494,9 @@ export async function syncSteadfastShipmentStatusAction(
       };
     }
 
-    const courierStatus = mapSteadfastToCourierStatus(statusRes.delivery_status);
+    const courierStatus = mapSteadfastToCourierStatus(
+      statusRes.delivery_status,
+    );
     const updatedOrderStatus = mapCourierToOrderStatus(
       courierStatus,
       order.status,
@@ -583,7 +586,8 @@ export async function createSteadfastReturnRequestFromAdminAction(
     if (!returnRes.success) {
       return {
         success: false,
-        message: returnRes.message || "Failed to create return request on Steadfast.",
+        message:
+          returnRes.message || "Failed to create return request on Steadfast.",
       };
     }
 

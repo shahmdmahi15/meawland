@@ -23,7 +23,8 @@ export async function getSteadfastBalanceAction(): Promise<{
     if (!result.success || !result.data) {
       return {
         success: false,
-        message: result.message || "Failed to retrieve Steadfast account balance.",
+        message:
+          result.message || "Failed to retrieve Steadfast account balance.",
       };
     }
 

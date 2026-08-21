@@ -89,7 +89,8 @@ export function SmsAutomationsCard({
             <span>Automated Ecommerce Lifecycle SMS Triggers</span>
           </h3>
           <p className="text-xs text-gray-500 mt-0.5">
-            Automatically notify customers via SMS on critical order lifecycle events.
+            Automatically notify customers via SMS on critical order lifecycle
+            events.
           </p>
         </div>
 
@@ -193,7 +194,8 @@ export function SmsAutomationsCard({
               className="text-xs bg-gray-50/50 leading-relaxed font-sans"
             />
             <span className="text-[10px] text-gray-400">
-              Tags: {"{name}"}, {"{orderCode}"}, {"{trackingCode}"}, {"{trackingUrl}"}
+              Tags: {"{name}"}, {"{orderCode}"}, {"{trackingCode}"},{" "}
+              {"{trackingUrl}"}
             </span>
           </div>
         </div>

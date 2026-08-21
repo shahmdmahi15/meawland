@@ -64,7 +64,9 @@ export function EmailAutomationsCard({
       icon: ShoppingBag,
       defaultSubject: "Order Confirmed #{orderCode} | Meawland 🐾",
       enabled: settings.orderPlacedEmail,
-      subject: settings.orderPlacedSubject || "Order Confirmed #{orderCode} | Meawland 🐾",
+      subject:
+        settings.orderPlacedSubject ||
+        "Order Confirmed #{orderCode} | Meawland 🐾",
     },
     {
       id: "orderDispatchedEmail",
@@ -75,7 +77,9 @@ export function EmailAutomationsCard({
       icon: Truck,
       defaultSubject: "Your Order #{orderCode} is on the way! 🚚 | Meawland",
       enabled: settings.orderDispatchedEmail,
-      subject: settings.orderDispatchedSubject || "Your Order #{orderCode} is on the way! 🚚 | Meawland",
+      subject:
+        settings.orderDispatchedSubject ||
+        "Your Order #{orderCode} is on the way! 🚚 | Meawland",
     },
     {
       id: "orderDeliveredEmail",
@@ -86,7 +90,9 @@ export function EmailAutomationsCard({
       icon: CheckCircle2,
       defaultSubject: "Delivered! Order #{orderCode} | Meawland 🐾",
       enabled: settings.orderDeliveredEmail,
-      subject: settings.orderDeliveredSubject || "Delivered! Order #{orderCode} | Meawland 🐾",
+      subject:
+        settings.orderDeliveredSubject ||
+        "Delivered! Order #{orderCode} | Meawland 🐾",
     },
     {
       id: "bkashPaymentPaidEmail",
@@ -95,9 +101,12 @@ export function EmailAutomationsCard({
       description:
         "Dispatched when bKash payment gateway executes successfully. Includes TrxID, amount paid, and invoice confirmation.",
       icon: CreditCard,
-      defaultSubject: "bKash Payment Verified for Order #{orderCode} 💳 | Meawland",
+      defaultSubject:
+        "bKash Payment Verified for Order #{orderCode} 💳 | Meawland",
       enabled: settings.bkashPaymentPaidEmail,
-      subject: settings.bkashPaidSubject || "bKash Payment Verified for Order #{orderCode} 💳 | Meawland",
+      subject:
+        settings.bkashPaidSubject ||
+        "bKash Payment Verified for Order #{orderCode} 💳 | Meawland",
     },
     {
       id: "welcomeNewUserEmail",
@@ -106,9 +115,12 @@ export function EmailAutomationsCard({
       description:
         "Dispatched when a new customer registers an account on Meawland. Includes a 10% welcome coupon gift.",
       icon: UserPlus,
-      defaultSubject: "Welcome to Meawland! 🐾 Enjoy 10% OFF Your First Pet Order",
+      defaultSubject:
+        "Welcome to Meawland! 🐾 Enjoy 10% OFF Your First Pet Order",
       enabled: settings.welcomeNewUserEmail,
-      subject: settings.welcomeUserSubject || "Welcome to Meawland! 🐾 Enjoy 10% OFF Your First Pet Order",
+      subject:
+        settings.welcomeUserSubject ||
+        "Welcome to Meawland! 🐾 Enjoy 10% OFF Your First Pet Order",
     },
     {
       id: "abandonedCartEmail",
@@ -131,7 +143,8 @@ export function EmailAutomationsCard({
             Store Lifecycle Email Automations
           </h2>
           <p className="text-xs text-gray-600 mt-0.5">
-            Configure automated transactional triggers that fire on store events.
+            Configure automated transactional triggers that fire on store
+            events.
           </p>
         </div>
 

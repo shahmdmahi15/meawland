@@ -9,6 +9,12 @@ import {
 } from "@/schemas/admin/management/store/brands/create";
 import crypto from "crypto";
 import { revalidatePath } from "next/cache";
+import {
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
+} from "@/generated/prisma/enums";
+import { recordAuditLog } from "@/lib/audit-logger";
 
 export async function createBrandAction(input: CreateBrandInput): Promise<{
   success: boolean;
@@ -85,6 +91,17 @@ export async function createBrandAction(input: CreateBrandInput): Promise<{
     revalidatePath("/admin/management/inventory");
     revalidatePath("/");
     revalidatePath("/products");
+
+    await recordAuditLog({
+      action: AuditAction.CREATE,
+      entity: AuditEntity.BRAND,
+      entityId: brand.id,
+      entityName: brand.name,
+      summary: `Brand "${brand.name}" created`,
+      severity: AuditSeverity.INFO,
+      newState: { id: brand.id, name: brand.name, slug: brand.slug },
+      path: "/admin/management/store/brands",
+    });
 
     return {
       success: true,

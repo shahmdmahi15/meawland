@@ -132,7 +132,8 @@ export async function getAccountDashboardDataAction(): Promise<{
     for (const ord of user.orders) {
       const isDelivered = ord.status === OrderStatus.DELIVERED;
       const isCancelled =
-        ord.status === OrderStatus.CANCELLED || ord.status === OrderStatus.RETURNED;
+        ord.status === OrderStatus.CANCELLED ||
+        ord.status === OrderStatus.RETURNED;
 
       if (!isCancelled) {
         totalSpent += parseFloat(ord.finalCost) || 0;

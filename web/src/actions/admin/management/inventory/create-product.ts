@@ -12,6 +12,12 @@ import {
 } from "@/schemas/admin/management/inventory/create-product";
 import crypto from "crypto";
 import { revalidatePath } from "next/cache";
+import {
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
+} from "@/generated/prisma/enums";
+import { recordAuditLog } from "@/lib/audit-logger";
 
 export async function createProductAction(input: CreateProductInput): Promise<{
   success: boolean;
@@ -259,6 +265,26 @@ export async function createProductAction(input: CreateProductInput): Promise<{
     revalidatePath("/products");
     revalidatePath("/category", "layout");
     revalidatePath("/product", "layout");
+
+    await recordAuditLog({
+      action: AuditAction.CREATE,
+      entity: AuditEntity.PRODUCT,
+      entityId: product.id,
+      entityName: product.name,
+      summary: `Product "${product.name}" created (Code: ${product.code}, SKU: ${product.sku})`,
+      severity: AuditSeverity.INFO,
+      newState: {
+        id: product.id,
+        code: product.code,
+        sku: product.sku,
+        name: product.name,
+        regularPrice: product.regularPrice,
+        salePrice: product.salePrice,
+        stock: product.stock,
+        isVariable: product.isVariable,
+      },
+      path: "/admin/management/inventory/new-product",
+    });
 
     return {
       success: true,

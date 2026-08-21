@@ -23,7 +23,11 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react";
-import { OrderStatus, PaymentMethod, PaymentStatus } from "@/generated/prisma/enums";
+import {
+  OrderStatus,
+  PaymentMethod,
+  PaymentStatus,
+} from "@/generated/prisma/enums";
 import { retryBkashPaymentAction } from "@/actions/bkash/retry-payment";
 import { Smartphone, Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";

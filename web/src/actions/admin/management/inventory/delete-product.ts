@@ -3,6 +3,12 @@
 import db from "@/lib/db";
 import { deleteFile } from "@/lib/storage";
 import { revalidatePath } from "next/cache";
+import {
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
+} from "@/generated/prisma/enums";
+import { recordAuditLog } from "@/lib/audit-logger";
 
 export async function deleteProductAction(productId: string): Promise<{
   success: boolean;
@@ -80,6 +86,24 @@ export async function deleteProductAction(productId: string): Promise<{
     revalidatePath("/products");
     revalidatePath("/category", "layout");
     revalidatePath("/product", "layout");
+
+    await recordAuditLog({
+      action: AuditAction.DELETE,
+      entity: AuditEntity.PRODUCT,
+      entityId: product.id,
+      entityName: product.name,
+      summary: `Product "${product.name}" (${product.code}, SKU: ${product.sku}) was permanently deleted`,
+      severity: AuditSeverity.WARNING,
+      previousState: {
+        code: product.code,
+        sku: product.sku,
+        name: product.name,
+        regularPrice: product.regularPrice,
+        salePrice: product.salePrice,
+        stock: product.stock,
+      },
+      path: "/admin/management/inventory/all-products",
+    });
 
     return {
       success: true,

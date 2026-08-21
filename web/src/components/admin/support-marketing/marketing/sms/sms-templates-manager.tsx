@@ -46,10 +46,14 @@ interface SmsTemplatesManagerProps {
 }
 
 const CATEGORY_COLORS: Record<SmsTemplateCategory, string> = {
-  [SmsTemplateCategory.ORDER_UPDATE]: "bg-blue-50 text-blue-700 border-blue-200",
-  [SmsTemplateCategory.PROMOTIONAL]: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  [SmsTemplateCategory.CART_RECOVERY]: "bg-amber-50 text-amber-700 border-amber-200",
-  [SmsTemplateCategory.SEASONAL]: "bg-purple-50 text-purple-700 border-purple-200",
+  [SmsTemplateCategory.ORDER_UPDATE]:
+    "bg-blue-50 text-blue-700 border-blue-200",
+  [SmsTemplateCategory.PROMOTIONAL]:
+    "bg-emerald-50 text-emerald-700 border-emerald-200",
+  [SmsTemplateCategory.CART_RECOVERY]:
+    "bg-amber-50 text-amber-700 border-amber-200",
+  [SmsTemplateCategory.SEASONAL]:
+    "bg-purple-50 text-purple-700 border-purple-200",
   [SmsTemplateCategory.OTP]: "bg-indigo-50 text-indigo-700 border-indigo-200",
   [SmsTemplateCategory.WELCOME]: "bg-teal-50 text-teal-700 border-teal-200",
   [SmsTemplateCategory.CUSTOM]: "bg-gray-100 text-gray-700 border-gray-300",
@@ -174,7 +178,8 @@ export function SmsTemplatesManager({
                     Create Message Template
                   </DialogTitle>
                   <DialogDescription className="text-xs text-gray-500">
-                    Save reusable marketing or transactional notification templates.
+                    Save reusable marketing or transactional notification
+                    templates.
                   </DialogDescription>
                 </div>
               </div>
@@ -205,7 +210,9 @@ export function SmsTemplatesManager({
                 >
                   <SelectTrigger className="h-9 text-xs bg-white">
                     <SelectValue>
-                      {category ? category.replace(/_/g, " ") : "Select Category"}
+                      {category
+                        ? category.replace(/_/g, " ")
+                        : "Select Category"}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="z-50 bg-white">
@@ -230,7 +237,8 @@ export function SmsTemplatesManager({
                   className="text-xs leading-relaxed bg-white"
                 />
                 <span className="text-[10px] text-gray-400 block mt-1">
-                  Supported tags: {"{name}"}, {"{orderCode}"}, {"{couponCode}"}, {"{amount}"}, {"{storeUrl}"}, {"{trackingUrl}"}
+                  Supported tags: {"{name}"}, {"{orderCode}"}, {"{couponCode}"},{" "}
+                  {"{amount}"}, {"{storeUrl}"}, {"{trackingUrl}"}
                 </span>
               </div>
             </div>

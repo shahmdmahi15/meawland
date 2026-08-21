@@ -61,7 +61,9 @@ export async function getAdminOverviewDashboardDataAction(
   }
 }
 
-function getFallbackDashboardData(timeRange: DashboardTimeRange): AdminOverviewDashboardData {
+function getFallbackDashboardData(
+  timeRange: DashboardTimeRange,
+): AdminOverviewDashboardData {
   return {
     timeRange,
     financials: {

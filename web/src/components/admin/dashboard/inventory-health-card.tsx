@@ -29,7 +29,9 @@ export function InventoryHealthCard({ inventory }: InventoryHealthCardProps) {
             <span>Product Catalog &amp; Stock Health</span>
           </h2>
           <p className="text-xs text-gray-500">
-            {inventory.totalProducts} products • {inventory.totalVariantsCount} variants • {inventory.totalUnitsInStock.toLocaleString()} total units
+            {inventory.totalProducts} products • {inventory.totalVariantsCount}{" "}
+            variants • {inventory.totalUnitsInStock.toLocaleString()} total
+            units
           </p>
         </div>
 
@@ -58,7 +60,8 @@ export function InventoryHealthCard({ inventory }: InventoryHealthCardProps) {
             Variable Products
           </span>
           <span className="text-base font-black text-[#0097a7]">
-            {inventory.variableProductsCount} ({inventory.totalVariantsCount} SKUs)
+            {inventory.variableProductsCount} ({inventory.totalVariantsCount}{" "}
+            SKUs)
           </span>
         </div>
 
@@ -109,13 +112,12 @@ export function InventoryHealthCard({ inventory }: InventoryHealthCardProps) {
       {/* Top Best-Selling Products */}
       <div className="space-y-2 pt-2 border-t border-gray-100">
         <span className="text-xs font-bold text-gray-700 block flex items-center gap-1.5">
-          <Flame className="w-3.5 h-3.5 text-amber-500" /> Top Selling Pet Products
+          <Flame className="w-3.5 h-3.5 text-amber-500" /> Top Selling Pet
+          Products
         </span>
 
         {inventory.topSellingProducts.length === 0 ? (
-          <p className="text-xs text-gray-400 py-2">
-            No sales recorded yet.
-          </p>
+          <p className="text-xs text-gray-400 py-2">No sales recorded yet.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {inventory.topSellingProducts.map((prod) => (
@@ -132,7 +134,8 @@ export function InventoryHealthCard({ inventory }: InventoryHealthCardProps) {
                       {prod.name}
                     </p>
                     <p className="text-[10px] text-gray-500">
-                      {prod.category.replace(/_/g, " ")} • {prod.stockRemaining} in stock
+                      {prod.category.replace(/_/g, " ")} • {prod.stockRemaining}{" "}
+                      in stock
                     </p>
                   </div>
                 </div>
@@ -154,19 +157,26 @@ export function InventoryHealthCard({ inventory }: InventoryHealthCardProps) {
       {/* Category Breakdown Progress Bars */}
       <div className="space-y-2 pt-2 border-t border-gray-100">
         <span className="text-xs font-bold text-gray-700 block flex items-center gap-1.5">
-          <Layers className="w-3.5 h-3.5 text-blue-500" /> Category Valuation Distribution
+          <Layers className="w-3.5 h-3.5 text-blue-500" /> Category Valuation
+          Distribution
         </span>
         <div className="space-y-2">
           {inventory.categoryBreakdown.map((cat) => {
             const pct =
               inventory.totalInventoryValuation > 0
-                ? Math.round((cat.valuation / inventory.totalInventoryValuation) * 100)
+                ? Math.round(
+                    (cat.valuation / inventory.totalInventoryValuation) * 100,
+                  )
                 : 0;
             return (
               <div key={cat.category} className="space-y-1 text-xs">
                 <div className="flex justify-between text-[11px] font-semibold text-gray-700">
-                  <span>{cat.category} ({cat.count} products)</span>
-                  <span>৳{cat.valuation.toLocaleString()} ({pct}%)</span>
+                  <span>
+                    {cat.category} ({cat.count} products)
+                  </span>
+                  <span>
+                    ৳{cat.valuation.toLocaleString()} ({pct}%)
+                  </span>
                 </div>
                 <div className="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
                   <div

@@ -59,6 +59,7 @@ import {
   syncSteadfastShipmentStatusAction,
   createSteadfastReturnRequestFromAdminAction,
 } from "@/actions/admin/management/orders/send-to-steadfast";
+import { OrderFraudRiskBadge } from "@/components/admin/fraud-checker/order-fraud-risk-badge";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -556,6 +557,16 @@ export function OrderDetailModal({
                     </Badge>
                   </div>
                 )}
+
+                <div className="pt-2">
+                  <OrderFraudRiskBadge
+                    phone={order.phone}
+                    customerName={order.name}
+                    orderCode={order.code}
+                    parcelId={order.shipment?.consignmentId || order.code}
+                    variant="card"
+                  />
+                </div>
               </div>
             </div>
 
@@ -585,89 +596,95 @@ export function OrderDetailModal({
                 </div>
 
                 {/* bKash Payment Details */}
-                {order.paymentMethod === PaymentMethod.BKASH && order.payment && (
-                  <div className="p-3 mt-2 rounded-xl bg-[#fdf2f8] border border-[#fbcfe8] space-y-1.5 text-[11px]">
-                    <div className="flex items-center justify-between text-[#9d174d] font-bold">
-                      <span className="flex items-center gap-1">
-                        <Smartphone className="w-3 h-3" /> bKash Gateway Details
-                      </span>
-                      {order.payment.status && (
-                        <span className="px-1.5 py-0.5 rounded bg-white border border-[#fbcfe8] text-[10px]">
-                          {order.payment.status}
+                {order.paymentMethod === PaymentMethod.BKASH &&
+                  order.payment && (
+                    <div className="p-3 mt-2 rounded-xl bg-[#fdf2f8] border border-[#fbcfe8] space-y-1.5 text-[11px]">
+                      <div className="flex items-center justify-between text-[#9d174d] font-bold">
+                        <span className="flex items-center gap-1">
+                          <Smartphone className="w-3 h-3" /> bKash Gateway
+                          Details
                         </span>
-                      )}
-                    </div>
-
-                    {order.payment.trxID && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">TrxID:</span>
-                        <button
-                          type="button"
-                          onClick={() => handleCopyTrx(order.payment!.trxID!)}
-                          className="inline-flex items-center gap-1 font-mono font-bold text-gray-900 hover:text-[#9d174d] cursor-pointer"
-                        >
-                          <span>{order.payment.trxID}</span>
-                          {copiedTrx ? (
-                            <Check className="w-3 h-3 text-emerald-600" />
-                          ) : (
-                            <Copy className="w-3 h-3 text-gray-400" />
-                          )}
-                        </button>
-                      </div>
-                    )}
-
-                    {order.payment.customerMsisdn && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">bKash Mobile:</span>
-                        <span className="font-semibold text-gray-900">
-                          {order.payment.customerMsisdn}
-                        </span>
-                      </div>
-                    )}
-
-                    {order.payment.paymentExecuteTime && (
-                      <div className="flex items-center justify-between text-muted-foreground">
-                        <span>Paid Time:</span>
-                        <span>{order.payment.paymentExecuteTime}</span>
-                      </div>
-                    )}
-
-                    {order.payment.refundTrxId && (
-                      <div className="pt-1 border-t border-[#fbcfe8] text-purple-700 font-bold space-y-0.5">
-                        <div className="flex justify-between">
-                          <span>Refund TrxID:</span>
-                          <span className="font-mono">{order.payment.refundTrxId}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Refunded Amount:</span>
-                          <span>৳{order.payment.refundAmount}</span>
-                        </div>
-                        {order.payment.refundReason && (
-                          <div className="text-[10px] text-muted-foreground font-normal">
-                            Reason: {order.payment.refundReason}
-                          </div>
+                        {order.payment.status && (
+                          <span className="px-1.5 py-0.5 rounded bg-white border border-[#fbcfe8] text-[10px]">
+                            {order.payment.status}
+                          </span>
                         )}
                       </div>
-                    )}
 
-                    {/* Refund Button for Admin */}
-                    {order.payment.trxID &&
-                      currentPaymentStatus === PaymentStatus.PAID &&
-                      !order.payment.refundTrxId && (
-                        <div className="pt-2">
-                          <Button
+                      {order.payment.trxID && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground">TrxID:</span>
+                          <button
                             type="button"
-                            size="sm"
-                            onClick={() => setIsRefundOpen(true)}
-                            className="w-full h-7 text-[11px] rounded-lg bg-[#9d174d] hover:bg-[#831843] text-white font-bold gap-1 cursor-pointer"
+                            onClick={() => handleCopyTrx(order.payment!.trxID!)}
+                            className="inline-flex items-center gap-1 font-mono font-bold text-gray-900 hover:text-[#9d174d] cursor-pointer"
                           >
-                            <RotateCcw className="w-3 h-3" />
-                            <span>Issue bKash Refund</span>
-                          </Button>
+                            <span>{order.payment.trxID}</span>
+                            {copiedTrx ? (
+                              <Check className="w-3 h-3 text-emerald-600" />
+                            ) : (
+                              <Copy className="w-3 h-3 text-gray-400" />
+                            )}
+                          </button>
                         </div>
                       )}
-                  </div>
-                )}
+
+                      {order.payment.customerMsisdn && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground">
+                            bKash Mobile:
+                          </span>
+                          <span className="font-semibold text-gray-900">
+                            {order.payment.customerMsisdn}
+                          </span>
+                        </div>
+                      )}
+
+                      {order.payment.paymentExecuteTime && (
+                        <div className="flex items-center justify-between text-muted-foreground">
+                          <span>Paid Time:</span>
+                          <span>{order.payment.paymentExecuteTime}</span>
+                        </div>
+                      )}
+
+                      {order.payment.refundTrxId && (
+                        <div className="pt-1 border-t border-[#fbcfe8] text-purple-700 font-bold space-y-0.5">
+                          <div className="flex justify-between">
+                            <span>Refund TrxID:</span>
+                            <span className="font-mono">
+                              {order.payment.refundTrxId}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Refunded Amount:</span>
+                            <span>৳{order.payment.refundAmount}</span>
+                          </div>
+                          {order.payment.refundReason && (
+                            <div className="text-[10px] text-muted-foreground font-normal">
+                              Reason: {order.payment.refundReason}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Refund Button for Admin */}
+                      {order.payment.trxID &&
+                        currentPaymentStatus === PaymentStatus.PAID &&
+                        !order.payment.refundTrxId && (
+                          <div className="pt-2">
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={() => setIsRefundOpen(true)}
+                              className="w-full h-7 text-[11px] rounded-lg bg-[#9d174d] hover:bg-[#831843] text-white font-bold gap-1 cursor-pointer"
+                            >
+                              <RotateCcw className="w-3 h-3" />
+                              <span>Issue bKash Refund</span>
+                            </Button>
+                          </div>
+                        )}
+                    </div>
+                  )}
 
                 {order.note && (
                   <div className="p-2 rounded-md bg-muted/40 text-[11px] text-muted-foreground mt-2">
@@ -697,7 +714,9 @@ export function OrderDetailModal({
                   <div className="space-y-2 text-xs">
                     <div className="p-3 rounded-lg bg-muted/30 border border-border/60 space-y-1.5 text-[11px]">
                       <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Consignment ID:</span>
+                        <span className="text-muted-foreground">
+                          Consignment ID:
+                        </span>
                         <span className="font-mono font-bold text-foreground">
                           #{order.shipment.consignmentId}
                         </span>
@@ -705,7 +724,9 @@ export function OrderDetailModal({
 
                       {order.shipment.trackingCode && (
                         <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground">Tracking Code:</span>
+                          <span className="text-muted-foreground">
+                            Tracking Code:
+                          </span>
                           <button
                             type="button"
                             onClick={() =>
@@ -724,14 +745,21 @@ export function OrderDetailModal({
                       )}
 
                       <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">COD Amount:</span>
+                        <span className="text-muted-foreground">
+                          COD Amount:
+                        </span>
                         <span className="font-bold text-foreground">
-                          ৳{parseFloat(order.shipment.codAmount).toLocaleString()}
+                          ৳
+                          {parseFloat(
+                            order.shipment.codAmount,
+                          ).toLocaleString()}
                         </span>
                       </div>
 
                       <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Delivery Type:</span>
+                        <span className="text-muted-foreground">
+                          Delivery Type:
+                        </span>
                         <span className="font-medium text-foreground">
                           {order.shipment.deliveryType === 1
                             ? "Point / Hub Pick Up"
@@ -784,7 +812,9 @@ export function OrderDetailModal({
                 ) : (
                   <div className="space-y-2">
                     <p className="text-xs text-muted-foreground">
-                      This order has not been dispatched to Steadfast Courier yet. Click below to generate consignment &amp; tracking code.
+                      This order has not been dispatched to Steadfast Courier
+                      yet. Click below to generate consignment &amp; tracking
+                      code.
                     </p>
                     <Button
                       type="button"
@@ -823,7 +853,8 @@ export function OrderDetailModal({
                 </div>
 
                 <p className="text-xs text-gray-600">
-                  This will call the official bKash Refund API and refund the customer directly to their bKash wallet.
+                  This will call the official bKash Refund API and refund the
+                  customer directly to their bKash wallet.
                 </p>
 
                 <div className="space-y-3 text-xs">
@@ -839,7 +870,8 @@ export function OrderDetailModal({
                       className="w-full h-9 px-3 rounded-lg border border-gray-300 font-bold text-gray-900"
                     />
                     <span className="text-[10px] text-gray-500">
-                      Total Order Paid: ৳{parseFloat(order.finalCost).toLocaleString()}
+                      Total Order Paid: ৳
+                      {parseFloat(order.finalCost).toLocaleString()}
                     </span>
                   </div>
 

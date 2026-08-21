@@ -31,7 +31,8 @@ export function CustomerAnalyticsCard({
             <span>Customer Growth &amp; Engagement</span>
           </h2>
           <p className="text-xs text-gray-500">
-            {customers.totalCustomers.toLocaleString()} registered customer accounts
+            {customers.totalCustomers.toLocaleString()} registered customer
+            accounts
           </p>
         </div>
 
@@ -49,7 +50,9 @@ export function CustomerAnalyticsCard({
         {/* Repeat Buyers */}
         <div className="p-3.5 rounded-2xl bg-purple-50/60 border border-purple-200/80 space-y-1">
           <div className="flex items-center justify-between text-purple-700">
-            <span className="text-[11px] font-bold uppercase">Repeat Buyers</span>
+            <span className="text-[11px] font-bold uppercase">
+              Repeat Buyers
+            </span>
             <Repeat className="w-3.5 h-3.5" />
           </div>
           <p className="text-xl font-black text-purple-900">
@@ -63,7 +66,9 @@ export function CustomerAnalyticsCard({
         {/* New Buyers This Month */}
         <div className="p-3.5 rounded-2xl bg-emerald-50/60 border border-emerald-200/80 space-y-1">
           <div className="flex items-center justify-between text-emerald-700">
-            <span className="text-[11px] font-bold uppercase">New Pet Parents</span>
+            <span className="text-[11px] font-bold uppercase">
+              New Pet Parents
+            </span>
             <UserPlus className="w-3.5 h-3.5" />
           </div>
           <p className="text-xl font-black text-emerald-900">
@@ -77,7 +82,9 @@ export function CustomerAnalyticsCard({
         {/* Newsletter Club */}
         <div className="p-3.5 rounded-2xl bg-[#EDF5FA] border border-[#D4EEFC] space-y-1">
           <div className="flex items-center justify-between text-[#0097a7]">
-            <span className="text-[11px] font-bold uppercase">Newsletter Reach</span>
+            <span className="text-[11px] font-bold uppercase">
+              Newsletter Reach
+            </span>
             <Sparkles className="w-3.5 h-3.5" />
           </div>
           <p className="text-xl font-black text-gray-900">
@@ -91,7 +98,9 @@ export function CustomerAnalyticsCard({
         {/* Support Inquiries */}
         <div className="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-200/80 space-y-1">
           <div className="flex items-center justify-between text-amber-700">
-            <span className="text-[11px] font-bold uppercase">Open Tickets</span>
+            <span className="text-[11px] font-bold uppercase">
+              Open Tickets
+            </span>
             <LifeBuoy className="w-3.5 h-3.5" />
           </div>
           <p className="text-xl font-black text-amber-900">

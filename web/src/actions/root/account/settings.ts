@@ -9,6 +9,12 @@ import {
   UpdateProfileInput,
   updateProfileSchema,
 } from "@/schemas/root/account/settings";
+import {
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
+} from "@/generated/prisma/enums";
+import { recordAuditLog } from "@/lib/audit-logger";
 
 async function safeGetImageBase64(
   key: string | null | undefined,
@@ -190,6 +196,18 @@ export async function updateUserProfileSettingsAction(
     if (newAvatarKey) {
       resolvedAvatar = await safeGetImageBase64(newAvatarKey);
     }
+
+    await recordAuditLog({
+      action: AuditAction.UPDATE,
+      entity: AuditEntity.USER,
+      entityId: sessionUser.id,
+      entityName: name,
+      summary: `User "${name}" updated personal profile settings (District: ${district || "N/A"})`,
+      severity: AuditSeverity.INFO,
+      newState: { name, phone, district, address },
+      userId: sessionUser.id,
+      path: "/account/settings",
+    });
 
     return {
       success: true,

@@ -122,10 +122,11 @@ export function buildOrderPlacedEmailHtml(params: {
   const trackingUrl =
     params.trackingUrl || `${APP_URL}/checkout/success/${params.orderCode}`;
 
-  const itemsRows = params.items && params.items.length > 0
-    ? params.items
-        .map(
-          (item) => `
+  const itemsRows =
+    params.items && params.items.length > 0
+      ? params.items
+          .map(
+            (item) => `
       <tr>
         <td style="padding: 10px 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; color: #374151; font-weight: 600;">
           ${item.name} <span style="color: #9ca3af; font-weight: normal;">(x${item.quantity})</span>
@@ -135,9 +136,9 @@ export function buildOrderPlacedEmailHtml(params: {
         </td>
       </tr>
     `,
-        )
-        .join("")
-    : `
+          )
+          .join("")
+      : `
       <tr>
         <td colspan="2" style="padding: 10px 0; font-size: 13px; color: #374151;">
           Pet Essentials Order

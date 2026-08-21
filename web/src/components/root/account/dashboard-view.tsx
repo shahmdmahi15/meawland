@@ -67,7 +67,9 @@ export function CustomerDashboardView({ data }: CustomerDashboardViewProps) {
     setTimeout(() => setCopiedCoupon(false), 2000);
   };
 
-  const activeStepIdx = activeOrder ? getActiveStepIndex(activeOrder.status) : 0;
+  const activeStepIdx = activeOrder
+    ? getActiveStepIndex(activeOrder.status)
+    : 0;
 
   return (
     <div className="space-y-6">
@@ -86,7 +88,8 @@ export function CustomerDashboardView({ data }: CustomerDashboardViewProps) {
             </Badge>
           </div>
           <p className="text-xs text-gray-600">
-            Track your furry friend&apos;s deliveries, view receipts, and manage your pet care account.
+            Track your furry friend&apos;s deliveries, view receipts, and manage
+            your pet care account.
           </p>
         </div>
 
@@ -118,7 +121,9 @@ export function CustomerDashboardView({ data }: CustomerDashboardViewProps) {
         {/* Total Orders */}
         <div className="p-4 rounded-2xl bg-white border border-gray-200 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-gray-500">
-            <span className="text-[11px] font-bold uppercase tracking-wider">Total Orders</span>
+            <span className="text-[11px] font-bold uppercase tracking-wider">
+              Total Orders
+            </span>
             <div className="p-1.5 rounded-xl bg-gray-50 text-gray-700">
               <ShoppingBag className="w-4 h-4" />
             </div>
@@ -134,7 +139,9 @@ export function CustomerDashboardView({ data }: CustomerDashboardViewProps) {
         {/* In-Transit Active Orders */}
         <div className="p-4 rounded-2xl bg-[#EDF5FA] border border-[#D4EEFC] shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-[#0097a7]">
-            <span className="text-[11px] font-bold uppercase tracking-wider">In Progress</span>
+            <span className="text-[11px] font-bold uppercase tracking-wider">
+              In Progress
+            </span>
             <div className="p-1.5 rounded-xl bg-white text-[#0097a7] shadow-2xs">
               <Truck className="w-4 h-4" />
             </div>
@@ -150,7 +157,9 @@ export function CustomerDashboardView({ data }: CustomerDashboardViewProps) {
         {/* Delivered Orders */}
         <div className="p-4 rounded-2xl bg-white border border-gray-200 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-emerald-600">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Delivered</span>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
+              Delivered
+            </span>
             <div className="p-1.5 rounded-xl bg-emerald-50 text-emerald-600">
               <CheckCircle2 className="w-4 h-4" />
             </div>
@@ -166,7 +175,9 @@ export function CustomerDashboardView({ data }: CustomerDashboardViewProps) {
         {/* Total Spent */}
         <div className="p-4 rounded-2xl bg-white border border-gray-200 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-purple-600">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Total Spent</span>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
+              Total Spent
+            </span>
             <div className="p-1.5 rounded-xl bg-purple-50 text-purple-600">
               <Sparkles className="w-4 h-4" />
             </div>
@@ -190,7 +201,9 @@ export function CustomerDashboardView({ data }: CustomerDashboardViewProps) {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-gray-500">Active Order</span>
+                  <span className="text-xs font-bold text-gray-500">
+                    Active Order
+                  </span>
                   <Link
                     href={`/account/orders`}
                     className="font-mono font-black text-sm text-gray-900 hover:text-primary hover:underline"
@@ -205,7 +218,14 @@ export function CustomerDashboardView({ data }: CustomerDashboardViewProps) {
                   </Badge>
                 </div>
                 <p className="text-[11px] text-gray-500 mt-0.5">
-                  Placed on {new Date(activeOrder.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} • {activeOrder.totalQuantity} items • Total: <strong>৳{activeOrder.finalCost.toLocaleString()}</strong>
+                  Placed on{" "}
+                  {new Date(activeOrder.createdAt).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}{" "}
+                  • {activeOrder.totalQuantity} items • Total:{" "}
+                  <strong>৳{activeOrder.finalCost.toLocaleString()}</strong>
                 </p>
               </div>
             </div>
@@ -229,14 +249,17 @@ export function CustomerDashboardView({ data }: CustomerDashboardViewProps) {
                 const isCurrent = idx === activeStepIdx;
 
                 return (
-                  <div key={step.key} className="flex flex-col items-center text-center space-y-1.5">
+                  <div
+                    key={step.key}
+                    className="flex flex-col items-center text-center space-y-1.5"
+                  >
                     <div
                       className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-black transition-all ${
                         isCurrent
                           ? "bg-[#0097a7] text-white ring-4 ring-[#56C8D8]/20 shadow-xs"
                           : isPassed
-                          ? "bg-emerald-500 text-white"
-                          : "bg-gray-100 text-gray-400"
+                            ? "bg-emerald-500 text-white"
+                            : "bg-gray-100 text-gray-400"
                       }`}
                     >
                       {isPassed ? <Check className="w-3.5 h-3.5" /> : idx + 1}
@@ -246,8 +269,8 @@ export function CustomerDashboardView({ data }: CustomerDashboardViewProps) {
                         isCurrent
                           ? "text-[#0097a7]"
                           : isPassed
-                          ? "text-gray-800"
-                          : "text-gray-400"
+                            ? "text-gray-800"
+                            : "text-gray-400"
                       }`}
                     >
                       {step.label}
@@ -260,7 +283,9 @@ export function CustomerDashboardView({ data }: CustomerDashboardViewProps) {
             <div className="h-1.5 w-full bg-gray-100 rounded-full mt-3 overflow-hidden">
               <div
                 className="h-full bg-[#0097a7] rounded-full transition-all duration-500"
-                style={{ width: `${(activeStepIdx / (ORDER_STEPS.length - 1)) * 100}%` }}
+                style={{
+                  width: `${(activeStepIdx / (ORDER_STEPS.length - 1)) * 100}%`,
+                }}
               />
             </div>
           </div>
@@ -269,8 +294,13 @@ export function CustomerDashboardView({ data }: CustomerDashboardViewProps) {
           {activeOrder.trackingCode && (
             <div className="p-3 rounded-2xl bg-gray-50 border border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-gray-700">Courier Partner:</span>
-                <Badge variant="outline" className="text-[10px] font-bold bg-white">
+                <span className="font-bold text-gray-700">
+                  Courier Partner:
+                </span>
+                <Badge
+                  variant="outline"
+                  className="text-[10px] font-bold bg-white"
+                >
                   {activeOrder.courierName}
                 </Badge>
                 <span className="text-gray-500 font-mono">
@@ -340,8 +370,8 @@ export function CustomerDashboardView({ data }: CustomerDashboardViewProps) {
                           ord.status === OrderStatus.DELIVERED
                             ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                             : ord.status === OrderStatus.CANCELLED
-                            ? "bg-rose-50 text-rose-700 border-rose-200"
-                            : "bg-[#EDF5FA] text-[#0097a7] border-[#D4EEFC]"
+                              ? "bg-rose-50 text-rose-700 border-rose-200"
+                              : "bg-[#EDF5FA] text-[#0097a7] border-[#D4EEFC]"
                         }`}
                       >
                         {ord.status}
@@ -355,7 +385,8 @@ export function CustomerDashboardView({ data }: CustomerDashboardViewProps) {
                         month: "short",
                         day: "numeric",
                         year: "numeric",
-                      })} • {ord.paymentMethod} ({ord.paymentStatus})
+                      })}{" "}
+                      • {ord.paymentMethod} ({ord.paymentStatus})
                     </p>
                   </div>
 
@@ -395,12 +426,16 @@ export function CustomerDashboardView({ data }: CustomerDashboardViewProps) {
               </Link>
             </div>
             <div className="p-3 rounded-2xl bg-gray-50 text-gray-700 space-y-1">
-              <p className="font-bold text-gray-900">{user.name || "Customer"}</p>
+              <p className="font-bold text-gray-900">
+                {user.name || "Customer"}
+              </p>
               <p className="text-gray-600 text-[11px]">
                 {user.address || "No street address saved"}
               </p>
               <p className="text-gray-600 text-[11px]">
-                {user.district ? `${user.district}, Bangladesh` : "District not selected"}
+                {user.district
+                  ? `${user.district}, Bangladesh`
+                  : "District not selected"}
               </p>
               <p className="text-gray-500 font-mono text-[11px]">
                 {user.phone || "No phone number"}
@@ -451,7 +486,8 @@ export function CustomerDashboardView({ data }: CustomerDashboardViewProps) {
           <div className="p-4 rounded-3xl bg-white border border-gray-200 shadow-2xs space-y-2 text-xs">
             <div className="flex items-center justify-between">
               <span className="font-black text-gray-900 flex items-center gap-1.5">
-                <Headphones className="w-3.5 h-3.5 text-[#56C8D8]" /> Support Desk
+                <Headphones className="w-3.5 h-3.5 text-[#56C8D8]" /> Support
+                Desk
               </span>
               <Link
                 href="/account/support"
@@ -461,7 +497,8 @@ export function CustomerDashboardView({ data }: CustomerDashboardViewProps) {
               </Link>
             </div>
             <p className="text-[11px] text-gray-500">
-              Need assistance with an order or product inquiry? Our pet care specialists are ready 24/7.
+              Need assistance with an order or product inquiry? Our pet care
+              specialists are ready 24/7.
             </p>
             {stats.openTicketsCount > 0 && (
               <Badge

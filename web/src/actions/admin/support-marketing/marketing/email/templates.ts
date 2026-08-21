@@ -3,7 +3,14 @@
 import db from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { getMeAction } from "@/actions/auth/get-me";
-import { Role, EmailTemplateCategory } from "@/generated/prisma/enums";
+import {
+  Role,
+  EmailTemplateCategory,
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
+} from "@/generated/prisma/enums";
+import { recordAuditLog } from "@/lib/audit-logger";
 import { AdminEmailTemplateSummary } from "./types";
 
 const SEED_EMAIL_TEMPLATES = [
@@ -34,7 +41,8 @@ const SEED_EMAIL_TEMPLATES = [
         </a>
       </div>
     `,
-    textContent: "Hi {name}, enjoy 15% OFF with code VIPMEAW15! Visit: {storeUrl}",
+    textContent:
+      "Hi {name}, enjoy 15% OFF with code VIPMEAW15! Visit: {storeUrl}",
   },
   {
     title: "Weekend Flash Sale 20% OFF Pet Food",
@@ -59,7 +67,8 @@ const SEED_EMAIL_TEMPLATES = [
         </a>
       </div>
     `,
-    textContent: "Hi {name}, 48-Hour Flash Sale: 20% OFF on all pet foods! Shop: {storeUrl}",
+    textContent:
+      "Hi {name}, 48-Hour Flash Sale: 20% OFF on all pet foods! Shop: {storeUrl}",
   },
   {
     title: "Abandoned Cart Recovery Reminder",
@@ -84,7 +93,8 @@ const SEED_EMAIL_TEMPLATES = [
         </a>
       </div>
     `,
-    textContent: "Hi {name}, your pet essentials are waiting in your cart! Complete your order: {storeUrl}/cart",
+    textContent:
+      "Hi {name}, your pet essentials are waiting in your cart! Complete your order: {storeUrl}/cart",
   },
 ];
 
@@ -156,8 +166,15 @@ export async function createEmailTemplateAction(input: {
       return { success: false, message: "Unauthorized." };
     }
 
-    if (!input.title?.trim() || !input.subject?.trim() || !input.htmlContent?.trim()) {
-      return { success: false, message: "Title, Subject, and HTML Content are required." };
+    if (
+      !input.title?.trim() ||
+      !input.subject?.trim() ||
+      !input.htmlContent?.trim()
+    ) {
+      return {
+        success: false,
+        message: "Title, Subject, and HTML Content are required.",
+      };
     }
 
     await db.emailTemplate.create({
@@ -173,6 +190,21 @@ export async function createEmailTemplateAction(input: {
     });
 
     revalidatePath("/admin/support-marketing/marketing/email");
+
+    await recordAuditLog({
+      action: AuditAction.CREATE,
+      entity: AuditEntity.EMAIL,
+      entityName: input.title,
+      summary: `Email Template "${input.title}" created (${input.category})`,
+      severity: AuditSeverity.INFO,
+      newState: {
+        title: input.title,
+        subject: input.subject,
+        category: input.category,
+      },
+      userId: session.id,
+      path: "/admin/support-marketing/marketing/email",
+    });
 
     return {
       success: true,
@@ -202,6 +234,16 @@ export async function deleteEmailTemplateAction(templateId: string): Promise<{
     });
 
     revalidatePath("/admin/support-marketing/marketing/email");
+
+    await recordAuditLog({
+      action: AuditAction.DELETE,
+      entity: AuditEntity.EMAIL,
+      entityId: templateId,
+      summary: `Email Template was deleted`,
+      severity: AuditSeverity.INFO,
+      userId: session.id,
+      path: "/admin/support-marketing/marketing/email",
+    });
 
     return {
       success: true,

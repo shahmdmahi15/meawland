@@ -1,7 +1,10 @@
 "use client";
 
 import React from "react";
-import { DashboardIntegrationsStatus, DashboardSystemHealth } from "@/actions/admin/dashboard/types";
+import {
+  DashboardIntegrationsStatus,
+  DashboardSystemHealth,
+} from "@/actions/admin/dashboard/types";
 import { Badge } from "@/components/ui/badge";
 import {
   Truck,
@@ -33,7 +36,9 @@ export function IntegrationsStatusBar({
             <div className="p-1.5 rounded-xl bg-orange-50 text-orange-600">
               <Truck className="w-4 h-4" />
             </div>
-            <span className="font-bold text-xs text-gray-800">Steadfast Courier</span>
+            <span className="font-bold text-xs text-gray-800">
+              Steadfast Courier
+            </span>
           </div>
           <Badge
             variant="outline"
@@ -47,7 +52,9 @@ export function IntegrationsStatusBar({
             <span className="text-base font-black text-gray-900">
               ৳{integrations.steadfast.currentBalance.toLocaleString()}
             </span>
-            <span className="text-[10px] text-gray-500 block">Available Balance</span>
+            <span className="text-[10px] text-gray-500 block">
+              Available Balance
+            </span>
           </div>
           <Link
             href="/admin/management/orders/all-orders"
@@ -99,7 +106,9 @@ export function IntegrationsStatusBar({
             <div className="p-1.5 rounded-xl bg-[#EDF5FA] text-[#0097a7]">
               <Mail className="w-4 h-4" />
             </div>
-            <span className="font-bold text-xs text-gray-800">Email &amp; SES</span>
+            <span className="font-bold text-xs text-gray-800">
+              Email &amp; SES
+            </span>
           </div>
           <Badge
             variant="outline"
@@ -132,7 +141,9 @@ export function IntegrationsStatusBar({
             <div className="p-1.5 rounded-xl bg-pink-50 text-[#e2136e]">
               <CreditCard className="w-4 h-4" />
             </div>
-            <span className="font-bold text-xs text-gray-800">bKash Online</span>
+            <span className="font-bold text-xs text-gray-800">
+              bKash Online
+            </span>
           </div>
           <Badge
             variant="outline"
@@ -161,7 +172,9 @@ export function IntegrationsStatusBar({
             <div className="p-1.5 rounded-xl bg-emerald-50 text-emerald-600">
               <Activity className="w-4 h-4" />
             </div>
-            <span className="font-bold text-xs text-gray-800">Database Ping</span>
+            <span className="font-bold text-xs text-gray-800">
+              Database Ping
+            </span>
           </div>
           <Badge
             variant="outline"
@@ -179,7 +192,9 @@ export function IntegrationsStatusBar({
             <span className="text-base font-black text-gray-900">
               {system.dbLatencyMs} ms
             </span>
-            <span className="text-[10px] text-gray-500 block">Query Response</span>
+            <span className="text-[10px] text-gray-500 block">
+              Query Response
+            </span>
           </div>
           <span className="text-[10px] text-gray-400 font-mono">
             {system.serverUptimeFormatted} up

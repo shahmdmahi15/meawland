@@ -18,7 +18,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { AuditAction, AuditEntity, AuditSeverity } from "@/generated/prisma/enums";
+import {
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
+} from "@/generated/prisma/enums";
 import { exportAuditLogsAction } from "@/actions/admin/security/audit-logs/logs";
 import { Download, Loader2, FileSpreadsheet } from "lucide-react";
 import { toast } from "sonner";
@@ -43,7 +47,9 @@ export function AuditExportModal({ trigger }: AuditExportModalProps) {
       });
 
       if (res.success && res.csvContent) {
-        const blob = new Blob([res.csvContent], { type: "text/csv;charset=utf-8;" });
+        const blob = new Blob([res.csvContent], {
+          type: "text/csv;charset=utf-8;",
+        });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.setAttribute("href", url);
@@ -93,7 +99,8 @@ export function AuditExportModal({ trigger }: AuditExportModalProps) {
                 Export Forensic Audit Logs (CSV)
               </DialogTitle>
               <DialogDescription className="text-xs text-gray-500">
-                Download structured audit trail records for compliance, inventory verification, and security reporting.
+                Download structured audit trail records for compliance,
+                inventory verification, and security reporting.
               </DialogDescription>
             </div>
           </div>
@@ -106,7 +113,9 @@ export function AuditExportModal({ trigger }: AuditExportModalProps) {
             </Label>
             <Select value={entity} onValueChange={setEntity}>
               <SelectTrigger className="h-9 text-xs bg-white">
-                <SelectValue>{entity === "ALL" ? "All Entities" : entity}</SelectValue>
+                <SelectValue>
+                  {entity === "ALL" ? "All Entities" : entity}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent className="max-h-56 z-50 bg-white">
                 <SelectItem value="ALL" className="text-xs">
@@ -127,7 +136,9 @@ export function AuditExportModal({ trigger }: AuditExportModalProps) {
             </Label>
             <Select value={action} onValueChange={setAction}>
               <SelectTrigger className="h-9 text-xs bg-white">
-                <SelectValue>{action === "ALL" ? "All Actions" : action}</SelectValue>
+                <SelectValue>
+                  {action === "ALL" ? "All Actions" : action}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent className="max-h-56 z-50 bg-white">
                 <SelectItem value="ALL" className="text-xs">
@@ -148,7 +159,9 @@ export function AuditExportModal({ trigger }: AuditExportModalProps) {
             </Label>
             <Select value={severity} onValueChange={setSeverity}>
               <SelectTrigger className="h-9 text-xs bg-white">
-                <SelectValue>{severity === "ALL" ? "All Severities" : severity}</SelectValue>
+                <SelectValue>
+                  {severity === "ALL" ? "All Severities" : severity}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent className="z-50 bg-white">
                 <SelectItem value="ALL" className="text-xs">

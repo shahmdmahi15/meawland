@@ -3,6 +3,12 @@
 import db from "@/lib/db";
 import { deleteFile } from "@/lib/storage";
 import { revalidatePath } from "next/cache";
+import {
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
+} from "@/generated/prisma/enums";
+import { recordAuditLog } from "@/lib/audit-logger";
 
 export async function deleteSliderAction(sliderId: string): Promise<{
   success: boolean;
@@ -43,6 +49,17 @@ export async function deleteSliderAction(sliderId: string): Promise<{
     // Revalidate paths for admin and homepage
     revalidatePath("/admin/management/store/sliders");
     revalidatePath("/");
+
+    await recordAuditLog({
+      action: AuditAction.DELETE,
+      entity: AuditEntity.SYSTEM_SETTINGS,
+      entityId: slider.id,
+      entityName: slider.text,
+      summary: `Hero Banner Slider "${slider.text}" deleted`,
+      severity: AuditSeverity.INFO,
+      previousState: { id: slider.id, text: slider.text },
+      path: "/admin/management/store/sliders",
+    });
 
     return {
       success: true,

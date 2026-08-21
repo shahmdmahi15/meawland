@@ -1,7 +1,12 @@
 "use server";
 
 import { getMeAction } from "@/actions/auth/get-me";
-import { Role, AuditAction, AuditEntity, AuditSeverity } from "@/generated/prisma/enums";
+import {
+  Role,
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
+} from "@/generated/prisma/enums";
 import db from "@/lib/db";
 import { recordAuditLog } from "@/lib/audit-logger";
 import {
@@ -28,7 +33,14 @@ export async function editUserAction(id: string, input: UserEditInput) {
 
     const existingUser = await db.user.findUnique({
       where: { id },
-      select: { id: true, name: true, email: true, role: true, phone: true, district: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        phone: true,
+        district: true,
+      },
     });
 
     const user = await db.user.update({
@@ -36,7 +48,8 @@ export async function editUserAction(id: string, input: UserEditInput) {
       data: validation.data,
     });
 
-    const isRoleChanged = existingUser && existingUser.role !== validation.data.role;
+    const isRoleChanged =
+      existingUser && existingUser.role !== validation.data.role;
 
     await recordAuditLog({
       action: isRoleChanged ? AuditAction.ROLE_CHANGE : AuditAction.UPDATE,

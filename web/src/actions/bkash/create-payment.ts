@@ -96,14 +96,9 @@ export async function createBkashPaymentAction(
     );
 
     const data = (await response.json()) as
-      | BkashCreatePaymentResponse
-      | BkashCreatePaymentErrorResponse;
+      BkashCreatePaymentResponse | BkashCreatePaymentErrorResponse;
 
-    if (
-      !response.ok ||
-      !("bkashURL" in data) ||
-      !data.bkashURL
-    ) {
+    if (!response.ok || !("bkashURL" in data) || !data.bkashURL) {
       const errorData = data as BkashCreatePaymentErrorResponse;
       console.error("[Actions.Bkash.CreatePayment] API error:", errorData);
       return {
@@ -125,7 +120,8 @@ export async function createBkashPaymentAction(
       return {
         success: false,
         message:
-          paymentData.statusMessage || "bKash payment creation was not successful.",
+          paymentData.statusMessage ||
+          "bKash payment creation was not successful.",
       };
     }
 

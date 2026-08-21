@@ -2,7 +2,13 @@
 
 import db from "@/lib/db";
 import { getMeAction } from "@/actions/auth/get-me";
-import { Role, AuditAction, AuditEntity, AuditSeverity, Prisma } from "@/generated/prisma/enums";
+import {
+  Role,
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
+  Prisma,
+} from "@/generated/prisma/enums";
 import {
   AdminAuditLogFilterInput,
   AdminAuditLogSummary,
@@ -152,9 +158,7 @@ export async function getAuditLogsAction(
 /**
  * Fetch detailed state diff and metadata for a specific audit log entry.
  */
-export async function getAuditLogDetailsAction(
-  logId: string,
-): Promise<{
+export async function getAuditLogDetailsAction(logId: string): Promise<{
   success: boolean;
   message?: string;
   log?: AdminAuditLogDetails;
@@ -228,7 +232,14 @@ export async function getAuditLogStatsAction(): Promise<{
 }> {
   try {
     const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+    const todayStart = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      0,
+      0,
+      0,
+    );
 
     const [
       totalLogs,
@@ -351,7 +362,10 @@ export async function exportAuditLogsAction(
       `"${log.path || ""}"`,
     ]);
 
-    const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((r) => r.join(",")),
+    ].join("\n");
 
     return {
       success: true,

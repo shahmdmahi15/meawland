@@ -795,7 +795,8 @@ export async function createAdminOrderAction(
         email,
         name,
         grandTotal: grandFinalCost.toString(),
-        paymentMethod: paymentMethod === PaymentMethod.COD ? "Cash on Delivery" : "bKash",
+        paymentMethod:
+          paymentMethod === PaymentMethod.COD ? "Cash on Delivery" : "bKash",
         paymentStatus,
         shippingAddress: `${address}, ${district}`,
         deliveryFee: deliveryFee.toString(),

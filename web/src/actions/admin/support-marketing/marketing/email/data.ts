@@ -5,7 +5,11 @@ import { getEmailCampaignsAction } from "./campaigns";
 import { getEmailTemplatesAction } from "./templates";
 import { getEmailLogsAction } from "./logs";
 import { getEmailAutomationSettingsAction } from "./automations";
-import { Category, NewsletterStatus, EmailDeliveryStatus } from "@/generated/prisma/enums";
+import {
+  Category,
+  NewsletterStatus,
+  EmailDeliveryStatus,
+} from "@/generated/prisma/enums";
 import type {
   AdminEmailCampaignSummary,
   AdminEmailTemplateSummary,
@@ -99,10 +103,13 @@ export async function getEmailMarketingPageDataAction(): Promise<{
       welcomeNewUserEmail: true,
       abandonedCartEmail: false,
       orderPlacedSubject: "Order Confirmed #{orderCode} | Meawland 🐾",
-      orderDispatchedSubject: "Your Order #{orderCode} is on the way! 🚚 | Meawland",
+      orderDispatchedSubject:
+        "Your Order #{orderCode} is on the way! 🚚 | Meawland",
       orderDeliveredSubject: "Delivered! Order #{orderCode} | Meawland 🐾",
-      bkashPaidSubject: "bKash Payment Verified for Order #{orderCode} 💳 | Meawland",
-      welcomeUserSubject: "Welcome to Meawland! 🐾 Enjoy 10% OFF Your First Pet Order",
+      bkashPaidSubject:
+        "bKash Payment Verified for Order #{orderCode} 💳 | Meawland",
+      welcomeUserSubject:
+        "Welcome to Meawland! 🐾 Enjoy 10% OFF Your First Pet Order",
     };
 
     const deliveryRatePct =
@@ -120,7 +127,8 @@ export async function getEmailMarketingPageDataAction(): Promise<{
         totalSubscribers,
         totalDelivered,
         deliveryRatePct,
-        automationSettings: automationsRes.settings || defaultAutomationSettings,
+        automationSettings:
+          automationsRes.settings || defaultAutomationSettings,
         categories,
         brands,
         districts,

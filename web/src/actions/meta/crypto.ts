@@ -17,7 +17,9 @@ export function hashSha256(val: string | null | undefined): string | null {
  * - Strip non-digits
  * - For Bangladesh: format with country code '8801XXXXXXXX'
  */
-export function normalizeAndHashPhone(rawPhone: string | null | undefined): string | null {
+export function normalizeAndHashPhone(
+  rawPhone: string | null | undefined,
+): string | null {
   if (!rawPhone) return null;
   let digits = rawPhone.replace(/\D/g, "");
   if (!digits) return null;

@@ -115,7 +115,8 @@ export function AuditLogDetailsModal({
                   {getSeverityBadge(logSummary.severity)}
                 </div>
                 <DialogDescription className="text-xs text-gray-500">
-                  Detailed forensics, user attribution, and state delta comparison.
+                  Detailed forensics, user attribution, and state delta
+                  comparison.
                 </DialogDescription>
               </div>
             </div>
@@ -155,10 +156,16 @@ export function AuditLogDetailsModal({
                   Action &amp; Entity
                 </span>
                 <div className="flex items-center gap-1.5 mt-1">
-                  <Badge variant="outline" className="text-[10px] font-mono bg-white font-bold text-[#0097a7]">
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] font-mono bg-white font-bold text-[#0097a7]"
+                  >
                     {details.action}
                   </Badge>
-                  <Badge variant="outline" className="text-[10px] font-mono bg-white">
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] font-mono bg-white"
+                  >
                     {details.entity}
                   </Badge>
                 </div>
@@ -170,7 +177,9 @@ export function AuditLogDetailsModal({
                 </span>
                 <div className="flex items-center gap-1.5 mt-1">
                   <div className="h-5 w-5 rounded-full bg-[#56C8D8] text-white flex items-center justify-center text-[10px] font-black">
-                    {details.actor?.name ? details.actor.name[0].toUpperCase() : "S"}
+                    {details.actor?.name
+                      ? details.actor.name[0].toUpperCase()
+                      : "S"}
                   </div>
                   <span className="font-bold text-gray-900 truncate">
                     {details.actor?.name || "System Automated"}
@@ -225,7 +234,8 @@ export function AuditLogDetailsModal({
               </p>
               {details.entityName && (
                 <p className="text-[11px] text-gray-600 mt-0.5">
-                  Target: <strong>{details.entityName}</strong> {details.entityId ? `(#${details.entityId})` : ""}
+                  Target: <strong>{details.entityName}</strong>{" "}
+                  {details.entityId ? `(#${details.entityId})` : ""}
                 </p>
               )}
             </div>
@@ -234,7 +244,8 @@ export function AuditLogDetailsModal({
             {details.hasStateDiff ? (
               <div className="space-y-2">
                 <span className="font-bold text-xs text-gray-800 flex items-center gap-1.5">
-                  <FileCode className="w-3.5 h-3.5 text-primary" /> State Modification Delta (Before &amp; After)
+                  <FileCode className="w-3.5 h-3.5 text-primary" /> State
+                  Modification Delta (Before &amp; After)
                 </span>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -269,7 +280,8 @@ export function AuditLogDetailsModal({
             {details.metadata && Object.keys(details.metadata).length > 0 && (
               <div className="space-y-1">
                 <span className="font-bold text-xs text-gray-700 flex items-center gap-1">
-                  <Layers className="w-3.5 h-3.5 text-gray-500" /> Additional Metadata
+                  <Layers className="w-3.5 h-3.5 text-gray-500" /> Additional
+                  Metadata
                 </span>
                 <pre className="p-3 rounded-2xl bg-gray-50 border border-gray-200 font-mono text-[11px] text-gray-800 overflow-x-auto max-h-40 overflow-y-auto">
                   {JSON.stringify(details.metadata, null, 2)}

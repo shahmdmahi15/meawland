@@ -87,7 +87,8 @@ export async function getDashboardInventory(): Promise<DashboardInventoryMetrics
 
       for (const variant of prod.variants) {
         const vStock = variant.stock || 0;
-        const vCost = parseFloat(variant.costPrice) || parseFloat(variant.salePrice) || 0;
+        const vCost =
+          parseFloat(variant.costPrice) || parseFloat(variant.salePrice) || 0;
         prodTotalStock += vStock;
         prodValuation += vStock * vCost;
 
@@ -125,7 +126,10 @@ export async function getDashboardInventory(): Promise<DashboardInventoryMetrics
     } else {
       singleProductsCount++;
       const pStock = prod.stock || 0;
-      const pCost = parseFloat(prod.costPrice || "0") || parseFloat(prod.salePrice || "0") || 0;
+      const pCost =
+        parseFloat(prod.costPrice || "0") ||
+        parseFloat(prod.salePrice || "0") ||
+        0;
 
       totalUnitsInStock += pStock;
       const pVal = pStock * pCost;
@@ -163,7 +167,10 @@ export async function getDashboardInventory(): Promise<DashboardInventoryMetrics
 
   // Process combo products
   for (const combo of comboProducts) {
-    const cVal = parseFloat(combo.salePrice || "0") || parseFloat(combo.regularPrice || "0") || 0;
+    const cVal =
+      parseFloat(combo.salePrice || "0") ||
+      parseFloat(combo.regularPrice || "0") ||
+      0;
     totalInventoryValuation += cVal;
   }
 
@@ -180,7 +187,8 @@ export async function getDashboardInventory(): Promise<DashboardInventoryMetrics
     },
   });
 
-  const topSellingProducts: DashboardInventoryMetrics["topSellingProducts"] = [];
+  const topSellingProducts: DashboardInventoryMetrics["topSellingProducts"] =
+    [];
 
   for (const item of topSoldItems) {
     if (!item.productId) continue;
@@ -206,17 +214,20 @@ export async function getDashboardInventory(): Promise<DashboardInventoryMetrics
   }
 
   // Format category breakdown
-  const categoryBreakdown: DashboardInventoryMetrics["categoryBreakdown"] = Object.values(
-    Category,
-  ).map((c) => {
-    const st = categoryStats.get(c) || { count: 0, totalUnits: 0, valuation: 0 };
-    return {
-      category: c.replace(/_/g, " "),
-      count: st.count,
-      totalUnits: st.totalUnits,
-      valuation: Math.round(st.valuation),
-    };
-  });
+  const categoryBreakdown: DashboardInventoryMetrics["categoryBreakdown"] =
+    Object.values(Category).map((c) => {
+      const st = categoryStats.get(c) || {
+        count: 0,
+        totalUnits: 0,
+        valuation: 0,
+      };
+      return {
+        category: c.replace(/_/g, " "),
+        count: st.count,
+        totalUnits: st.totalUnits,
+        valuation: Math.round(st.valuation),
+      };
+    });
 
   return {
     totalProducts: products.length,

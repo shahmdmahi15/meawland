@@ -9,6 +9,12 @@ import {
   type UpdateSubCategoryError,
   type UpdateSubCategoryInput,
 } from "@/schemas/admin/management/store/sub-categories/update";
+import {
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
+} from "@/generated/prisma/enums";
+import { recordAuditLog } from "@/lib/audit-logger";
 
 export async function updateSubCategoryAction(
   input: UpdateSubCategoryInput,
@@ -105,6 +111,22 @@ export async function updateSubCategoryAction(
     revalidatePath("/");
     revalidatePath("/products");
     revalidatePath("/category", "layout");
+
+    await recordAuditLog({
+      action: AuditAction.UPDATE,
+      entity: AuditEntity.CATEGORY,
+      entityId: existing.id,
+      entityName: data.name || existing.name,
+      summary: `Subcategory "${data.name || existing.name}" updated`,
+      severity: AuditSeverity.INFO,
+      previousState: {
+        name: existing.name,
+        category: existing.category,
+        slug: existing.slug,
+      },
+      newState: { name: data.name, category: data.category, slug: data.slug },
+      path: "/admin/management/store/sub-categories",
+    });
 
     return {
       success: true,

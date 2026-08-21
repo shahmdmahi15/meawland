@@ -3,7 +3,15 @@
 import { revalidatePath } from "next/cache";
 import db from "@/lib/db";
 import { getMeAction } from "@/actions/auth/get-me";
-import { Role, DiscountType, Category } from "@/generated/prisma/enums";
+import {
+  Role,
+  DiscountType,
+  Category,
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
+} from "@/generated/prisma/enums";
+import { recordAuditLog } from "@/lib/audit-logger";
 import { uploadFile, deleteFile, getImageBase64 } from "@/lib/storage";
 import crypto from "crypto";
 import { CATEGORY_MAP } from "@/lib/category-helpers";
@@ -673,6 +681,23 @@ export async function createCampaignAction(formData: FormData): Promise<{
     });
 
     revalidatePath("/admin/management/offers/campaigns");
+
+    await recordAuditLog({
+      action: AuditAction.CREATE,
+      entity: AuditEntity.CAMPAIGN,
+      entityId: campaign.id,
+      entityName: campaign.name,
+      summary: `Marketing Campaign "${campaign.name}" created`,
+      severity: AuditSeverity.INFO,
+      newState: {
+        id: campaign.id,
+        name: campaign.name,
+        discount: campaign.discount,
+        discountType: campaign.discountType,
+      },
+      userId: current.id,
+      path: "/admin/management/offers/campaigns",
+    });
     return {
       success: true,
       message: `Campaign "${campaign.name}" created successfully`,
@@ -845,6 +870,23 @@ export async function updateCampaignAction(formData: FormData): Promise<{
     });
 
     revalidatePath("/admin/management/offers/campaigns");
+
+    await recordAuditLog({
+      action: AuditAction.UPDATE,
+      entity: AuditEntity.CAMPAIGN,
+      entityId: campaignId,
+      entityName: data.name,
+      summary: `Marketing Campaign "${data.name}" updated`,
+      severity: AuditSeverity.INFO,
+      newState: {
+        id: campaignId,
+        name: data.name,
+        discount: data.discount,
+        discountType: data.discountType,
+      },
+      userId: current.id,
+      path: "/admin/management/offers/campaigns",
+    });
     return {
       success: true,
       message: `Campaign "${data.name}" updated successfully`,
@@ -903,6 +945,18 @@ export async function deleteCampaignAction(rawInput: unknown): Promise<{
     }
 
     revalidatePath("/admin/management/offers/campaigns");
+
+    await recordAuditLog({
+      action: AuditAction.DELETE,
+      entity: AuditEntity.CAMPAIGN,
+      entityId: campaignId,
+      entityName: existing.name,
+      summary: `Marketing Campaign "${existing.name}" was permanently deleted`,
+      severity: AuditSeverity.WARNING,
+      previousState: { id: campaignId, name: existing.name },
+      userId: current.id,
+      path: "/admin/management/offers/campaigns",
+    });
     return {
       success: true,
       message: `Campaign "${existing.name}" has been removed`,

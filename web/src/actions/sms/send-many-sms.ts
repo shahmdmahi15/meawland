@@ -1,11 +1,7 @@
 "use server";
 
 import { env } from "@/env";
-import type {
-  ManySmsInput,
-  ManySmsMessageItem,
-  SmsApiResponse,
-} from "./types";
+import type { ManySmsInput, ManySmsMessageItem, SmsApiResponse } from "./types";
 import {
   sanitizeBangladeshiPhoneNumber,
   getSmsErrorMessage,
@@ -15,9 +11,7 @@ import {
 /**
  * Sends distinct personalized messages to multiple recipients (Many-to-Many SMS)
  */
-export async function sendManySmsAction(
-  input: ManySmsInput,
-): Promise<{
+export async function sendManySmsAction(input: ManySmsInput): Promise<{
   success: boolean;
   message?: string;
   sentCount?: number;
@@ -105,7 +99,8 @@ export async function sendManySmsAction(
     console.error("[Actions.SMS.SendMany] Exception:", error);
     return {
       success: false,
-      message: "Failed to connect to SMS gateway for personalized batch dispatch.",
+      message:
+        "Failed to connect to SMS gateway for personalized batch dispatch.",
     };
   }
 }

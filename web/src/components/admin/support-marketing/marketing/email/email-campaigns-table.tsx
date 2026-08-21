@@ -62,7 +62,11 @@ interface EmailCampaignsTableProps {
 
 const STATUS_CONFIG: Record<
   EmailCampaignStatus,
-  { label: string; variant: "default" | "secondary" | "destructive" | "outline"; icon: React.ComponentType<{ className?: string }> }
+  {
+    label: string;
+    variant: "default" | "secondary" | "destructive" | "outline";
+    icon: React.ComponentType<{ className?: string }>;
+  }
 > = {
   [EmailCampaignStatus.DRAFT]: {
     label: "Draft",
@@ -103,9 +107,8 @@ export function EmailCampaignsTable({
   brands,
   districts,
 }: EmailCampaignsTableProps) {
-  const [campaigns, setCampaigns] = useState<AdminEmailCampaignSummary[]>(
-    initialCampaigns,
-  );
+  const [campaigns, setCampaigns] =
+    useState<AdminEmailCampaignSummary[]>(initialCampaigns);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [selectedCampaign, setSelectedCampaign] =
@@ -130,7 +133,8 @@ export function EmailCampaignsTable({
   };
 
   const handleDelete = (campaignId: string) => {
-    if (!confirm("Are you sure you want to delete this email campaign?")) return;
+    if (!confirm("Are you sure you want to delete this email campaign?"))
+      return;
 
     startDeleteTransition(async () => {
       const res = await deleteEmailCampaignAction(campaignId);
@@ -196,7 +200,8 @@ export function EmailCampaignsTable({
               <SelectValue>
                 {statusFilter === "ALL"
                   ? "All Statuses"
-                  : STATUS_CONFIG[statusFilter as EmailCampaignStatus]?.label || statusFilter}
+                  : STATUS_CONFIG[statusFilter as EmailCampaignStatus]?.label ||
+                    statusFilter}
               </SelectValue>
             </SelectTrigger>
             <SelectContent className="z-50 bg-white">
@@ -269,7 +274,10 @@ export function EmailCampaignsTable({
                     : 0;
 
                 return (
-                  <TableRow key={c.id} className="hover:bg-gray-50/60 transition-colors">
+                  <TableRow
+                    key={c.id}
+                    className="hover:bg-gray-50/60 transition-colors"
+                  >
                     <TableCell className="pl-4 py-3">
                       <div>
                         <p className="font-bold text-xs text-gray-900 leading-tight">
@@ -385,7 +393,9 @@ export function EmailCampaignsTable({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Subject:</span>
-                  <strong className="text-gray-900">{selectedCampaign.subject}</strong>
+                  <strong className="text-gray-900">
+                    {selectedCampaign.subject}
+                  </strong>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Target Segment:</span>
@@ -418,7 +428,8 @@ export function EmailCampaignsTable({
                   Infrastructure
                 </span>
                 <p className="text-[11px] text-gray-300">
-                  Broadcast delivered through <strong>AWS SES v2</strong> from <code className="text-teal-400">no-reply@meawland.com</code>.
+                  Broadcast delivered through <strong>AWS SES v2</strong> from{" "}
+                  <code className="text-teal-400">no-reply@meawland.com</code>.
                 </p>
               </div>
             </div>

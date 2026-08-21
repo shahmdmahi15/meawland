@@ -11,6 +11,12 @@ import {
   type CreateComboProductInput,
   type UpdateComboProductInput,
 } from "@/schemas/admin/management/inventory/combo-product";
+import {
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
+} from "@/generated/prisma/enums";
+import { recordAuditLog } from "@/lib/audit-logger";
 
 export type ComboSourceVariant = Variant & {
   imageBase64?: string;
@@ -536,6 +542,23 @@ export async function createComboProductAction(
     revalidatePath("/products");
     revalidatePath("/product", "layout");
 
+    await recordAuditLog({
+      action: AuditAction.CREATE,
+      entity: AuditEntity.COMBO_PRODUCT,
+      entityId: combo.id,
+      entityName: combo.name,
+      summary: `Combo Bundle "${combo.name}" (Code: ${combo.code}) created`,
+      severity: AuditSeverity.INFO,
+      newState: {
+        id: combo.id,
+        code: combo.code,
+        name: combo.name,
+        regularPrice: combo.regularPrice,
+        salePrice: combo.salePrice,
+      },
+      path: "/admin/management/inventory/combo-products",
+    });
+
     return {
       success: true,
       message: "Combo product created successfully.",
@@ -568,6 +591,17 @@ export async function deleteComboProductAction(comboId: string): Promise<{
       };
     }
 
+    const existing = await db.comboProduct.findUnique({
+      where: { id: comboId },
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        regularPrice: true,
+        salePrice: true,
+      },
+    });
+
     await db.comboProduct.delete({
       where: { id: comboId },
     });
@@ -578,6 +612,23 @@ export async function deleteComboProductAction(comboId: string): Promise<{
     revalidatePath("/");
     revalidatePath("/products");
     revalidatePath("/product", "layout");
+
+    await recordAuditLog({
+      action: AuditAction.DELETE,
+      entity: AuditEntity.COMBO_PRODUCT,
+      entityId: comboId,
+      entityName: existing?.name || "Combo Product",
+      summary: `Combo Bundle "${existing?.name || comboId}" (${existing?.code || ""}) was deleted`,
+      severity: AuditSeverity.WARNING,
+      previousState: {
+        id: comboId,
+        name: existing?.name,
+        code: existing?.code,
+        regularPrice: existing?.regularPrice,
+        salePrice: existing?.salePrice,
+      },
+      path: "/admin/management/inventory/combo-products",
+    });
 
     return {
       success: true,
@@ -751,6 +802,26 @@ export async function updateComboProductAction(
     revalidatePath("/");
     revalidatePath("/products");
     revalidatePath("/product", "layout");
+
+    await recordAuditLog({
+      action: AuditAction.UPDATE,
+      entity: AuditEntity.COMBO_PRODUCT,
+      entityId: existing.id,
+      entityName: nextName,
+      summary: `Combo Bundle "${nextName}" (Code: ${existing.code}) updated`,
+      severity: AuditSeverity.INFO,
+      previousState: {
+        name: existing.name,
+        regularPrice: existing.regularPrice,
+        salePrice: existing.salePrice,
+      },
+      newState: {
+        name: nextName,
+        regularPrice: nextRegularPrice,
+        salePrice: nextSalePrice,
+      },
+      path: "/admin/management/inventory/combo-products",
+    });
 
     return {
       success: true,

@@ -24,7 +24,11 @@ import {
   PaymentStatus,
   StockEventType,
   Role,
+  AuditAction,
+  AuditEntity,
+  AuditSeverity,
 } from "@/generated/prisma/enums";
+import { recordAuditLog } from "@/lib/audit-logger";
 import { createBkashPaymentAction } from "@/actions/bkash/create-payment";
 import { triggerOrderPlacedSms } from "@/actions/admin/support-marketing/marketing/sms/automations";
 import { triggerOrderPlacedEmail } from "@/actions/admin/support-marketing/marketing/email/automations";
@@ -608,7 +612,8 @@ export async function placeOrderAction(
       email,
       name,
       grandTotal: grandFinalCost.toString(),
-      paymentMethod: paymentMethod === PaymentMethod.COD ? "Cash on Delivery" : "bKash",
+      paymentMethod:
+        paymentMethod === PaymentMethod.COD ? "Cash on Delivery" : "bKash",
       paymentStatus: PaymentStatus.PENDING,
       shippingAddress: `${address}, ${district}`,
       items: cart.items.map((i) => ({
@@ -666,6 +671,25 @@ export async function placeOrderAction(
       eventId: `purch_${result.code}`,
     }).catch((err) => {
       console.error("[Action.Store.Checkout] Meta CAPI Purchase error:", err);
+    });
+
+    // 5. Forensic Audit Log Entry
+    await recordAuditLog({
+      action: AuditAction.CREATE,
+      entity: AuditEntity.ORDER,
+      entityId: result.id,
+      entityName: `Order #${result.code}`,
+      summary: `Online storefront order #${result.code} placed by ${name} (${phone}) - BDT ${grandFinalCost} (${paymentMethod})`,
+      severity: AuditSeverity.INFO,
+      newState: {
+        code: result.code,
+        finalCost: grandFinalCost.toString(),
+        paymentMethod,
+        itemCount: cart.items.length,
+        customer: { name, email, phone, district, address },
+      },
+      userId: orderUserId,
+      path: "/checkout",
     });
 
     return {

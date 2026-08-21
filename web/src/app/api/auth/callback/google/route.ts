@@ -3,8 +3,8 @@ import crypto from "crypto";
 import db from "@/lib/db";
 import { generateId } from "@/lib/generate-code";
 import { env } from "@/env";
-import { mergeGuestCartIntoUser } from "@/actions/store/cart";
-import { trackMetaCompleteRegistrationAction } from "@/actions/meta";
+import { buildMetaUserData } from "@/actions/meta/crypto";
+import { sendMetaConversionApiEvents } from "@/actions/meta/client";
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
@@ -93,31 +93,115 @@ export async function GET(req: NextRequest) {
     // 5. Merge guest cart if present
     const guestCartId = req.cookies.get("meawland_cart_id")?.value;
     if (guestCartId) {
-      await mergeGuestCartIntoUser(user.id, guestCartId).catch((err) => {
-        console.error("[OAuth.Google] Merge cart error:", err);
-      });
+      try {
+        const guestCart = await db.cart.findUnique({
+          where: { id: guestCartId },
+          include: { cartItems: true },
+        });
+
+        if (guestCart && guestCart.cartItems.length > 0) {
+          let userCart = await db.cart.findFirst({
+            where: { userId: user.id },
+            include: { cartItems: true },
+          });
+
+          if (!userCart) {
+            userCart = await db.cart.create({
+              data: { userId: user.id, isTemporary: false },
+              include: { cartItems: true },
+            });
+          }
+
+          for (const item of guestCart.cartItems) {
+            const existing = userCart.cartItems.find(
+              (ci) =>
+                ci.productId === item.productId &&
+                ci.variantId === item.variantId &&
+                ci.comboProductId === item.comboProductId,
+            );
+
+            if (existing) {
+              await db.cartItem.update({
+                where: { id: existing.id },
+                data: { quanitity: existing.quanitity + item.quanitity },
+              });
+            } else {
+              await db.cartItem.create({
+                data: {
+                  cartId: userCart.id,
+                  productId: item.productId,
+                  variantId: item.variantId,
+                  comboProductId: item.comboProductId,
+                  quanitity: item.quanitity,
+                },
+              });
+            }
+          }
+
+          await db.cart.delete({ where: { id: guestCartId } }).catch(() => {});
+        }
+      } catch (err) {
+        console.error("[OAuth.Google] Cart merge failed:", err);
+      }
     }
 
-    // 5.1 Track Meta CAPI CompleteRegistration (Safe non-blocking)
+    // 5.1 Send Meta CAPI CompleteRegistration safely
     try {
-      trackMetaCompleteRegistrationAction({
-        userId: user.id,
-        method: "GOOGLE",
-        email: user.email,
-        name: user.name,
-        context: {
-          clientIp:
-            req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null,
-          userAgent: req.headers.get("user-agent") || null,
-          fbp: req.cookies.get("_fbp")?.value || null,
-          fbc: req.cookies.get("_fbc")?.value || null,
+      const clientIp =
+        req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null;
+      const userAgent = req.headers.get("user-agent") || null;
+      const fbp = req.cookies.get("_fbp")?.value || null;
+      const fbc = req.cookies.get("_fbc")?.value || null;
+
+      const userData = buildMetaUserData(
+        {
+          userId: user.id,
+          email: user.email,
+          name: user.name,
+          clientIp,
+          userAgent,
+          fbp,
+          fbc,
         },
-      }).catch((err) => {
-        console.error("[OAuth.Google] Meta CAPI CompleteRegistration error:", err);
+        { ipAddress: clientIp, userAgent, fbp, fbc },
+      );
+
+      sendMetaConversionApiEvents([
+        {
+          event_name: "CompleteRegistration",
+          event_time: Math.floor(Date.now() / 1000),
+          event_id: `reg_${user.id}`,
+          action_source: "website",
+          user_data: userData,
+          custom_data: {
+            status: "GOOGLE",
+            content_name: "Customer Account Created",
+          },
+        },
+      ]).catch((err) => {
+        console.error("[OAuth.Google] Meta CAPI error:", err);
       });
     } catch {
-      // Ignored to guarantee OAuth never fails due to telemetry
+      // Ignored
     }
+
+    // 5.2 Forensic Audit Log
+    await db.auditLog
+      .create({
+        data: {
+          action: "LOGIN",
+          entity: "AUTH",
+          userId: user.id,
+          entityName: user.name,
+          summary: `User "${user.name}" (${user.email}) logged in via Google OAuth`,
+          severity: "INFO",
+          ipAddress:
+            req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null,
+          userAgent: req.headers.get("user-agent") || null,
+          path: "/api/auth/callback/google",
+        },
+      })
+      .catch(() => {});
 
     // 6. Set HTTP-only cookie with the RAW token and redirect
     const response = NextResponse.redirect(new URL("/account", req.url));

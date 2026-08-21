@@ -46,7 +46,9 @@ export function AuditLogsDashboard({
               </Badge>
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              Complete historical record of every mutation, order status transition, inventory modification, and administrative privilege change.
+              Complete historical record of every mutation, order status
+              transition, inventory modification, and administrative privilege
+              change.
             </p>
           </div>
         </div>

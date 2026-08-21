@@ -55,6 +55,7 @@ import {
   sendOrderToSteadfastAction,
   syncSteadfastShipmentStatusAction,
 } from "@/actions/admin/management/orders/send-to-steadfast";
+import { OrderFraudRiskBadge } from "@/components/admin/fraud-checker/order-fraud-risk-badge";
 import { OrderDetailModal } from "./order-detail-modal";
 import { OrderInvoiceModal } from "./order-invoice-modal";
 import { DeleteOrderButton } from "./delete-order-button";
@@ -345,7 +346,9 @@ export function OrdersTable({
         const matchesDistrict = order.district.toLowerCase().includes(q);
         const matchesAddress = order.address.toLowerCase().includes(q);
         const matchesTrx = order.payment?.trxID?.toLowerCase().includes(q);
-        const matchesBkashNumber = order.payment?.customerMsisdn?.toLowerCase().includes(q);
+        const matchesBkashNumber = order.payment?.customerMsisdn
+          ?.toLowerCase()
+          .includes(q);
         const matchesItems = order.items.some((i) =>
           i.name.toLowerCase().includes(q),
         );
@@ -788,6 +791,17 @@ export function OrdersTable({
                                 {order.district}
                               </span>
                             </div>
+                            <div className="pt-0.5">
+                              <OrderFraudRiskBadge
+                                phone={order.phone}
+                                customerName={order.name}
+                                orderCode={order.code}
+                                parcelId={
+                                  order.shipment?.consignmentId || order.code
+                                }
+                                variant="inline"
+                              />
+                            </div>
                           </div>
                         </TableCell>
 
@@ -833,8 +847,12 @@ export function OrdersTable({
                                   <button
                                     type="button"
                                     onClick={() => {
-                                      navigator.clipboard.writeText(order.payment!.trxID!);
-                                      toast.success(`Copied TrxID: ${order.payment!.trxID!}`);
+                                      navigator.clipboard.writeText(
+                                        order.payment!.trxID!,
+                                      );
+                                      toast.success(
+                                        `Copied TrxID: ${order.payment!.trxID!}`,
+                                      );
                                     }}
                                     className="text-[10px] font-mono text-muted-foreground hover:text-foreground underline cursor-pointer"
                                     title="Copy TrxID"

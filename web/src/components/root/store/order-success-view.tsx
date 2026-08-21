@@ -177,7 +177,8 @@ export function OrderSuccessView({ order }: OrderSuccessViewProps) {
                 </span>
               </div>
 
-              {order.paymentMethod === PaymentMethod.BKASH && order.payment?.trxID ? (
+              {order.paymentMethod === PaymentMethod.BKASH &&
+              order.payment?.trxID ? (
                 <div className="p-3 bg-[#fdf2f8] border border-[#fbcfe8] rounded-xl space-y-1 text-[11px] text-gray-700">
                   <p className="font-bold text-[#9d174d] flex items-center gap-1.5">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />

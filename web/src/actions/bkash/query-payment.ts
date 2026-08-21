@@ -87,13 +87,9 @@ export async function queryBkashPaymentAction(paymentID: string): Promise<{
     );
 
     const data = (await response.json()) as
-      | BkashQueryPaymentResponse
-      | BkashQueryPaymentErrorResponse;
+      BkashQueryPaymentResponse | BkashQueryPaymentErrorResponse;
 
-    if (
-      !response.ok ||
-      !("transactionStatus" in data)
-    ) {
+    if (!response.ok || !("transactionStatus" in data)) {
       const errorData = data as BkashQueryPaymentErrorResponse;
       console.error("[Actions.Bkash.QueryPayment] API error:", errorData);
       return {

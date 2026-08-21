@@ -79,7 +79,9 @@ export type AdminSmsCampaignSummary = {
 
 export const CreateSmsTemplateSchema = z.object({
   title: z.string().min(2, "Template title is required."),
-  category: z.nativeEnum(SmsTemplateCategory).default(SmsTemplateCategory.PROMOTIONAL),
+  category: z
+    .nativeEnum(SmsTemplateCategory)
+    .default(SmsTemplateCategory.PROMOTIONAL),
   body: z.string().min(5, "Template content is required."),
   variables: z.array(z.string()).default([]),
 });

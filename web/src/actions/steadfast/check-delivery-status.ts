@@ -35,7 +35,8 @@ export async function getSteadfastStatusByConsignmentIdAction(
     if (!result.success || !result.data) {
       return {
         success: false,
-        message: result.message || "Failed to retrieve status by Consignment ID.",
+        message:
+          result.message || "Failed to retrieve status by Consignment ID.",
       };
     }
 
@@ -133,7 +134,8 @@ export async function getSteadfastStatusByTrackingCodeAction(
     if (!result.success || !result.data) {
       return {
         success: false,
-        message: result.message || "Failed to retrieve status by tracking code.",
+        message:
+          result.message || "Failed to retrieve status by tracking code.",
       };
     }
 

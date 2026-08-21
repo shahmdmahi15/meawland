@@ -132,6 +132,10 @@ const adminNavigations = [
             title: "Other Orders",
             url: "/admin/management/orders/other-orders",
           },
+          {
+            title: "Fraud Checker",
+            url: "/admin/management/orders/fraud-checker",
+          },
         ],
       },
       {
@@ -338,6 +342,10 @@ const ownerNavigations = [
           {
             title: "Other Orders",
             url: "/admin/management/orders/other-orders",
+          },
+          {
+            title: "Fraud Checker",
+            url: "/admin/management/orders/fraud-checker",
           },
         ],
       },

@@ -25,7 +25,8 @@ export async function getSteadfastPaymentsAction(): Promise<{
     if (!result.success || !result.data) {
       return {
         success: false,
-        message: result.message || "Failed to retrieve Steadfast payments list.",
+        message:
+          result.message || "Failed to retrieve Steadfast payments list.",
       };
     }
 
@@ -41,7 +42,9 @@ export async function getSteadfastPaymentsAction(): Promise<{
     return {
       success: true,
       payments,
-      data: Array.isArray(result.data) ? { status: 200, payments } : result.data,
+      data: Array.isArray(result.data)
+        ? { status: 200, payments }
+        : result.data,
     };
   } catch (error) {
     console.error("[Actions.Steadfast.GetPayments] Error:", error);
@@ -86,13 +89,9 @@ export async function getSteadfastPaymentByIdAction(
       };
     }
 
-    const payment =
-      result.data.payment ||
-      result.data.data?.payment;
+    const payment = result.data.payment || result.data.data?.payment;
     const consignments =
-      result.data.consignments ||
-      result.data.data?.consignments ||
-      [];
+      result.data.consignments || result.data.data?.consignments || [];
 
     return {
       success: true,
