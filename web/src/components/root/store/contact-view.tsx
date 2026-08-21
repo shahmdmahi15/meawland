@@ -101,10 +101,10 @@ export function ContactView() {
                       Call & WhatsApp
                     </span>
                     <a
-                      href="tel:+8801700000000"
+                      href="tel:+8801888271704"
                       className="text-sm font-black text-gray-900 hover:text-[#56C8D8] transition-colors"
                     >
-                      +880 1700-000000
+                      +880 1888-271704
                     </a>
                   </div>
                 </div>
@@ -169,13 +169,46 @@ export function ContactView() {
                   </div>
                 </div>
                 <a
-                  href="https://wa.me/8801700000000"
+                  href="https://wa.me/8801888271704"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-colors shadow-xs"
                 >
                   Chat Now
                 </a>
+              </div>
+
+              {/* Social Channels Strip */}
+              <div className="p-4 rounded-2xl bg-white border border-gray-100 space-y-2.5 shadow-2xs">
+                <span className="text-xs text-gray-400 font-bold uppercase tracking-wider block">
+                  Follow Us Online
+                </span>
+                <div className="flex items-center gap-2">
+                  <a
+                    href="https://www.facebook.com/meawland1"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold text-xs transition-colors"
+                  >
+                    Facebook
+                  </a>
+                  <a
+                    href="https://www.instagram.com/meawland1"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 rounded-xl bg-pink-50 hover:bg-pink-100 text-pink-600 font-bold text-xs transition-colors"
+                  >
+                    Instagram
+                  </a>
+                  <a
+                    href="https://www.tiktok.com/@meaw_land"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold text-xs transition-colors"
+                  >
+                    TikTok
+                  </a>
+                </div>
               </div>
             </div>
           </div>

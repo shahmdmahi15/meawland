@@ -123,7 +123,11 @@ export function BroadcastComposeModal({
               }
             >
               <SelectTrigger className="h-10 rounded-xl bg-gray-50/80 border-gray-200 text-xs">
-                <SelectValue />
+                <SelectValue>
+                  {targetAudience === "ALL_SUBSCRIBED"
+                    ? `All Active Subscribers (${activeCount} recipients)`
+                    : "Send Test Email to a Specific Address"}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL_SUBSCRIBED" className="text-xs">

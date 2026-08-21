@@ -253,7 +253,17 @@ export function CustomerOrdersView({
               }}
             >
               <SelectTrigger className="h-10 rounded-xl bg-gray-50/80 border-gray-200 text-xs font-semibold">
-                <SelectValue placeholder="Sort Orders" />
+                <SelectValue placeholder="Sort Orders">
+                  {sortBy === "newest"
+                    ? "Newest Placed First"
+                    : sortBy === "oldest"
+                      ? "Oldest Placed First"
+                      : sortBy === "price_high"
+                        ? "Amount: High to Low"
+                        : sortBy === "price_low"
+                          ? "Amount: Low to High"
+                          : "Sort Orders"}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="newest" className="text-xs">

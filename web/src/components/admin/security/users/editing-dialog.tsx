@@ -212,7 +212,9 @@ export function EditingDialog({
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger id="edit-user-district" className="w-full">
-                      <SelectValue />
+                      <SelectValue>
+                        {field.value || "Select District"}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {BANGLADESH_DISTRICTS.map((district) => (
@@ -251,7 +253,7 @@ export function EditingDialog({
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger id="edit-user-role" className="w-full">
-                      <SelectValue />
+                      <SelectValue>{field.value || "Select Role"}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {Object.values(Role).map((role) => (

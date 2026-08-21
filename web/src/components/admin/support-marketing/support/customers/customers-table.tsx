@@ -250,7 +250,9 @@ export function CustomersTable({ customers, stats }: CustomersTableProps) {
               onValueChange={(val) => val && setDistrictFilter(val)}
             >
               <SelectTrigger className="h-10 rounded-xl bg-gray-50/70 border-gray-200 text-xs">
-                <SelectValue placeholder="District" />
+                <SelectValue placeholder="District">
+                  {districtFilter === "ALL" ? "All Districts" : districtFilter}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent className="max-h-56">
                 <SelectItem value="ALL" className="text-xs">
@@ -272,7 +274,17 @@ export function CustomersTable({ customers, stats }: CustomersTableProps) {
               onValueChange={(val) => val && setSortBy(val)}
             >
               <SelectTrigger className="h-10 rounded-xl bg-gray-50/70 border-gray-200 text-xs font-semibold">
-                <SelectValue placeholder="Sort" />
+                <SelectValue placeholder="Sort">
+                  {sortBy === "spent_high"
+                    ? "Spend: High to Low"
+                    : sortBy === "spent_low"
+                      ? "Spend: Low to High"
+                      : sortBy === "orders_high"
+                        ? "Most Orders Placed"
+                        : sortBy === "newest"
+                          ? "Newest Customer"
+                          : "Sort"}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="spent_high" className="text-xs">

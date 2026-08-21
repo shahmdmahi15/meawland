@@ -41,6 +41,13 @@ import {
 import { SUPPORT_CATEGORIES } from "@/schemas/root/account/support";
 import { toast } from "sonner";
 import {
+  cn,
+  formatDate,
+  formatSupportChannel,
+  formatSupportPriority,
+  formatSupportStatus,
+} from "@/lib/utils";
+import {
   LifeBuoy,
   Search,
   X,
@@ -53,7 +60,6 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface TicketsTableProps {
   tickets: AdminSupportTicket[];
@@ -312,7 +318,11 @@ export function TicketsTable({ tickets, stats, customers }: TicketsTableProps) {
               onValueChange={(val) => val && setStatusFilter(val)}
             >
               <SelectTrigger className="h-10 rounded-xl bg-gray-50/70 border-gray-200 text-xs">
-                <SelectValue placeholder="Status" />
+                <SelectValue placeholder="Status">
+                  {statusFilter === "ALL"
+                    ? "All Statuses"
+                    : formatSupportStatus(statusFilter)}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL" className="text-xs">
@@ -353,7 +363,11 @@ export function TicketsTable({ tickets, stats, customers }: TicketsTableProps) {
               onValueChange={(val) => val && setPriorityFilter(val)}
             >
               <SelectTrigger className="h-10 rounded-xl bg-gray-50/70 border-gray-200 text-xs">
-                <SelectValue placeholder="Priority" />
+                <SelectValue placeholder="Priority">
+                  {priorityFilter === "ALL"
+                    ? "All Priorities"
+                    : formatSupportPriority(priorityFilter)}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL" className="text-xs">
@@ -394,7 +408,11 @@ export function TicketsTable({ tickets, stats, customers }: TicketsTableProps) {
               onValueChange={(val) => val && setChannelFilter(val)}
             >
               <SelectTrigger className="h-10 rounded-xl bg-gray-50/70 border-gray-200 text-xs">
-                <SelectValue placeholder="Channel" />
+                <SelectValue placeholder="Channel">
+                  {channelFilter === "ALL"
+                    ? "All Channels"
+                    : formatSupportChannel(channelFilter)}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL" className="text-xs">
@@ -426,7 +444,9 @@ export function TicketsTable({ tickets, stats, customers }: TicketsTableProps) {
               onValueChange={(val) => val && setCategoryFilter(val)}
             >
               <SelectTrigger className="h-10 rounded-xl bg-gray-50/70 border-gray-200 text-xs">
-                <SelectValue placeholder="Category" />
+                <SelectValue placeholder="Category">
+                  {categoryFilter === "ALL" ? "All Categories" : categoryFilter}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL" className="text-xs">
@@ -614,7 +634,9 @@ export function TicketsTable({ tickets, stats, customers }: TicketsTableProps) {
                               "bg-gray-50 text-gray-500 border-gray-200",
                           )}
                         >
-                          <SelectValue />
+                          <SelectValue>
+                            {formatSupportPriority(currentPriority)}
+                          </SelectValue>
                         </SelectTrigger>
                         <SelectContent
                           alignItemWithTrigger={false}
@@ -674,7 +696,9 @@ export function TicketsTable({ tickets, stats, customers }: TicketsTableProps) {
                               "bg-gray-100 text-gray-600 border-gray-300",
                           )}
                         >
-                          <SelectValue />
+                          <SelectValue>
+                            {formatSupportStatus(currentStatus)}
+                          </SelectValue>
                         </SelectTrigger>
                         <SelectContent
                           alignItemWithTrigger={false}
@@ -720,10 +744,9 @@ export function TicketsTable({ tickets, stats, customers }: TicketsTableProps) {
                           ticket={ticket}
                           isOpen={effectiveActiveTicketId === ticket.id}
                           onOpenChange={(isOpen) => {
-                            if (
-                              !isOpen &&
-                              effectiveActiveTicketId === ticket.id
-                            ) {
+                            if (isOpen) {
+                              setActiveModalTicketId(ticket.id);
+                            } else {
                               setActiveModalTicketId(null);
                               if (urlTicketId || urlTicketCode) {
                                 router.replace(pathname, { scroll: false });

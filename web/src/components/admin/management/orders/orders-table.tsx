@@ -59,6 +59,8 @@ import { OrderFraudRiskBadge } from "@/components/admin/fraud-checker/order-frau
 import { OrderDetailModal } from "./order-detail-modal";
 import { OrderInvoiceModal } from "./order-invoice-modal";
 import { DeleteOrderButton } from "./delete-order-button";
+import { CourierStickerModal } from "./stickers/courier-sticker-modal";
+import { isOrderSentToCourier } from "@/schemas/courier-sticker";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -259,6 +261,11 @@ export function OrdersTable({
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
+  // Bulk selection state
+  const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(
+    new Set(),
+  );
+
   // Expanded rows for inspecting items inline
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
@@ -412,6 +419,14 @@ export function OrdersTable({
     return sortedOrders.slice(start, start + pageSize);
   }, [sortedOrders, currentPage, pageSize]);
 
+  const selectedOrders = useMemo(() => {
+    return orders.filter((o) => selectedOrderIds.has(o.id));
+  }, [orders, selectedOrderIds]);
+
+  const selectedCourierOrders = useMemo(() => {
+    return selectedOrders.filter(isOrderSentToCourier);
+  }, [selectedOrders]);
+
   // Render Status Badge
   const renderStatusBadge = (order: AdminOrder) => {
     const status = orderStatuses[order.id] ?? order.status;
@@ -557,7 +572,13 @@ export function OrdersTable({
                 }}
               >
                 <SelectTrigger className="h-9 text-xs w-[120px]">
-                  <SelectValue placeholder="All Types" />
+                  <SelectValue placeholder="All Types">
+                    {typeFilter === "ALL"
+                      ? "All Types"
+                      : typeFilter === OrderType.WEB
+                        ? "Web"
+                        : "Other / POS"}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent
                   alignItemWithTrigger={false}
@@ -579,7 +600,12 @@ export function OrdersTable({
               }}
             >
               <SelectTrigger className="h-9 text-xs w-[150px]">
-                <SelectValue placeholder="All Statuses" />
+                <SelectValue placeholder="All Statuses">
+                  {statusFilter === "ALL"
+                    ? "All Statuses"
+                    : ORDER_STATUS_CONFIG[statusFilter as OrderStatus]?.label ||
+                      statusFilter}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent
                 alignItemWithTrigger={false}
@@ -603,7 +629,13 @@ export function OrdersTable({
               }}
             >
               <SelectTrigger className="h-9 text-xs w-[130px]">
-                <SelectValue placeholder="Payment" />
+                <SelectValue placeholder="Payment">
+                  {paymentStatusFilter === "ALL"
+                    ? "All Payments"
+                    : paymentStatusFilter === PaymentStatus.PAID
+                      ? "Paid"
+                      : "Pending"}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent
                 alignItemWithTrigger={false}
@@ -624,7 +656,13 @@ export function OrdersTable({
               }}
             >
               <SelectTrigger className="h-9 text-xs w-[120px]">
-                <SelectValue placeholder="Method" />
+                <SelectValue placeholder="Method">
+                  {paymentMethodFilter === "ALL"
+                    ? "All Methods"
+                    : paymentMethodFilter === PaymentMethod.COD
+                      ? "COD"
+                      : "bKash"}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent
                 alignItemWithTrigger={false}
@@ -645,7 +683,17 @@ export function OrdersTable({
               }}
             >
               <SelectTrigger className="h-9 text-xs w-[140px]">
-                <SelectValue placeholder="Sort By" />
+                <SelectValue placeholder="Sort By">
+                  {sortBy === "newest"
+                    ? "Newest First"
+                    : sortBy === "oldest"
+                      ? "Oldest First"
+                      : sortBy === "amount_high"
+                        ? "Highest Amount"
+                        : sortBy === "amount_low"
+                          ? "Lowest Amount"
+                          : "Most Items"}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent
                 alignItemWithTrigger={false}
@@ -688,6 +736,33 @@ export function OrdersTable({
           <Table>
             <TableHeader className="bg-muted/40">
               <TableRow>
+                <TableHead className="w-10 text-center">
+                  <input
+                    type="checkbox"
+                    checked={
+                      paginatedOrders.length > 0 &&
+                      paginatedOrders.every((o) => selectedOrderIds.has(o.id))
+                    }
+                    onChange={() => {
+                      const allSelected =
+                        paginatedOrders.length > 0 &&
+                        paginatedOrders.every((o) =>
+                          selectedOrderIds.has(o.id),
+                        );
+                      setSelectedOrderIds((prev) => {
+                        const next = new Set(prev);
+                        if (allSelected) {
+                          paginatedOrders.forEach((o) => next.delete(o.id));
+                        } else {
+                          paginatedOrders.forEach((o) => next.add(o.id));
+                        }
+                        return next;
+                      });
+                    }}
+                    className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4 cursor-pointer align-middle"
+                    title="Select all on this page"
+                  />
+                </TableHead>
                 <TableHead className="w-10"></TableHead>
                 <TableHead className="w-28 font-bold">Order Code</TableHead>
                 <TableHead className="font-bold">Customer &amp; Area</TableHead>
@@ -745,13 +820,31 @@ export function OrdersTable({
                       <TableRow
                         className={cn(
                           "group transition-colors",
-                          isHighlighted
-                            ? "bg-primary/10 hover:bg-primary/15 border-l-4 border-l-primary"
-                            : isExpanded
-                              ? "bg-muted/20"
-                              : "hover:bg-muted/30",
+                          selectedOrderIds.has(order.id)
+                            ? "bg-primary/5 hover:bg-primary/10"
+                            : isHighlighted
+                              ? "bg-primary/10 hover:bg-primary/15 border-l-4 border-l-primary"
+                              : isExpanded
+                                ? "bg-muted/20"
+                                : "hover:bg-muted/30",
                         )}
                       >
+                        {/* Bulk Selection Checkbox */}
+                        <TableCell className="p-2 text-center">
+                          <input
+                            type="checkbox"
+                            checked={selectedOrderIds.has(order.id)}
+                            onChange={() => {
+                              setSelectedOrderIds((prev) => {
+                                const next = new Set(prev);
+                                if (next.has(order.id)) next.delete(order.id);
+                                else next.add(order.id);
+                                return next;
+                              });
+                            }}
+                            className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4 cursor-pointer align-middle"
+                          />
+                        </TableCell>
                         {/* Expand Row Toggle */}
                         <TableCell className="p-2 text-center">
                           <button
@@ -963,6 +1056,29 @@ export function OrdersTable({
                         {/* Actions */}
                         <TableCell className="text-right pr-4">
                           <div className="flex items-center justify-end gap-1">
+                            <CourierStickerModal
+                              orders={[order]}
+                              trigger={
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  disabled={!isOrderSentToCourier(order)}
+                                  title={
+                                    isOrderSentToCourier(order)
+                                      ? 'Print Courier Sticker (2"x3")'
+                                      : "Not sent to Steadfast courier yet"
+                                  }
+                                  className={cn(
+                                    "h-8 w-8 cursor-pointer text-muted-foreground hover:text-foreground",
+                                    !isOrderSentToCourier(order) &&
+                                      "opacity-30 cursor-not-allowed hover:bg-transparent",
+                                  )}
+                                >
+                                  <Truck className="w-4 h-4 text-[#0f766e]" />
+                                </Button>
+                              }
+                            />
                             <OrderDetailModal
                               order={order}
                               isOpen={effectiveActiveOrderId === order.id}
@@ -991,7 +1107,7 @@ export function OrdersTable({
                       {/* Expanded Items Preview Row */}
                       {isExpanded && (
                         <TableRow className="bg-muted/15 border-b border-border/80">
-                          <TableCell colSpan={10} className="p-3 sm:p-4">
+                          <TableCell colSpan={11} className="p-3 sm:p-4">
                             <div className="space-y-3 rounded-lg border border-border/60 bg-background/80 p-3">
                               <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground">
                                 <span className="flex items-center gap-1.5 text-foreground">
@@ -1139,6 +1255,53 @@ export function OrdersTable({
           </div>
         )}
       </div>
+
+      {/* Floating Sticky Bulk Actions Bar */}
+      {selectedOrderIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-background/95 backdrop-blur-md border border-border shadow-2xl rounded-2xl p-3 px-5 flex items-center gap-3 sm:gap-4 animate-in fade-in slide-in-from-bottom-4 max-w-[92vw]">
+          <div className="flex items-center gap-2">
+            <Badge
+              variant="default"
+              className="rounded-full px-2.5 py-0.5 font-bold text-xs"
+            >
+              {selectedOrderIds.size} Selected
+            </Badge>
+            <span className="text-xs text-muted-foreground hidden md:inline">
+              ({selectedCourierOrders.length} ready for courier print)
+            </span>
+          </div>
+
+          <div className="h-4 w-px bg-border hidden sm:block" />
+
+          <CourierStickerModal
+            orders={selectedCourierOrders}
+            title={`Bulk Print ${selectedCourierOrders.length} Courier Sticker(s)`}
+            trigger={
+              <Button
+                type="button"
+                size="sm"
+                disabled={selectedCourierOrders.length === 0}
+                className="h-8 rounded-xl bg-[#56C8D8] hover:bg-[#43B8C8] text-white font-bold text-xs gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
+              >
+                <Truck className="w-3.5 h-3.5" />
+                <span>
+                  Print Courier Stickers ({selectedCourierOrders.length})
+                </span>
+              </Button>
+            }
+          />
+
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setSelectedOrderIds(new Set())}
+            className="h-8 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+          >
+            Clear
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

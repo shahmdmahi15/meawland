@@ -335,7 +335,9 @@ export function AccountSettingsForm({ profile }: AccountSettingsFormProps) {
                 id="district"
                 className="h-11 rounded-2xl bg-gray-50/70 border-gray-200 text-xs font-medium focus:ring-[#56C8D8]"
               >
-                <SelectValue placeholder="Select Bangladesh District" />
+                <SelectValue placeholder="Select Bangladesh District">
+                  {district || "Select Bangladesh District"}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent className="max-h-60">
                 {BANGLADESH_DISTRICTS.map((dist) => (

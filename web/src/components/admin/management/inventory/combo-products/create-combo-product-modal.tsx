@@ -41,6 +41,8 @@ import {
   X,
   Boxes,
   Percent,
+  Upload,
+  ImageIcon,
 } from "lucide-react";
 import type { Category } from "@/generated/prisma/enums";
 
@@ -66,6 +68,53 @@ export function CreateComboProductModal({
   const [salePrice, setSalePrice] = useState("");
   const [shortDescription, setShortDescription] = useState("");
   const [longDescription, setLongDescription] = useState("");
+
+  // Custom Image & Gallery states
+  const [mainImageFile, setMainImageFile] = useState<File | null>(null);
+  const [mainImagePreview, setMainImagePreview] = useState<string | null>(null);
+  const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
+  const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
+
+  const handleMainImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image size exceeds 5MB limit.");
+      return;
+    }
+    setMainImageFile(file);
+    setMainImagePreview(URL.createObjectURL(file));
+  };
+
+  const handleRemoveMainImage = () => {
+    setMainImageFile(null);
+    setMainImagePreview(null);
+  };
+
+  const handleGalleryAdd = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    const validFiles: File[] = [];
+    const validPreviews: string[] = [];
+
+    files.forEach((file) => {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`"${file.name}" exceeds 5MB limit.`);
+        return;
+      }
+      validFiles.push(file);
+      validPreviews.push(URL.createObjectURL(file));
+    });
+
+    setGalleryFiles((prev) => [...prev, ...validFiles]);
+    setGalleryPreviews((prev) => [...prev, ...validPreviews]);
+  };
+
+  const handleRemoveGalleryItem = (index: number) => {
+    setGalleryFiles((prev) => prev.filter((_, i) => i !== index));
+    setGalleryPreviews((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const categories = useMemo(() => {
     const set = new Set<string>();
@@ -270,6 +319,10 @@ export function CreateComboProductModal({
       setSalePrice("");
       setShortDescription("");
       setLongDescription("");
+      setMainImageFile(null);
+      setMainImagePreview(null);
+      setGalleryFiles([]);
+      setGalleryPreviews([]);
       setSourceSearch("");
       setSourceCategory("ALL");
     }
@@ -285,12 +338,14 @@ export function CreateComboProductModal({
 
     const result = await createComboProductAction({
       name: name || autoName,
-      shortDescription,
-      longDescription,
+      shortDescription: shortDescription.trim() || undefined,
+      longDescription: longDescription.trim() || undefined,
       productIds: selectedSimpleProductIds,
       variantIds: selectedVariantIds,
-      regularPrice: regularPrice || String(sourceRegularPrice) || undefined,
-      salePrice: salePrice || String(sourceSalePrice) || undefined,
+      regularPrice: effectiveRegularPrice || undefined,
+      salePrice: effectiveSalePrice || undefined,
+      image: mainImageFile || undefined,
+      gallery: galleryFiles,
     });
 
     setIsSubmitting(false);
@@ -643,6 +698,126 @@ export function CreateComboProductModal({
                     }
                     className="text-xs sm:text-sm"
                   />
+                </div>
+
+                {/* Combo Image & Gallery Upload Card */}
+                <div className="rounded-xl border bg-muted/20 p-3.5 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                      <ImageIcon className="h-3.5 w-3.5 text-primary" /> Combo
+                      Media &amp; Photos
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      Optional custom thumbnail &amp; slider
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Primary Image Picker */}
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium">
+                        Main Combo Thumbnail
+                      </Label>
+                      {mainImagePreview ? (
+                        <div className="relative h-28 w-full overflow-hidden rounded-lg border bg-background flex items-center justify-center group">
+                          <Image
+                            src={mainImagePreview}
+                            alt="Main preview"
+                            fill
+                            className="object-contain p-1"
+                            unoptimized
+                          />
+                          <button
+                            type="button"
+                            onClick={handleRemoveMainImage}
+                            className="absolute right-1.5 top-1.5 h-6 w-6 rounded-full bg-destructive text-white flex items-center justify-center opacity-90 hover:opacity-100 shadow-xs cursor-pointer"
+                            title="Remove image"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <label
+                          htmlFor="combo-main-image"
+                          className="flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-border bg-background p-3 text-center cursor-pointer hover:bg-muted/40 transition-colors h-28"
+                        >
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
+                            <Upload className="h-4 w-4" />
+                          </div>
+                          <span className="text-[11px] font-semibold text-foreground">
+                            Upload Custom Main Image
+                          </span>
+                          <span className="text-[9px] text-muted-foreground">
+                            PNG, JPG, WebP up to 5MB (or uses item fallback)
+                          </span>
+                          <input
+                            id="combo-main-image"
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            className="hidden"
+                            onChange={handleMainImageChange}
+                          />
+                        </label>
+                      )}
+                    </div>
+
+                    {/* Gallery Images Multi-Picker */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-medium">
+                          Gallery Photos ({galleryPreviews.length})
+                        </Label>
+                      </div>
+
+                      <label
+                        htmlFor="combo-gallery-images"
+                        className="flex flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-border bg-background p-2.5 text-center cursor-pointer hover:bg-muted/40 transition-colors h-28"
+                      >
+                        <Plus className="h-4 w-4 text-primary" />
+                        <span className="text-[11px] font-semibold text-foreground">
+                          Add Gallery Images
+                        </span>
+                        <span className="text-[9px] text-muted-foreground">
+                          Select multiple images
+                        </span>
+                        <input
+                          id="combo-gallery-images"
+                          type="file"
+                          multiple
+                          accept="image/png,image/jpeg,image/webp"
+                          className="hidden"
+                          onChange={handleGalleryAdd}
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Gallery Thumbnails List */}
+                  {galleryPreviews.length > 0 && (
+                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 pt-1">
+                      {galleryPreviews.map((preview, idx) => (
+                        <div
+                          key={idx}
+                          className="group relative h-14 w-full overflow-hidden rounded-md border bg-background flex items-center justify-center shadow-2xs"
+                        >
+                          <Image
+                            src={preview}
+                            alt={`Gallery ${idx + 1}`}
+                            fill
+                            className="object-contain p-0.5"
+                            unoptimized
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveGalleryItem(idx)}
+                            className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-white opacity-80 hover:opacity-100 cursor-pointer"
+                          >
+                            <X className="h-2.5 w-2.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Pricing & Discount Presets */}

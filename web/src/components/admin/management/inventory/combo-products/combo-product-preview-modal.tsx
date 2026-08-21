@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import {
   Dialog,
@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   Eye,
   PackagePlus,
@@ -33,8 +34,24 @@ export function ComboProductPreviewModal({
   combo,
 }: ComboProductPreviewModalProps) {
   const [open, setOpen] = useState(false);
+  const [activeImage, setActiveImage] = useState<string | undefined>(
+    combo.imageBase64,
+  );
+
+  const allImages = useMemo(() => {
+    const list: string[] = [];
+    if (combo.imageBase64) list.push(combo.imageBase64);
+    if (combo.galleryBase64 && Array.isArray(combo.galleryBase64)) {
+      combo.galleryBase64.forEach((g) => {
+        if (g && !list.includes(g)) list.push(g);
+      });
+    }
+    return list;
+  }, [combo.imageBase64, combo.galleryBase64]);
 
   const totalItems = combo.products.length + combo.variants.length;
+
+  const currentDisplayImage = activeImage || combo.imageBase64 || allImages[0];
 
   return (
     <>
@@ -42,7 +59,10 @@ export function ComboProductPreviewModal({
         type="button"
         variant="ghost"
         size="icon-xs"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setActiveImage(combo.imageBase64 || allImages[0]);
+          setOpen(true);
+        }}
         title="Preview combo product bundle"
         aria-label="Preview combo product"
       >
@@ -88,20 +108,47 @@ export function ComboProductPreviewModal({
             <div className="p-4 sm:p-6 space-y-5">
               {/* Top Overview: Cover Image & Financial Breakdown */}
               <div className="grid gap-5 sm:grid-cols-12 items-start">
-                <div className="sm:col-span-4">
+                <div className="sm:col-span-4 space-y-2">
                   <div className="relative aspect-square w-full overflow-hidden rounded-xl border bg-muted/20 flex items-center justify-center">
-                    {combo.imageBase64 ? (
+                    {currentDisplayImage ? (
                       <Image
-                        src={combo.imageBase64}
+                        src={currentDisplayImage}
                         alt={combo.name}
                         fill
-                        className="object-cover"
+                        className="object-contain p-2"
                         unoptimized
                       />
                     ) : (
                       <PackagePlus className="h-10 w-10 text-muted-foreground/50" />
                     )}
                   </div>
+
+                  {/* Gallery thumbnails strip */}
+                  {allImages.length > 1 && (
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+                      {allImages.map((img, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setActiveImage(img)}
+                          className={cn(
+                            "relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border-2 bg-background p-0.5 transition-all cursor-pointer",
+                            currentDisplayImage === img
+                              ? "border-primary shadow-xs ring-1 ring-primary"
+                              : "border-border/60 hover:border-border opacity-70 hover:opacity-100",
+                          )}
+                        >
+                          <Image
+                            src={img}
+                            alt={`Preview ${idx + 1}`}
+                            fill
+                            className="object-contain p-0.5"
+                            unoptimized
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="sm:col-span-8 space-y-3.5">

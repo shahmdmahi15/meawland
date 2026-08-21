@@ -1,0 +1,33 @@
+services:
+  meawland-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: meawland-web:latest
+    container_name: meawland-web
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "3"
+    networks:
+      - meawland-net
+
+networks:
+  meawland-net:
+    driver: bridge

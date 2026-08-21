@@ -165,6 +165,10 @@ export async function getStoreComboProductsAction(): Promise<{
 
         const campaignBadge = matchComboCampaign(combo.id, activeCampaigns);
 
+        const gallery = await Promise.all(
+          (combo.gallery || []).map((g) => safeGetImageBase64(g)),
+        );
+
         return {
           id: combo.id,
           name: combo.name,
@@ -183,6 +187,7 @@ export async function getStoreComboProductsAction(): Promise<{
           savingsAmount,
           campaignBadge,
           image: comboImage,
+          gallery: gallery.filter(Boolean),
           bundleStockCapacity,
           isAvailable,
           itemsCount: combo.products.length + combo.variants.length,

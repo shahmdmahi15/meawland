@@ -13,6 +13,8 @@ import { Headphones } from "lucide-react";
 interface SupportViewProps {
   userName: string;
   userEmail: string;
+  userCode?: string;
+  userPhone?: string;
   tickets: SupportTicketSummary[];
   orders: UserOrderOption[];
   preselectedOrderCode?: string;
@@ -21,6 +23,8 @@ interface SupportViewProps {
 export function SupportView({
   userName,
   userEmail,
+  userCode,
+  userPhone,
   tickets,
   orders,
   preselectedOrderCode,
@@ -54,7 +58,13 @@ export function SupportView({
       />
 
       {/* Ticket History Listing */}
-      <SupportTicketsHistory tickets={tickets} />
+      <SupportTicketsHistory
+        tickets={tickets}
+        userName={userName}
+        userEmail={userEmail}
+        userCode={userCode}
+        userPhone={userPhone}
+      />
     </div>
   );
 }

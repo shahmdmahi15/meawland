@@ -238,7 +238,13 @@ export function ComboProductsTable({
               }}
             >
               <SelectTrigger className="h-8 text-xs">
-                <SelectValue placeholder="Stock Availability" />
+                <SelectValue placeholder="Stock Availability">
+                  {stockFilter === "ALL"
+                    ? "All Stock Levels"
+                    : stockFilter === "IN_STOCK"
+                      ? "In Stock (Ready)"
+                      : "Depleted / Out of Stock"}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">All Stock Levels</SelectItem>
@@ -260,7 +266,15 @@ export function ComboProductsTable({
               }}
             >
               <SelectTrigger className="h-8 text-xs">
-                <SelectValue placeholder="Discount Filter" />
+                <SelectValue placeholder="Discount Filter">
+                  {discountFilter === "ALL"
+                    ? "Any Discount"
+                    : discountFilter === "10_PLUS"
+                      ? "10%+ Savings"
+                      : discountFilter === "20_PLUS"
+                        ? "20%+ Savings"
+                        : "30%+ Savings"}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">Any Discount</SelectItem>
@@ -281,7 +295,21 @@ export function ComboProductsTable({
               }}
             >
               <SelectTrigger className="h-8 text-xs">
-                <SelectValue placeholder="Sort By" />
+                <SelectValue placeholder="Sort By">
+                  {sortBy === "NEWEST"
+                    ? "Newest First"
+                    : sortBy === "OLDEST"
+                      ? "Oldest First"
+                      : sortBy === "PRICE_LOW"
+                        ? "Price: Low to High"
+                        : sortBy === "PRICE_HIGH"
+                          ? "Price: High to Low"
+                          : sortBy === "DISCOUNT_HIGH"
+                            ? "Highest Discount %"
+                            : sortBy === "CAPACITY_HIGH"
+                              ? "Highest Bundle Capacity"
+                              : "Name (A-Z)"}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="NEWEST">Newest First</SelectItem>
@@ -309,7 +337,9 @@ export function ComboProductsTable({
               }}
             >
               <SelectTrigger className="h-8 text-xs">
-                <SelectValue placeholder="Per Page" />
+                <SelectValue placeholder="Per Page">
+                  {`${pageSize} per page`}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="12">12 per page</SelectItem>

@@ -40,7 +40,7 @@ import {
   ExternalLink,
   Eye,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatSupportPriority, formatSupportStatus } from "@/lib/utils";
 
 interface TicketDetailModalProps {
   ticket: AdminSupportTicket;
@@ -190,32 +190,32 @@ export function TicketDetailModal({
                 disabled={isPending}
               >
                 <SelectTrigger className="h-9 rounded-xl bg-white border-[#D4EEFC] text-xs font-bold w-36">
-                  <SelectValue />
+                  <SelectValue>{formatSupportStatus(status)}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem
                     value={SupportTicketStatus.OPEN}
                     className="text-xs text-amber-600 font-bold"
                   >
-                    OPEN
+                    Open
                   </SelectItem>
                   <SelectItem
                     value={SupportTicketStatus.IN_PROGRESS}
                     className="text-xs text-blue-600 font-bold"
                   >
-                    IN PROGRESS
+                    In Progress
                   </SelectItem>
                   <SelectItem
                     value={SupportTicketStatus.RESOLVED}
                     className="text-xs text-emerald-600 font-bold"
                   >
-                    RESOLVED
+                    Resolved
                   </SelectItem>
                   <SelectItem
                     value={SupportTicketStatus.CLOSED}
                     className="text-xs text-gray-600 font-bold"
                   >
-                    CLOSED
+                    Closed
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -233,32 +233,32 @@ export function TicketDetailModal({
                 disabled={isPending}
               >
                 <SelectTrigger className="h-9 rounded-xl bg-white border-[#D4EEFC] text-xs font-bold w-32">
-                  <SelectValue />
+                  <SelectValue>{formatSupportPriority(priority)}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem
                     value={SupportTicketPriority.LOW}
                     className="text-xs"
                   >
-                    LOW
+                    Low
                   </SelectItem>
                   <SelectItem
                     value={SupportTicketPriority.MEDIUM}
                     className="text-xs"
                   >
-                    MEDIUM
+                    Medium
                   </SelectItem>
                   <SelectItem
                     value={SupportTicketPriority.HIGH}
                     className="text-xs text-orange-600 font-bold"
                   >
-                    HIGH
+                    High
                   </SelectItem>
                   <SelectItem
                     value={SupportTicketPriority.URGENT}
                     className="text-xs text-rose-600 font-bold"
                   >
-                    URGENT
+                    Urgent
                   </SelectItem>
                 </SelectContent>
               </Select>

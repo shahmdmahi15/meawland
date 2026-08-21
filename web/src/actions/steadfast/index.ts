@@ -7,3 +7,4 @@ export * from "./get-balance";
 export * from "./return-request";
 export * from "./get-payments";
 export * from "./get-police-stations";
+export const steadfastMerchantId = "GZWYYDNA";

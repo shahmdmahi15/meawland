@@ -217,7 +217,23 @@ export function SubmitFraudReportModal({
                 </Label>
                 <Select value={courier} onValueChange={setCourier}>
                   <SelectTrigger className="h-9 text-xs">
-                    <SelectValue placeholder="Select Courier" />
+                    <SelectValue placeholder="Select Courier">
+                      {courier === "Steadfast"
+                        ? "Steadfast Courier"
+                        : courier === "Pathao"
+                          ? "Pathao Courier"
+                          : courier === "RedX"
+                            ? "RedX Logistics"
+                            : courier === "Paperfly"
+                              ? "Paperfly"
+                              : courier === "eCourier"
+                                ? "eCourier"
+                                : courier === "Sundarban"
+                                  ? "Sundarban Courier"
+                                  : courier === "Other"
+                                    ? "Other Courier"
+                                    : courier || "Select Courier"}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Steadfast">Steadfast Courier</SelectItem>

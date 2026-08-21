@@ -2,9 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import db from "@/lib/db";
-import { getImageBase64 } from "@/lib/storage";
+import { getImageBase64, uploadFile } from "@/lib/storage";
 import { generateId } from "@/lib/generate-code";
 import { ComboProduct, Product, Variant } from "@/generated/prisma/client";
+import crypto from "crypto";
 import {
   createComboProductSchema,
   updateComboProductSchema,
@@ -60,6 +61,7 @@ export type ComboProductRow = ComboProduct & {
     salePrice: string;
   }>;
   imageBase64?: string;
+  galleryBase64?: string[];
   bundleStockCapacity: number;
   totalOriginalPrice: number;
   discountAmount: number;
@@ -331,6 +333,9 @@ export async function getAllComboProductsAdminAction(): Promise<{
           products,
           variants,
           imageBase64: await safeGetImageBase64(combo.image),
+          galleryBase64: await Promise.all(
+            (combo.gallery || []).map((g) => safeGetImageBase64(g)),
+          ),
           bundleStockCapacity,
           totalOriginalPrice,
           discountAmount,
@@ -485,13 +490,49 @@ export async function createComboProductAction(
       Boolean(variant.product.image),
     )?.product.image;
 
-    const primaryImage =
+    const fallbackPrimaryImage =
       primaryVariantImage ||
       primaryProductImage ||
       fallbackProductFromVariant ||
       "";
 
-    const mergedGallery = Array.from(
+    // 1. Handle custom Main Image upload if provided
+    let finalPrimaryImageKey = fallbackPrimaryImage;
+    if (data.image instanceof File && data.image.size > 0) {
+      const buffer = await data.image.arrayBuffer();
+      const ext = data.image.name.split(".").pop() || "jpg";
+      const key = `combos/images/${crypto.randomUUID()}.${ext}`;
+
+      await uploadFile({
+        key,
+        body: Buffer.from(buffer),
+        contentType: data.image.type,
+      });
+
+      finalPrimaryImageKey = key;
+    }
+
+    // 2. Handle custom Gallery images upload if provided
+    const customGalleryKeys: string[] = [];
+    if (data.gallery && Array.isArray(data.gallery)) {
+      for (const item of data.gallery) {
+        if (item instanceof File && item.size > 0) {
+          const buffer = await item.arrayBuffer();
+          const ext = item.name.split(".").pop() || "jpg";
+          const key = `combos/gallery/${crypto.randomUUID()}.${ext}`;
+
+          await uploadFile({
+            key,
+            body: Buffer.from(buffer),
+            contentType: item.type,
+          });
+
+          customGalleryKeys.push(key);
+        }
+      }
+    }
+
+    const fallbackMergedGallery = Array.from(
       new Set(
         [
           ...selectedSimpleProducts.flatMap((product) => product.gallery ?? []),
@@ -502,6 +543,9 @@ export async function createComboProductAction(
         ].filter(Boolean),
       ),
     );
+
+    const finalGallery =
+      customGalleryKeys.length > 0 ? customGalleryKeys : fallbackMergedGallery;
 
     const comboCode = await generateId("COMBO");
     const comboSlug = `${slugify(finalName)}-${comboCode.toLowerCase()}`;
@@ -520,8 +564,8 @@ export async function createComboProductAction(
         sku: comboSku,
         shortDescription: finalShortDescription,
         longDescription: finalLongDescription,
-        image: primaryImage,
-        gallery: mergedGallery,
+        image: finalPrimaryImageKey,
+        gallery: finalGallery,
         regularPrice: String(finalRegularPrice),
         salePrice: String(finalSalePrice),
         products: {
@@ -757,14 +801,60 @@ export async function updateComboProductAction(
     const fallbackProductFromVariant = selectedVariants.find((variant) =>
       Boolean(variant.product.image),
     )?.product.image;
-    const nextImage =
-      existing.image ||
+
+    const fallbackPrimaryImage =
       primaryVariantImage ||
       primaryProductImage ||
       fallbackProductFromVariant ||
       "";
 
-    const mergedGallery = Array.from(
+    // 1. Handle primary image update / replacement
+    let nextImage = existing.image || fallbackPrimaryImage;
+    if (parse.data.image instanceof File && parse.data.image.size > 0) {
+      const buffer = await parse.data.image.arrayBuffer();
+      const ext = parse.data.image.name.split(".").pop() || "jpg";
+      const key = `combos/images/${crypto.randomUUID()}.${ext}`;
+
+      await uploadFile({
+        key,
+        body: Buffer.from(buffer),
+        contentType: parse.data.image.type,
+      });
+
+      nextImage = key;
+    } else if (parse.data.removeCustomImage) {
+      nextImage = fallbackPrimaryImage;
+    }
+
+    // 2. Handle gallery updates (retained existing keys + newly uploaded files)
+    const newGalleryUploads: string[] = [];
+    if (parse.data.gallery && Array.isArray(parse.data.gallery)) {
+      for (const item of parse.data.gallery) {
+        if (item instanceof File && item.size > 0) {
+          const buffer = await item.arrayBuffer();
+          const ext = item.name.split(".").pop() || "jpg";
+          const key = `combos/gallery/${crypto.randomUUID()}.${ext}`;
+
+          await uploadFile({
+            key,
+            body: Buffer.from(buffer),
+            contentType: item.type,
+          });
+
+          newGalleryUploads.push(key);
+        }
+      }
+    }
+
+    const retainedExistingGallery = Array.isArray(parse.data.retainedGallery)
+      ? parse.data.retainedGallery.filter(Boolean)
+      : existing.gallery || [];
+
+    const updatedGallery = Array.from(
+      new Set([...retainedExistingGallery, ...newGalleryUploads]),
+    );
+
+    const fallbackMergedGallery = Array.from(
       new Set(
         [
           ...selectedSimpleProducts.flatMap((product) => product.gallery ?? []),
@@ -776,6 +866,9 @@ export async function updateComboProductAction(
       ),
     );
 
+    const finalGallery =
+      updatedGallery.length > 0 ? updatedGallery : fallbackMergedGallery;
+
     await db.comboProduct.update({
       where: { id: comboId },
       data: {
@@ -784,7 +877,7 @@ export async function updateComboProductAction(
         shortDescription: nextShortDescription,
         longDescription: nextLongDescription,
         image: nextImage,
-        gallery: mergedGallery,
+        gallery: finalGallery,
         regularPrice: nextRegularPrice,
         salePrice: nextSalePrice,
         products: {

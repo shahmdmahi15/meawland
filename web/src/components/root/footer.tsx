@@ -160,7 +160,7 @@ export function Footer() {
               <div className="pt-2 space-y-1.5 text-xs font-semibold text-gray-600">
                 <div className="flex items-center gap-2">
                   <Phone className="w-3.5 h-3.5 text-[#56C8D8]" />
-                  <span>+880 1886-070809 (Helpline & WhatsApp)</span>
+                  <span>+880 1888-271704 (Helpline & WhatsApp)</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Mail className="w-3.5 h-3.5 text-[#56C8D8]" />
@@ -321,18 +321,51 @@ export function Footer() {
                   </li>
                   <li>
                     <Link
-                      href="/contact"
+                      href="/categories"
                       className="hover:text-[#56C8D8] transition-colors"
                     >
-                      Contact Us
+                      Categories
                     </Link>
                   </li>
+                  <li>
+                    <Link
+                      href="/combos"
+                      className="hover:text-[#56C8D8] transition-colors"
+                    >
+                      Combo Deals
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/products?featured=true"
+                      className="hover:text-[#56C8D8] transition-colors"
+                    >
+                      Featured Items
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Column 2: CUSTOMER CARE */}
+              <div className="space-y-3">
+                <h4 className="text-gray-400 uppercase tracking-widest text-[10px] font-black">
+                  CUSTOMER CARE
+                </h4>
+                <ul className="space-y-2 text-gray-700 font-medium">
                   <li>
                     <Link
                       href="/faq"
                       className="hover:text-[#56C8D8] transition-colors"
                     >
-                      FAQ
+                      FAQs
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/shipping"
+                      className="hover:text-[#56C8D8] transition-colors"
+                    >
+                      Shipping & Delivery
                     </Link>
                   </li>
                   <li>
@@ -340,9 +373,26 @@ export function Footer() {
                       href="/returns"
                       className="hover:text-[#56C8D8] transition-colors"
                     >
-                      Returns & Refund
+                      Returns & Refunds
                     </Link>
                   </li>
+                  <li>
+                    <Link
+                      href="/contact"
+                      className="hover:text-[#56C8D8] transition-colors"
+                    >
+                      Contact Support
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Column 3: LEGAL */}
+              <div className="space-y-3">
+                <h4 className="text-gray-400 uppercase tracking-widest text-[10px] font-black">
+                  LEGAL
+                </h4>
+                <ul className="space-y-2 text-gray-700 font-medium">
                   <li>
                     <Link
                       href="/privacy"
@@ -356,7 +406,15 @@ export function Footer() {
                       href="/terms"
                       className="hover:text-[#56C8D8] transition-colors"
                     >
-                      Terms & Conditions
+                      Terms of Service
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/about"
+                      className="hover:text-[#56C8D8] transition-colors"
+                    >
+                      About Us
                     </Link>
                   </li>
                 </ul>
@@ -370,7 +428,7 @@ export function Footer() {
                 <ul className="space-y-2 text-gray-700 font-medium">
                   <li>
                     <a
-                      href="https://facebook.com"
+                      href="https://www.facebook.com/meawland1"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="hover:text-[#56C8D8] transition-colors flex items-center gap-1.5"
@@ -380,7 +438,7 @@ export function Footer() {
                   </li>
                   <li>
                     <a
-                      href="https://instagram.com"
+                      href="https://www.instagram.com/meawland1"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="hover:text-[#56C8D8] transition-colors flex items-center gap-1.5"
@@ -390,7 +448,7 @@ export function Footer() {
                   </li>
                   <li>
                     <a
-                      href="https://tiktok.com"
+                      href="https://www.tiktok.com/@meaw_land"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="hover:text-[#56C8D8] transition-colors flex items-center gap-1.5"
@@ -400,7 +458,7 @@ export function Footer() {
                   </li>
                   <li>
                     <a
-                      href="https://wa.me/8801886070809"
+                      href="https://wa.me/8801888271704"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="hover:text-emerald-600 transition-colors flex items-center gap-1.5"

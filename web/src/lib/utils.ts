@@ -39,10 +39,69 @@ export function formatDate(date: Date) {
   }).format(new Date(date));
 }
 
-export function formatCategory(category: Category) {
+export function formatCategory(category: Category | string) {
+  if (!category) return "";
   return category
     .toLowerCase()
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
+}
+
+export function formatEnumLabel(value?: string | null): string {
+  if (!value) return "";
+  return value
+    .toLowerCase()
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+export function formatSupportChannel(channel?: string | null): string {
+  switch (channel) {
+    case "WEB_TICKET":
+      return "Web Helpdesk Ticket";
+    case "WHATSAPP":
+      return "WhatsApp Followup";
+    case "MESSENGER":
+      return "Messenger Followup";
+    case "EMAIL":
+      return "Email Support";
+    case "PHONE":
+      return "Phone Call";
+    default:
+      return formatEnumLabel(channel) || "Channel";
+  }
+}
+
+export function formatSupportPriority(priority?: string | null): string {
+  switch (priority) {
+    case "LOW":
+      return "Low Priority";
+    case "MEDIUM":
+      return "Medium Priority";
+    case "HIGH":
+      return "High Priority";
+    case "URGENT":
+      return "Urgent Priority";
+    default:
+      return formatEnumLabel(priority) || "Priority";
+  }
+}
+
+export function formatSupportStatus(status?: string | null): string {
+  switch (status) {
+    case "OPEN":
+      return "Open";
+    case "IN_PROGRESS":
+      return "In Progress";
+    case "RESOLVED":
+      return "Resolved";
+    case "CLOSED":
+      return "Closed";
+    case "REOPENED":
+      return "Reopened";
+    default:
+      return formatEnumLabel(status) || "Status";
+  }
 }

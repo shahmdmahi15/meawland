@@ -114,7 +114,7 @@ export function CreateTicketModal({
         }
       />
 
-      <DialogContent className="max-w-[min(94vw,600px)] rounded-3xl p-0 overflow-hidden border border-gray-200">
+      <DialogContent className="sm:max-w-[850px] w-[min(96vw,850px)] max-w-full rounded-3xl p-0 overflow-hidden border border-gray-200 shadow-2xl">
         <div className="bg-[#EDF5FA] border-b border-[#D4EEFC] p-5 sm:p-6">
           <DialogTitle className="text-base sm:text-lg font-black text-gray-900 flex items-center gap-2">
             <LifeBuoy className="w-5 h-5 text-[#56C8D8]" />
@@ -139,7 +139,11 @@ export function CreateTicketModal({
               onValueChange={(val) => val && setUserId(val)}
             >
               <SelectTrigger className="h-10 rounded-xl bg-gray-50/80 border-gray-200 text-xs">
-                <SelectValue placeholder="Select a Customer..." />
+                <SelectValue placeholder="Select a Customer...">
+                  {customers.find((c) => c.id === userId)
+                    ? `${customers.find((c) => c.id === userId)!.name} (${customers.find((c) => c.id === userId)!.email})`
+                    : "Select a Customer..."}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent className="max-h-56">
                 {customers.map((c) => (
@@ -186,7 +190,9 @@ export function CreateTicketModal({
                 onValueChange={(val) => val && setCategory(val)}
               >
                 <SelectTrigger className="h-10 rounded-xl bg-gray-50/80 border-gray-200 text-xs">
-                  <SelectValue placeholder="Category" />
+                  <SelectValue placeholder="Category">
+                    {category || "Category"}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {SUPPORT_CATEGORIES.map((cat) => (
@@ -209,32 +215,42 @@ export function CreateTicketModal({
                 }
               >
                 <SelectTrigger className="h-10 rounded-xl bg-gray-50/80 border-gray-200 text-xs">
-                  <SelectValue placeholder="Priority" />
+                  <SelectValue placeholder="Priority">
+                    {priority === SupportTicketPriority.LOW
+                      ? "Low Priority"
+                      : priority === SupportTicketPriority.MEDIUM
+                        ? "Medium Priority"
+                        : priority === SupportTicketPriority.HIGH
+                          ? "High Priority"
+                          : priority === SupportTicketPriority.URGENT
+                            ? "Urgent Priority"
+                            : priority}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem
                     value={SupportTicketPriority.LOW}
                     className="text-xs"
                   >
-                    LOW
+                    Low Priority
                   </SelectItem>
                   <SelectItem
                     value={SupportTicketPriority.MEDIUM}
                     className="text-xs"
                   >
-                    MEDIUM
+                    Medium Priority
                   </SelectItem>
                   <SelectItem
                     value={SupportTicketPriority.HIGH}
                     className="text-xs"
                   >
-                    HIGH
+                    High Priority
                   </SelectItem>
                   <SelectItem
                     value={SupportTicketPriority.URGENT}
                     className="text-xs"
                   >
-                    URGENT
+                    Urgent Priority
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -251,7 +267,15 @@ export function CreateTicketModal({
               onValueChange={(val) => val && setChannel(val as SupportChannel)}
             >
               <SelectTrigger className="h-10 rounded-xl bg-gray-50/80 border-gray-200 text-xs">
-                <SelectValue placeholder="Channel" />
+                <SelectValue placeholder="Channel">
+                  {channel === SupportChannel.WEB_TICKET
+                    ? "Web Ticket"
+                    : channel === SupportChannel.WHATSAPP
+                      ? "WhatsApp"
+                      : channel === SupportChannel.MESSENGER
+                        ? "Messenger"
+                        : channel}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem

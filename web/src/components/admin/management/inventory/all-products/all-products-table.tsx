@@ -40,6 +40,10 @@ import {
   CheckCircle2,
   AlertTriangle,
   XCircle,
+  Tag,
+  Printer,
+  CheckSquare,
+  Square,
 } from "lucide-react";
 import { Category } from "@/generated/prisma/enums";
 import type { FullProduct } from "@/actions/admin/management/inventory/get-all-products";
@@ -47,6 +51,7 @@ import { DeleteProductButton } from "./delete-product-button";
 import { ProductDetailModal } from "./product-detail-modal";
 import { StockEventsModal } from "./stock-events-modal";
 import { EditProductModal } from "./edit-product-modal";
+import { ProductStickerModal } from "../stickers/product-sticker-modal";
 import { formatCategory, cn } from "@/lib/utils";
 
 type SortOption =
@@ -121,6 +126,11 @@ export function AllProductsTable({
   // State for pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  // State for bulk selection
+  const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(
+    new Set(),
+  );
 
   // State for expanded rows (variable products)
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
@@ -421,6 +431,19 @@ export function AllProductsTable({
     startIndex,
     startIndex + pageSize,
   );
+
+  const selectedProducts = useMemo(() => {
+    return products.filter((p) => selectedProductIds.has(p.id));
+  }, [products, selectedProductIds]);
+
+  const selectedStickersCount = useMemo(() => {
+    return selectedProducts.reduce((acc, p) => {
+      if (p.isVariable && p.variants && p.variants.length > 0) {
+        return acc + p.variants.length;
+      }
+      return acc + 1;
+    }, 0);
+  }, [selectedProducts]);
 
   const isFiltered =
     search !== "" ||
@@ -755,6 +778,35 @@ export function AllProductsTable({
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/40 hover:bg-muted/40 text-xs">
+                  <TableHead className="w-10 text-center">
+                    <input
+                      type="checkbox"
+                      checked={
+                        paginatedProducts.length > 0 &&
+                        paginatedProducts.every((p) =>
+                          selectedProductIds.has(p.id),
+                        )
+                      }
+                      onChange={() => {
+                        const allSelected =
+                          paginatedProducts.length > 0 &&
+                          paginatedProducts.every((p) =>
+                            selectedProductIds.has(p.id),
+                          );
+                        setSelectedProductIds((prev) => {
+                          const next = new Set(prev);
+                          if (allSelected) {
+                            paginatedProducts.forEach((p) => next.delete(p.id));
+                          } else {
+                            paginatedProducts.forEach((p) => next.add(p.id));
+                          }
+                          return next;
+                        });
+                      }}
+                      className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4 cursor-pointer align-middle"
+                      title="Select all on this page"
+                    />
+                  </TableHead>
                   <TableHead className="w-10 text-center"></TableHead>
                   <TableHead className="w-16">Image</TableHead>
                   <TableHead className="min-w-[220px]">Product Info</TableHead>
@@ -765,7 +817,7 @@ export function AllProductsTable({
                   <TableHead className="min-w-[120px]">Brand</TableHead>
                   <TableHead className="min-w-[140px]">Price</TableHead>
                   <TableHead className="min-w-[110px]">Stock Status</TableHead>
-                  <TableHead className="w-[140px] text-right pr-4">
+                  <TableHead className="w-[170px] text-right pr-4">
                     Actions
                   </TableHead>
                 </TableRow>
@@ -774,6 +826,7 @@ export function AllProductsTable({
                 {paginatedProducts.flatMap((product) => {
                   const stock = getProductStock(product);
                   const isExpanded = expandedRows.has(product.id);
+                  const isSelected = selectedProductIds.has(product.id);
                   const isHighlighted =
                     product.id === urlProductId ||
                     product.code.toLowerCase() ===
@@ -785,11 +838,29 @@ export function AllProductsTable({
                       key={product.id}
                       className={cn(
                         "border-b transition-colors",
-                        isHighlighted
-                          ? "bg-primary/10 hover:bg-primary/15 border-l-4 border-l-primary"
-                          : "hover:bg-muted/20",
+                        isSelected
+                          ? "bg-primary/5 hover:bg-primary/10"
+                          : isHighlighted
+                            ? "bg-primary/10 hover:bg-primary/15 border-l-4 border-l-primary"
+                            : "hover:bg-muted/20",
                       )}
                     >
+                      {/* Checkbox for Bulk Selection */}
+                      <TableCell className="p-2 text-center">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => {
+                            setSelectedProductIds((prev) => {
+                              const next = new Set(prev);
+                              if (next.has(product.id)) next.delete(product.id);
+                              else next.add(product.id);
+                              return next;
+                            });
+                          }}
+                          className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4 cursor-pointer align-middle"
+                        />
+                      </TableCell>
                       {/* Expand Trigger for Variable Products */}
                       <TableCell className="p-2 text-center">
                         {product.isVariable ? (
@@ -921,6 +992,20 @@ export function AllProductsTable({
                       {/* Actions */}
                       <TableCell className="py-3 pr-4 text-right">
                         <div className="flex items-center justify-end gap-1">
+                          <ProductStickerModal
+                            products={[product]}
+                            trigger={
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon-sm"
+                                title="Print Barcode Stickers (Thermal)"
+                                className="cursor-pointer text-muted-foreground hover:text-foreground"
+                              >
+                                <Tag className="w-4 h-4" />
+                              </Button>
+                            }
+                          />
                           <ProductDetailModal
                             product={product}
                             isOpen={effectiveActiveProductId === product.id}
@@ -959,7 +1044,7 @@ export function AllProductsTable({
                         key={`${product.id}-drawer`}
                         className="bg-muted/15 border-b"
                       >
-                        <TableCell colSpan={9} className="p-4 pl-14">
+                        <TableCell colSpan={10} className="p-4 pl-14">
                           <div className="rounded-xl border bg-card p-4 space-y-3 shadow-xs">
                             <div className="flex items-center justify-between border-b pb-2">
                               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
@@ -990,6 +1075,9 @@ export function AllProductsTable({
                                     <TableHead className="text-right">
                                       Stock
                                     </TableHead>
+                                    <TableHead className="w-16 text-right pr-2">
+                                      Sticker
+                                    </TableHead>
                                   </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -1018,15 +1106,21 @@ export function AllProductsTable({
                                       <TableCell>
                                         <div className="flex flex-wrap gap-1">
                                           {variant.attributes.length > 0 ? (
-                                            variant.attributes.map((attr) => (
-                                              <Badge
-                                                key={attr.id}
-                                                variant="outline"
-                                                className="text-[10px] py-0 px-1.5"
-                                              >
-                                                {attr.name}: {attr.value}
-                                              </Badge>
-                                            ))
+                                            variant.attributes.map((attr) => {
+                                              const typeStr = attr.type
+                                                ? `${attr.type.charAt(0).toUpperCase() + attr.type.slice(1).toLowerCase()}: `
+                                                : "";
+                                              return (
+                                                <Badge
+                                                  key={attr.id}
+                                                  variant="outline"
+                                                  className="text-[10px] py-0 px-1.5"
+                                                >
+                                                  {typeStr}
+                                                  {attr.name}
+                                                </Badge>
+                                              );
+                                            })
                                           ) : (
                                             <span className="text-muted-foreground italic text-[11px]">
                                               No attributes
@@ -1045,6 +1139,33 @@ export function AllProductsTable({
                                       </TableCell>
                                       <TableCell className="text-right font-medium">
                                         {getStockBadge(variant.stock)}
+                                      </TableCell>
+                                      <TableCell className="text-right pr-2">
+                                        <ProductStickerModal
+                                          products={[
+                                            {
+                                              ...product,
+                                              isVariable: false,
+                                              sku: variant.sku,
+                                              regularPrice:
+                                                variant.regularPrice,
+                                              salePrice: variant.salePrice,
+                                              variants: [variant],
+                                            },
+                                          ]}
+                                          title={`Print Barcode: ${product.name} (${variant.sku})`}
+                                          trigger={
+                                            <Button
+                                              type="button"
+                                              variant="ghost"
+                                              size="icon-xs"
+                                              title={`Print Barcode (${variant.sku})`}
+                                              className="h-6 w-6 cursor-pointer text-muted-foreground hover:text-foreground"
+                                            >
+                                              <Tag className="w-3.5 h-3.5" />
+                                            </Button>
+                                          }
+                                        />
                                       </TableCell>
                                     </TableRow>
                                   ))}
@@ -1240,6 +1361,20 @@ export function AllProductsTable({
                     </div>
 
                     <div className="flex items-center gap-1">
+                      <ProductStickerModal
+                        products={[product]}
+                        trigger={
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-xs"
+                            title="Print Barcode Stickers (Thermal)"
+                            className="h-7 w-7 text-muted-foreground hover:text-foreground cursor-pointer"
+                          >
+                            <Tag className="w-3.5 h-3.5" />
+                          </Button>
+                        }
+                      />
                       <ProductDetailModal product={product} />
                       <StockEventsModal product={product} />
                       <EditProductModal
@@ -1298,6 +1433,51 @@ export function AllProductsTable({
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Floating Sticky Bulk Actions Bar */}
+      {selectedProductIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-background/95 backdrop-blur-md border border-border shadow-2xl rounded-2xl p-3 px-5 flex items-center gap-3 sm:gap-4 animate-in fade-in slide-in-from-bottom-4 max-w-[92vw]">
+          <div className="flex items-center gap-2">
+            <Badge
+              variant="default"
+              className="rounded-full px-2.5 py-0.5 font-bold text-xs"
+            >
+              {selectedProductIds.size} Selected
+            </Badge>
+            <span className="text-xs text-muted-foreground hidden md:inline">
+              ({selectedStickersCount} thermal label
+              {selectedStickersCount > 1 ? "s" : ""})
+            </span>
+          </div>
+
+          <div className="h-4 w-px bg-border hidden sm:block" />
+
+          <ProductStickerModal
+            products={selectedProducts}
+            title={`Bulk Print ${selectedStickersCount} Barcode Sticker(s)`}
+            trigger={
+              <Button
+                type="button"
+                size="sm"
+                className="h-8 rounded-xl bg-[#56C8D8] hover:bg-[#43B8C8] text-white font-bold text-xs gap-1.5 shadow-sm cursor-pointer"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>Print Thermal Barcodes ({selectedStickersCount})</span>
+              </Button>
+            }
+          />
+
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setSelectedProductIds(new Set())}
+            className="h-8 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+          >
+            Clear
+          </Button>
         </div>
       )}
     </div>

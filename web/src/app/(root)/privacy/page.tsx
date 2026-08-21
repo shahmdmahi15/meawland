@@ -161,7 +161,7 @@ export default function PrivacyPage() {
             >
               support@meawland.com
             </a>{" "}
-            or call +880 1886-070809.
+            or call +880 1888-271704.
           </p>
         </div>
       </div>

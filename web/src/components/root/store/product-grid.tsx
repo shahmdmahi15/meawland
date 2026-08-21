@@ -239,7 +239,19 @@ export function ProductGrid({
                   onValueChange={(val) => setSortBy(val as SortOption)}
                 >
                   <SelectTrigger className="h-9 min-w-[150px] text-xs font-bold bg-white border-gray-200 rounded-xl">
-                    <SelectValue placeholder="Sort By" />
+                    <SelectValue placeholder="Sort By">
+                      {sortBy === "featured"
+                        ? "✨ Featured Items"
+                        : sortBy === "price_asc"
+                          ? "💵 Price: Low to High"
+                          : sortBy === "price_desc"
+                            ? "💎 Price: High to Low"
+                            : sortBy === "name_asc"
+                              ? "🔤 Name: A to Z"
+                              : sortBy === "discount"
+                                ? "🔥 Highest Discount"
+                                : "Sort By"}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="featured">✨ Featured Items</SelectItem>
@@ -381,7 +393,9 @@ export function ProductGrid({
                   onValueChange={(val) => setSelectedBrand(val ?? "ALL")}
                 >
                   <SelectTrigger className="h-7 text-[11px] font-bold bg-white border-gray-200 rounded-lg">
-                    <SelectValue placeholder="Brand" />
+                    <SelectValue placeholder="Brand">
+                      {selectedBrand === "ALL" ? "All Brands" : selectedBrand}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="ALL">All Brands</SelectItem>

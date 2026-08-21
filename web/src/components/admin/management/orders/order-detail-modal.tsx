@@ -60,6 +60,9 @@ import {
   createSteadfastReturnRequestFromAdminAction,
 } from "@/actions/admin/management/orders/send-to-steadfast";
 import { OrderFraudRiskBadge } from "@/components/admin/fraud-checker/order-fraud-risk-badge";
+import { OrderInvoiceModal } from "./order-invoice-modal";
+import { CourierStickerModal } from "./stickers/courier-sticker-modal";
+import { isOrderSentToCourier } from "@/schemas/courier-sticker";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -525,6 +528,40 @@ export function OrderDetailModal({
                   </SelectContent>
                 </Select>
               </div>
+
+              <OrderInvoiceModal
+                order={order}
+                trigger={
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 rounded-xl px-2.5 text-xs font-semibold gap-1.5 shadow-2xs cursor-pointer"
+                    title="Download / Print Custom Invoice"
+                  >
+                    <FileText className="w-3.5 h-3.5 text-primary" />
+                    <span>Invoice</span>
+                  </Button>
+                }
+              />
+
+              {isOrderSentToCourier(order) && (
+                <CourierStickerModal
+                  orders={[order]}
+                  trigger={
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 rounded-xl px-2.5 text-xs font-semibold gap-1.5 shadow-2xs cursor-pointer border-[#0f766e]/30 text-[#0f766e] hover:bg-[#0f766e]/10"
+                      title="Print Thermal Courier Sticker (2x3 in)"
+                    >
+                      <Truck className="w-3.5 h-3.5 text-[#0f766e]" />
+                      <span>Courier Sticker</span>
+                    </Button>
+                  }
+                />
+              )}
             </div>
           </div>
         </div>
@@ -780,6 +817,21 @@ export function OrderDetailModal({
                     </div>
 
                     <div className="flex items-center gap-2 pt-1">
+                      <CourierStickerModal
+                        orders={[order]}
+                        trigger={
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            className="h-8 text-xs font-semibold gap-1.5 cursor-pointer shadow-xs bg-[#56C8D8]/10 text-[#0e7490] hover:bg-[#56C8D8]/20 border-[#56C8D8]/30"
+                          >
+                            <Truck className="w-3.5 h-3.5" />
+                            <span>Print Sticker</span>
+                          </Button>
+                        }
+                      />
+
                       <Button
                         type="button"
                         size="sm"

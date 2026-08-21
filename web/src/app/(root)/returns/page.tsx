@@ -32,7 +32,7 @@ const STEPS = [
     step: "01",
     title: "Initiate Request",
     description:
-      "Contact our WhatsApp helpline (+880 1886-070809) or email support@meawland.com within 7 days of receiving your order with your Order ID and photo/video.",
+      "Contact our WhatsApp helpline (+880 1888-271704) or email support@meawland.com within 7 days of receiving your order with your Order ID and photo/video.",
   },
   {
     step: "02",
@@ -238,7 +238,7 @@ export default function ReturnsPage() {
           </div>
 
           <a
-            href="https://wa.me/8801886070809"
+            href="https://wa.me/8801888271704"
             target="_blank"
             rel="noopener noreferrer"
           >

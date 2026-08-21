@@ -4,9 +4,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
-  // output: "standalone",
-  // // Add the packages in transpilePackages
-  // transpilePackages: ["@t3-oss/env-nextjs", "@t3-oss/env-core"],
+  output: "standalone",
+  transpilePackages: ["@t3-oss/env-nextjs", "@t3-oss/env-core"],
   allowedDevOrigins: ["192.168.1.2"],
   images: {
     remotePatterns: [

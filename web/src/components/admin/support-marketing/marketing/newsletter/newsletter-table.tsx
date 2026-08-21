@@ -267,7 +267,13 @@ export function NewsletterTable({ subscribers, stats }: NewsletterTableProps) {
               onValueChange={(val) => val && setStatusFilter(val)}
             >
               <SelectTrigger className="h-10 rounded-xl bg-gray-50/70 border-gray-200 text-xs">
-                <SelectValue placeholder="Status" />
+                <SelectValue placeholder="Status">
+                  {statusFilter === "ALL"
+                    ? "All Statuses"
+                    : statusFilter === NewsletterStatus.SUBSCRIBED
+                      ? "Subscribed Only"
+                      : "Unsubscribed Only"}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL" className="text-xs">
@@ -296,7 +302,9 @@ export function NewsletterTable({ subscribers, stats }: NewsletterTableProps) {
               onValueChange={(val) => val && setSourceFilter(val)}
             >
               <SelectTrigger className="h-10 rounded-xl bg-gray-50/70 border-gray-200 text-xs">
-                <SelectValue placeholder="Source" />
+                <SelectValue placeholder="Source">
+                  {sourceFilter === "ALL" ? "All Sources" : sourceFilter}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL" className="text-xs">

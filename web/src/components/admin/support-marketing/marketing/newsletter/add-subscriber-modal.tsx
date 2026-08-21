@@ -121,7 +121,11 @@ export function AddSubscriberModal({ trigger }: AddSubscriberModalProps) {
                 }
               >
                 <SelectTrigger className="h-10 rounded-xl bg-gray-50/80 border-gray-200 text-xs">
-                  <SelectValue />
+                  <SelectValue>
+                    {status === NewsletterStatus.SUBSCRIBED
+                      ? "Subscribed"
+                      : "Unsubscribed"}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem

@@ -25,6 +25,7 @@ import { Separator } from "@/components/ui/separator";
 import { getOrderDetailsAdminAction } from "@/actions/admin/management/orders/get-order-details";
 import { OrderInvoiceModal } from "@/components/admin/management/orders/order-invoice-modal";
 import { OrderDetailModal } from "@/components/admin/management/orders/order-detail-modal";
+import { CourierStickerModal } from "@/components/admin/management/orders/stickers/courier-sticker-modal";
 import { DeleteOrderButton } from "@/components/admin/management/orders/delete-order-button";
 import { OrderFraudRiskBadge } from "@/components/admin/fraud-checker/order-fraud-risk-badge";
 import {
@@ -108,6 +109,21 @@ export default async function AdminOrderDetailPage({ params }: OrderPageProps) {
         </div>
 
         <div className="flex items-center gap-2">
+          {order.shipment?.consignmentId && (
+            <CourierStickerModal
+              orders={[order]}
+              trigger={
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1.5 text-xs border-[#0f766e]/30 text-[#0f766e] hover:bg-[#0f766e]/10"
+                >
+                  <Truck className="w-3.5 h-3.5 text-[#0f766e]" />
+                  <span>Courier Sticker</span>
+                </Button>
+              }
+            />
+          )}
           <OrderDetailModal
             order={order}
             trigger={

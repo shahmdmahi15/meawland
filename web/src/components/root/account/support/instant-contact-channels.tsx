@@ -24,10 +24,10 @@ export function InstantContactChannels({
   selectedOrderCode,
 }: InstantContactChannelsProps) {
   // Meawland Support Hotline & Socials
-  const WHATSAPP_NUMBER = "8801886866866"; // Official Meawland WhatsApp Hotline
-  const MESSENGER_USERNAME = "meawland.official"; // Official Meawland Messenger
+  const WHATSAPP_NUMBER = "8801888271704"; // Official Meawland WhatsApp Hotline (01888271704)
+  const MESSENGER_USERNAME = "meawland1"; // Official Meawland Messenger
   const SUPPORT_EMAIL = "support@meawland.com";
-  const HOTLINE_PHONE = "+8801886866866";
+  const HOTLINE_PHONE = "+8801888271704";
 
   const waMessage = encodeURIComponent(
     `Hello Meawland Support! 👋\n\nI am ${userName || "a customer"}${userEmail ? ` (${userEmail})` : ""}.${

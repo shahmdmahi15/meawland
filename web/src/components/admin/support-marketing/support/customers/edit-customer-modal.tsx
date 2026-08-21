@@ -166,7 +166,9 @@ export function EditCustomerModal({
                 onValueChange={(val) => val && setDistrict(val)}
               >
                 <SelectTrigger className="h-10 rounded-xl bg-gray-50/80 border-gray-200 text-xs">
-                  <SelectValue placeholder="Select District" />
+                  <SelectValue placeholder="Select District">
+                    {district || "Select District"}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="max-h-56">
                   {BANGLADESH_DISTRICTS.map((d) => (

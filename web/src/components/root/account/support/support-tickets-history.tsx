@@ -19,14 +19,30 @@ import {
   ChevronUp,
   MessageSquare,
   Sparkles,
+  ExternalLink,
+  MessageCircle,
+  Send,
+  Copy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MEAWLAND_SOCIALS } from "@/lib/socials";
+import { toast } from "sonner";
 
 interface SupportTicketsHistoryProps {
   tickets: SupportTicketSummary[];
+  userName?: string;
+  userEmail?: string;
+  userCode?: string;
+  userPhone?: string;
 }
 
-export function SupportTicketsHistory({ tickets }: SupportTicketsHistoryProps) {
+export function SupportTicketsHistory({
+  tickets,
+  userName,
+  userEmail,
+  userCode,
+  userPhone,
+}: SupportTicketsHistoryProps) {
   const [activeTab, setActiveTab] = useState<"ALL" | "OPEN" | "RESOLVED">(
     "ALL",
   );
@@ -49,6 +65,48 @@ export function SupportTicketsHistory({ tickets }: SupportTicketsHistoryProps) {
     }
     return tickets;
   }, [tickets, activeTab]);
+
+  const generateTicketMessage = (ticket: SupportTicketSummary) => {
+    const lines = [
+      `Hello Meawland Support Team! 👋`,
+      ``,
+      `I would like to follow up on my Support Ticket:`,
+      `🎫 Ticket Code: #${ticket.code}`,
+      `👤 Customer: ${userName || "Customer"}${userCode ? ` (#${userCode})` : ""}`,
+      userEmail ? `📧 Email: ${userEmail}` : "",
+      userPhone ? `📱 Phone: ${userPhone}` : "",
+      `📂 Category: ${ticket.category}`,
+      `🚨 Priority: ${ticket.priority}`,
+      ticket.order?.code ? `📦 Attached Order: #${ticket.order.code}` : "",
+      `📝 Subject: ${ticket.subject}`,
+      `💬 Message: ${ticket.message}`,
+      ``,
+      `Please assist me regarding this ticket. Thank you!`,
+    ];
+    return lines.filter(Boolean).join("\n");
+  };
+
+  const getWhatsAppUrl = (ticket: SupportTicketSummary) => {
+    const message = generateTicketMessage(ticket);
+    return `https://wa.me/${MEAWLAND_SOCIALS.whatsapp.phoneInternational}?text=${encodeURIComponent(
+      message,
+    )}`;
+  };
+
+  const handleMessengerClick = (ticket: SupportTicketSummary) => {
+    const message = generateTicketMessage(ticket);
+    if (navigator?.clipboard) {
+      navigator.clipboard.writeText(message).catch(() => {});
+      toast.success(
+        `Ticket #${ticket.code} details copied to clipboard! You can paste it into Messenger.`,
+      );
+    }
+    window.open(
+      MEAWLAND_SOCIALS.facebook.messengerUrl,
+      "_blank",
+      "noopener,noreferrer",
+    );
+  };
 
   const getStatusBadge = (status: SupportTicketStatus) => {
     switch (status) {
@@ -147,7 +205,7 @@ export function SupportTicketsHistory({ tickets }: SupportTicketsHistoryProps) {
             variant="outline"
             className="border-emerald-500/30 text-emerald-700 bg-emerald-50 font-semibold text-[10px]"
           >
-            WhatsApp
+            WhatsApp Followup
           </Badge>
         );
       case SupportChannel.MESSENGER:
@@ -156,7 +214,7 @@ export function SupportTicketsHistory({ tickets }: SupportTicketsHistoryProps) {
             variant="outline"
             className="border-blue-500/30 text-blue-700 bg-blue-50 font-semibold text-[10px]"
           >
-            Messenger
+            Messenger Followup
           </Badge>
         );
       default:
@@ -234,10 +292,22 @@ export function SupportTicketsHistory({ tickets }: SupportTicketsHistoryProps) {
               },
             );
 
+            const isWhatsAppPreferred =
+              ticket.channel === SupportChannel.WHATSAPP;
+            const isMessengerPreferred =
+              ticket.channel === SupportChannel.MESSENGER;
+
             return (
               <div
                 key={ticket.id}
-                className="rounded-2xl border border-gray-200/80 bg-white p-4 sm:p-5 shadow-2xs transition-all hover:border-[#56C8D8]/50"
+                className={cn(
+                  "rounded-2xl border bg-white p-4 sm:p-5 shadow-2xs transition-all",
+                  isWhatsAppPreferred
+                    ? "border-emerald-200/80 hover:border-emerald-400/80"
+                    : isMessengerPreferred
+                      ? "border-blue-200/80 hover:border-blue-400/80"
+                      : "border-gray-200/80 hover:border-[#56C8D8]/50",
+                )}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="space-y-1.5 flex-1 min-w-0">
@@ -271,29 +341,119 @@ export function SupportTicketsHistory({ tickets }: SupportTicketsHistoryProps) {
                     </div>
                   </div>
 
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setExpandedId(isExpanded ? null : ticket.id)}
-                    className="h-8 rounded-xl text-xs font-bold text-gray-600 hover:text-gray-900 gap-1.5 self-end sm:self-auto cursor-pointer"
-                  >
-                    <span>{isExpanded ? "Hide Details" : "View Message"}</span>
-                    {isExpanded ? (
-                      <ChevronUp className="w-3.5 h-3.5" />
-                    ) : (
-                      <ChevronDown className="w-3.5 h-3.5" />
-                    )}
-                  </Button>
+                  {/* Actions & Followup Links */}
+                  <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                    {/* WhatsApp Action Link */}
+                    <a
+                      href={getWhatsAppUrl(ticket)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block"
+                      title="Follow up on WhatsApp with pre-filled ticket details"
+                    >
+                      <Button
+                        type="button"
+                        size="xs"
+                        className={cn(
+                          "h-8 px-2.5 rounded-xl font-bold text-xs gap-1.5 cursor-pointer shadow-2xs transition-all",
+                          isWhatsAppPreferred
+                            ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                            : "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200",
+                        )}
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        <span>WhatsApp</span>
+                        <ExternalLink className="w-3 h-3 opacity-70" />
+                      </Button>
+                    </a>
+
+                    {/* Messenger Action Link */}
+                    <Button
+                      type="button"
+                      size="xs"
+                      onClick={() => handleMessengerClick(ticket)}
+                      className={cn(
+                        "h-8 px-2.5 rounded-xl font-bold text-xs gap-1.5 cursor-pointer shadow-2xs transition-all",
+                        isMessengerPreferred
+                          ? "bg-blue-600 hover:bg-blue-700 text-white"
+                          : "bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200",
+                      )}
+                      title="Follow up on Facebook Messenger"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      <span>Messenger</span>
+                      <ExternalLink className="w-3 h-3 opacity-70" />
+                    </Button>
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        setExpandedId(isExpanded ? null : ticket.id)
+                      }
+                      className="h-8 rounded-xl text-xs font-bold text-gray-600 hover:text-gray-900 gap-1.5 cursor-pointer"
+                    >
+                      <span>{isExpanded ? "Hide" : "Details"}</span>
+                      {isExpanded ? (
+                        <ChevronUp className="w-3.5 h-3.5" />
+                      ) : (
+                        <ChevronDown className="w-3.5 h-3.5" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
 
                 {/* Expanded Message Box */}
                 {isExpanded && (
-                  <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
-                    <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
-                      Submitted Inquiry:
-                    </span>
-                    <div className="rounded-xl bg-[#EDF5FA]/60 border border-[#D4EEFC] p-3.5 text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">
-                      {ticket.message}
+                  <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
+                    <div>
+                      <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block mb-1">
+                        Submitted Inquiry:
+                      </span>
+                      <div className="rounded-xl bg-[#EDF5FA]/60 border border-[#D4EEFC] p-3.5 text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">
+                        {ticket.message}
+                      </div>
+                    </div>
+
+                    {/* Quick Direct Followup Banner inside expanded card */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 rounded-xl bg-gray-50 p-3 border border-gray-200/80 text-xs">
+                      <span className="text-gray-600 text-[11px]">
+                        Need faster resolution? Send this ticket directly to our
+                        support agents on{" "}
+                        <strong className="text-gray-800">
+                          WhatsApp ({MEAWLAND_SOCIALS.whatsapp.phoneFormatted})
+                        </strong>{" "}
+                        or{" "}
+                        <strong className="text-gray-800">
+                          Facebook Messenger
+                        </strong>
+                        .
+                      </span>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <a
+                          href={getWhatsAppUrl(ticket)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Button
+                            size="xs"
+                            className="h-7 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] gap-1"
+                          >
+                            <MessageCircle className="w-3 h-3" />
+                            <span>Send via WhatsApp</span>
+                          </Button>
+                        </a>
+
+                        <Button
+                          size="xs"
+                          onClick={() => handleMessengerClick(ticket)}
+                          className="h-7 px-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] gap-1"
+                        >
+                          <Send className="w-3 h-3" />
+                          <span>Open Messenger</span>
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 )}

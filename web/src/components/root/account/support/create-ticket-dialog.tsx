@@ -129,7 +129,7 @@ export function CreateTicketDialog({
         }
       />
 
-      <DialogContent className="max-w-[min(94vw,600px)] rounded-3xl p-0 overflow-hidden border border-gray-200">
+      <DialogContent className="sm:max-w-[850px] w-[min(96vw,850px)] max-w-full rounded-3xl p-0 overflow-hidden border border-gray-200 shadow-2xl">
         <div className="bg-[#EDF5FA] border-b border-[#D4EEFC] p-5 sm:p-6">
           <DialogTitle className="text-base sm:text-lg font-black text-gray-900 flex items-center gap-2">
             <LifeBuoy className="w-5 h-5 text-[#56C8D8]" />
@@ -179,7 +179,9 @@ export function CreateTicketDialog({
                 onValueChange={(val) => val && setCategory(val)}
               >
                 <SelectTrigger className="h-10 rounded-xl bg-gray-50/80 border-gray-200 text-xs font-medium">
-                  <SelectValue placeholder="Select Category" />
+                  <SelectValue placeholder="Select Category">
+                    {category || "Select Category"}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {SUPPORT_CATEGORIES.map((cat) => (
@@ -201,7 +203,13 @@ export function CreateTicketDialog({
                 onValueChange={(val) => val && setOrderId(val)}
               >
                 <SelectTrigger className="h-10 rounded-xl bg-gray-50/80 border-gray-200 text-xs font-mono">
-                  <SelectValue placeholder="Select an order..." />
+                  <SelectValue placeholder="Select an order...">
+                    {orderId === "none" || !orderId
+                      ? "None (General Inquiry)"
+                      : orders.find((o) => o.id === orderId)
+                        ? `#${orders.find((o) => o.id === orderId)!.code} — ৳${parseFloat(orders.find((o) => o.id === orderId)!.finalCost).toLocaleString()}`
+                        : "Select an order..."}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="max-h-56">
                   <SelectItem value="none" className="text-xs font-sans">
@@ -235,7 +243,17 @@ export function CreateTicketDialog({
                 }
               >
                 <SelectTrigger className="h-10 rounded-xl bg-gray-50/80 border-gray-200 text-xs">
-                  <SelectValue placeholder="Priority" />
+                  <SelectValue placeholder="Priority">
+                    {priority === SupportTicketPriority.LOW
+                      ? "Low (General Inquiry)"
+                      : priority === SupportTicketPriority.MEDIUM
+                        ? "Medium (Standard Support)"
+                        : priority === SupportTicketPriority.HIGH
+                          ? "High (Urgent Order Issue)"
+                          : priority === SupportTicketPriority.URGENT
+                            ? "Urgent (Payment / Return Issue)"
+                            : priority}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem
@@ -277,7 +295,15 @@ export function CreateTicketDialog({
                 }
               >
                 <SelectTrigger className="h-10 rounded-xl bg-gray-50/80 border-gray-200 text-xs">
-                  <SelectValue placeholder="Channel" />
+                  <SelectValue placeholder="Channel">
+                    {channel === SupportChannel.WEB_TICKET
+                      ? "Web Helpdesk Ticket"
+                      : channel === SupportChannel.WHATSAPP
+                        ? "WhatsApp Followup"
+                        : channel === SupportChannel.MESSENGER
+                          ? "Messenger Followup"
+                          : channel}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem

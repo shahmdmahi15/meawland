@@ -45,6 +45,8 @@ export default async function SupportPage({ searchParams }: SupportPageProps) {
     <SupportView
       userName={sessionUser.name || "Customer"}
       userEmail={sessionUser.email || ""}
+      userCode={sessionUser.code || ""}
+      userPhone={sessionUser.phone || ""}
       tickets={tickets}
       orders={orders}
       preselectedOrderCode={orderCode}
