@@ -13,8 +13,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      # Expose to localhost only on host for database backups / pgAdmin / direct access
-      - "127.0.0.1:5432:5432"
+      # Expose port 5432 publicly for direct local development & GUI tools (TablePlus, DBeaver, Prisma Studio)
+      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-meawland} -d ${POSTGRES_DB:-meawland_db}"]
       interval: 10s
