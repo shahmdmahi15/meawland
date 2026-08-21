@@ -11,7 +11,9 @@ export async function GET(req: NextRequest) {
   const oauthCode = url.searchParams.get("code");
 
   if (!oauthCode) {
-    return NextResponse.redirect(new URL("/?error=NoCode", req.url));
+    return NextResponse.redirect(
+      new URL("/?error=NoCode", env.NEXT_PUBLIC_APP_URL || "https://meawland.com"),
+    );
   }
 
   try {
@@ -204,7 +206,8 @@ export async function GET(req: NextRequest) {
       .catch(() => {});
 
     // 6. Set HTTP-only cookie with the RAW token and redirect
-    const response = NextResponse.redirect(new URL("/account", req.url));
+    const appUrl = env.NEXT_PUBLIC_APP_URL || "https://meawland.com";
+    const response = NextResponse.redirect(new URL("/account", appUrl));
     response.cookies.set("__Host-SESSION_TOKEN", rawSessionToken, {
       expires: expiresAt,
       sameSite: "lax",
@@ -217,6 +220,7 @@ export async function GET(req: NextRequest) {
     return response;
   } catch (error) {
     console.error("Database OAuth error:", error);
-    return NextResponse.redirect(new URL("/?error=OAuthFailed", req.url));
+    const appUrl = env.NEXT_PUBLIC_APP_URL || "https://meawland.com";
+    return NextResponse.redirect(new URL("/?error=OAuthFailed", appUrl));
   }
 }
