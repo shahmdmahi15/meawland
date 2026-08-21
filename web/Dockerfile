@@ -23,7 +23,7 @@ COPY prisma ./prisma/
 COPY prisma.config.ts ./
 
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile
+    pnpm install
 
 # ------------------------------------------------------------------------------
 # Stage 2: Application Build (builder)

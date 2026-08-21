@@ -3,6 +3,13 @@ lockfileVersion: "9.0"
 settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
+  onlyBuiltDependencies:
+    - "@prisma/client"
+    - "@prisma/engines"
+    - core-js
+    - esbuild
+    - prisma
+    - unrs-resolver
 
 importers:
   .:
