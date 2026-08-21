@@ -16,7 +16,7 @@ import { SystemHealthCard } from "./system-health-card";
 import { QuickActionsToolbar } from "./quick-actions-toolbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { LayoutDashboard, RefreshCw, Sparkles, Calendar } from "lucide-react";
+import { LayoutDashboard, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 interface AdminOverviewDashboardProps {

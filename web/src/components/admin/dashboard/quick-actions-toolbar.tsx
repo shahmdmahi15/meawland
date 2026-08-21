@@ -10,7 +10,6 @@ import {
   Mail,
   Package,
   Truck,
-  Sparkles,
 } from "lucide-react";
 
 export function QuickActionsToolbar() {
@@ -23,7 +22,7 @@ export function QuickActionsToolbar() {
     },
     {
       label: "Add New Product",
-      href: "/admin/management/inventory/add-product",
+      href: "/admin/management/inventory/new-product",
       icon: Plus,
       color: "bg-white hover:bg-gray-50 text-gray-800 border-gray-200",
     },
