@@ -38,26 +38,26 @@ export async function proxy(request: NextRequest) {
   const isSecurityPath = path.startsWith("/admin/security");
 
   if (!isValid && isAccountPath && !isLoginPath) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(new URL("/login", request.nextUrl));
   }
 
   if (isValid && isLoginPath) {
-    return NextResponse.redirect(new URL("/account", request.url));
+    return NextResponse.redirect(new URL("/account", request.nextUrl));
   }
 
   if (isValid && isAdminPath && role !== Role.OWNER && role !== Role.ADMIN) {
-    return NextResponse.redirect(new URL("/account", request.url));
+    return NextResponse.redirect(new URL("/account", request.nextUrl));
   }
 
   if (isValid && isSecurityPath && role !== Role.OWNER) {
     if (role === Role.ADMIN) {
-      return NextResponse.redirect(new URL("/admin", request.url));
+      return NextResponse.redirect(new URL("/admin", request.nextUrl));
     }
-    return NextResponse.redirect(new URL("/account", request.url));
+    return NextResponse.redirect(new URL("/account", request.nextUrl));
   }
 
   if (!isValid && isAdminPath) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(new URL("/login", request.nextUrl));
   }
 
   return NextResponse.next();
