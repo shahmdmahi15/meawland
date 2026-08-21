@@ -48,7 +48,8 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - HOSTNAME=0.0.0.0
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-meawland}:${POSTGRES_PASSWORD:-meawland_password_2026}@postgres:5432/${POSTGRES_DB:-meawland_db}?schema=public
+      - DATABASE_URL=${DATABASE_URL:-postgresql://${POSTGRES_USER:-meawland}:${POSTGRES_PASSWORD:-meawland_password_2026}@postgres:5432/${POSTGRES_DB:-meawland_db}?schema=public}
+      - DIRECT_URL=${DIRECT_URL:-postgresql://${POSTGRES_USER:-meawland}:${POSTGRES_PASSWORD:-meawland_password_2026}@postgres:5432/${POSTGRES_DB:-meawland_db}?schema=public}
     ports:
       - "3000:3000"
     healthcheck:
