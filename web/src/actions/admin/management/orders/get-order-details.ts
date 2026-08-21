@@ -2,13 +2,11 @@
 
 import db from "@/lib/db";
 import { getMeAction } from "@/actions/auth/get-me";
-import { getImageBase64 } from "@/lib/storage";
+import { getPublicUrl } from "@/lib/storage";
 import { Role } from "@/generated/prisma/enums";
 import type { AdminOrder } from "./get-orders";
 
-async function safeGetImageBase64(
-  key: string | null | undefined,
-): Promise<string> {
+function resolveImageUrl(key: string | null | undefined): string {
   if (!key) return "";
   if (
     key.startsWith("data:") ||
@@ -18,12 +16,7 @@ async function safeGetImageBase64(
   ) {
     return key;
   }
-  try {
-    return await getImageBase64(key);
-  } catch (error) {
-    console.error(`[Storage.GetBase64] Failed for key "${key}":`, error);
-    return "";
-  }
+  return getPublicUrl(key);
 }
 
 export async function getOrderDetailsAdminAction(
@@ -111,8 +104,7 @@ export async function getOrderDetailsAdminAction(
       return { success: false, message: "Order not found." };
     }
 
-    const items = await Promise.all(
-      order.orderItems.map(async (oi) => {
+    const items = order.orderItems.map((oi) => {
         let name = "Order Item";
         let sku: string | null = null;
         let imageKey: string | null = null;
@@ -131,7 +123,7 @@ export async function getOrderDetailsAdminAction(
           imageKey = oi.comboProduct.image;
         }
 
-        const image = await safeGetImageBase64(imageKey);
+        const image = resolveImageUrl(imageKey);
 
         return {
           id: oi.id,
@@ -148,8 +140,7 @@ export async function getOrderDetailsAdminAction(
           variantId: oi.variantId,
           comboProductId: oi.comboProductId,
         };
-      }),
-    );
+    });
 
     return {
       success: true,

@@ -2,7 +2,7 @@
 
 import db from "@/lib/db";
 import { getMeAction } from "@/actions/auth/get-me";
-import { getImageBase64 } from "@/lib/storage";
+import { getPublicUrl } from "@/lib/storage";
 import { Prisma } from "@/generated/prisma/client";
 import {
   Role,
@@ -14,9 +14,7 @@ import {
   CourierStatus,
 } from "@/generated/prisma/enums";
 
-async function safeGetImageBase64(
-  key: string | null | undefined,
-): Promise<string> {
+function resolveImageUrl(key: string | null | undefined): string {
   if (!key) return "";
   if (
     key.startsWith("data:") ||
@@ -26,12 +24,7 @@ async function safeGetImageBase64(
   ) {
     return key;
   }
-  try {
-    return await getImageBase64(key);
-  } catch (error) {
-    console.error(`[Storage.GetBase64] Failed for key "${key}":`, error);
-    return "";
-  }
+  return getPublicUrl(key);
 }
 
 export type AdminOrderSummaryItem = {
@@ -228,6 +221,7 @@ export async function getOrdersAdminAction(
     // Fetch orders with relations
     const rawOrders = await db.order.findMany({
       where,
+      take: 500,
       orderBy: { createdAt: "desc" },
       include: {
         payment: true,
@@ -338,10 +332,8 @@ export async function getOrdersAdminAction(
     };
 
     // Format formatted orders list
-    const orders: AdminOrder[] = await Promise.all(
-      rawOrders.map(async (o) => {
-        const items: AdminOrderSummaryItem[] = await Promise.all(
-          o.orderItems.map(async (oi) => {
+    const orders: AdminOrder[] = rawOrders.map((o) => {
+        const items: AdminOrderSummaryItem[] = o.orderItems.map((oi) => {
             let name = "Order Item";
             let sku: string | null = null;
             let imageKey: string | null = null;
@@ -360,7 +352,7 @@ export async function getOrdersAdminAction(
               imageKey = oi.comboProduct.image;
             }
 
-            const image = await safeGetImageBase64(imageKey);
+            const image = resolveImageUrl(imageKey);
 
             return {
               id: oi.id,
@@ -377,8 +369,7 @@ export async function getOrdersAdminAction(
               variantId: oi.variantId,
               comboProductId: oi.comboProductId,
             };
-          }),
-        );
+        });
 
         return {
           id: o.id,
@@ -446,8 +437,7 @@ export async function getOrdersAdminAction(
             : null,
           items,
         };
-      }),
-    );
+    });
 
     return {
       success: true,
