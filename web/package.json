@@ -75,6 +75,7 @@
       "esbuild",
       "prisma",
       "unrs-resolver"
-    ]
+    ],
+    "ignoredBuiltDependencies": []
   }
 }

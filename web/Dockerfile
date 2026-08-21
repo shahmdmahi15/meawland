@@ -22,6 +22,9 @@ COPY package.json pnpm-lock.yaml* .npmrc* ./
 COPY prisma ./prisma/
 COPY prisma.config.ts ./
 
+RUN pnpm config set enable-pre-post-scripts true && \
+    pnpm config set ignored-builds '[]'
+
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
     pnpm install
 
