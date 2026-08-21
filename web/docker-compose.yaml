@@ -1,25 +1,26 @@
 services:
-  meawland-web:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: meawland-web:latest
-    container_name: meawland-web
+  # ============================================================================
+  # 1. PostgreSQL Database Service
+  # ============================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: meawland-postgres
     restart: unless-stopped
-    env_file:
-      - .env
     environment:
-      - NODE_ENV=production
-      - PORT=3000
-      - HOSTNAME=0.0.0.0
+      POSTGRES_USER: ${POSTGRES_USER:-meawland}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-meawland_password_2026}
+      POSTGRES_DB: ${POSTGRES_DB:-meawland_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     ports:
-      - "3000:3000"
+      # Expose to localhost only on host for database backups / pgAdmin / direct access
+      - "127.0.0.1:5432:5432"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://127.0.0.1:3000/api/health"]
-      interval: 30s
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-meawland} -d ${POSTGRES_DB:-meawland_db}"]
+      interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 15s
+      retries: 5
+      start_period: 10s
     logging:
       driver: "json-file"
       options:
@@ -27,6 +28,49 @@ services:
         max-file: "3"
     networks:
       - meawland-net
+
+  # ============================================================================
+  # 2. Next.js Web Application Service
+  # ============================================================================
+  meawland-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: meawland-web:latest
+    container_name: meawland-web
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-meawland}:${POSTGRES_PASSWORD:-meawland_password_2026}@postgres:5432/${POSTGRES_DB:-meawland_db}?schema=public
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "3"
+    networks:
+      - meawland-net
+
+# ==============================================================================
+# Persistent Volumes & Networks
+# ==============================================================================
+volumes:
+  postgres_data:
+    driver: local
 
 networks:
   meawland-net:
