@@ -751,6 +751,12 @@ model Order {
   updatedAt DateTime @updatedAt
 
   // Indexes and Constraints
+  @@index([createdAt(sort: Desc)])
+  @@index([status])
+  @@index([type])
+  @@index([paymentStatus])
+  @@index([type, status])
+  @@index([type, createdAt(sort: Desc)])
 }
 
 model OrderItem {

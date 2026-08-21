@@ -267,68 +267,77 @@ export async function getOrdersAdminAction(
       },
     });
 
-    // Compute Metrics across all orders in DB matching type scope
-    const allMatchingScopeOrders = await db.order.findMany({
-      where: type !== "ALL" ? { type } : undefined,
-      select: {
-        type: true,
-        status: true,
-        paymentStatus: true,
-        finalCost: true,
-        totalCost: true,
-      },
-    });
+    // Compute Metrics using efficient SQL-level aggregation
+    const metricsTypeWhere = type !== "ALL" ? { type: type as OrderType } : {};
+
+    // Run all metric queries in parallel for speed
+    const [
+      totalOrders,
+      statusCounts,
+      typeCounts,
+      paymentStatusCounts,
+      revenueAgg,
+    ] = await Promise.all([
+      db.order.count({ where: metricsTypeWhere }),
+      db.order.groupBy({
+        by: ["status"],
+        where: metricsTypeWhere,
+        _count: true,
+      }),
+      db.order.groupBy({
+        by: ["type"],
+        where: metricsTypeWhere,
+        _count: true,
+      }),
+      db.order.groupBy({
+        by: ["paymentStatus"],
+        where: metricsTypeWhere,
+        _count: true,
+      }),
+      // For revenue, we still need to compute sums; use a raw query via findMany with select
+      // since Prisma doesn't support SUM on string fields directly.
+      // But we can limit this to only non-cancelled/non-returned orders
+      db.order.findMany({
+        where: {
+          ...metricsTypeWhere,
+          status: { notIn: [OrderStatus.CANCELLED, OrderStatus.RETURNED] },
+        },
+        select: { finalCost: true, totalCost: true },
+      }),
+    ]);
+
+    const statusMap = Object.fromEntries(
+      statusCounts.map((s) => [s.status, s._count]),
+    );
+    const typeMap = Object.fromEntries(
+      typeCounts.map((t) => [t.type, t._count]),
+    );
+    const paymentStatusMap = Object.fromEntries(
+      paymentStatusCounts.map((p) => [p.paymentStatus, p._count]),
+    );
 
     let totalRevenue = 0;
     let totalOwnerCost = 0;
-    let webOrdersCount = 0;
-    let otherOrdersCount = 0;
-    let pendingCount = 0;
-    let inReviewCount = 0;
-    let deliveredCount = 0;
-    let cancelledCount = 0;
-    let paidOrdersCount = 0;
-    let pendingPaymentCount = 0;
-
-    for (const o of allMatchingScopeOrders) {
-      const finalCostNum = parseFloat(o.finalCost || "0") || 0;
-      const ownerCostNum = parseFloat(o.totalCost || "0") || 0;
-
-      if (
-        o.status !== OrderStatus.CANCELLED &&
-        o.status !== OrderStatus.RETURNED
-      ) {
-        totalRevenue += finalCostNum;
-        totalOwnerCost += ownerCostNum;
-      }
-
-      if (o.type === OrderType.WEB) webOrdersCount++;
-      if (o.type === OrderType.OTHER) otherOrdersCount++;
-
-      if (o.status === OrderStatus.PENDING) pendingCount++;
-      if (o.status === OrderStatus.IN_REVIEW) inReviewCount++;
-      if (o.status === OrderStatus.DELIVERED) deliveredCount++;
-      if (o.status === OrderStatus.CANCELLED) cancelledCount++;
-
-      if (o.paymentStatus === PaymentStatus.PAID) paidOrdersCount++;
-      if (o.paymentStatus === PaymentStatus.PENDING) pendingPaymentCount++;
+    for (const o of revenueAgg) {
+      totalRevenue += parseFloat(o.finalCost || "0") || 0;
+      totalOwnerCost += parseFloat(o.totalCost || "0") || 0;
     }
 
     const estimatedProfit = Math.max(0, totalRevenue - totalOwnerCost);
 
     const metrics: OrderMetrics = {
-      totalOrders: allMatchingScopeOrders.length,
-      webOrdersCount,
-      otherOrdersCount,
-      pendingCount,
-      inReviewCount,
-      deliveredCount,
-      cancelledCount,
+      totalOrders,
+      webOrdersCount: typeMap[OrderType.WEB] || 0,
+      otherOrdersCount: typeMap[OrderType.OTHER] || 0,
+      pendingCount: statusMap[OrderStatus.PENDING] || 0,
+      inReviewCount: statusMap[OrderStatus.IN_REVIEW] || 0,
+      deliveredCount: statusMap[OrderStatus.DELIVERED] || 0,
+      cancelledCount: statusMap[OrderStatus.CANCELLED] || 0,
       totalRevenue,
       totalOwnerCost,
       estimatedProfit,
-      paidOrdersCount,
-      pendingPaymentCount,
+      paidOrdersCount: paymentStatusMap[PaymentStatus.PAID] || 0,
+      pendingPaymentCount: paymentStatusMap[PaymentStatus.PENDING] || 0,
     };
 
     // Format formatted orders list
