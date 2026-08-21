@@ -18,12 +18,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN corepack enable && corepack prepare pnpm@11.13.0 --activate
 
-COPY package.json pnpm-lock.yaml* .npmrc* ./
+COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml* .npmrc* ./
 COPY prisma ./prisma/
 COPY prisma.config.ts ./
-
-RUN pnpm config set enable-pre-post-scripts true && \
-    pnpm config set ignored-builds '[]'
 
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
     pnpm install
