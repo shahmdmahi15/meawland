@@ -134,6 +134,7 @@ export function EmailLogsTable({
           <Select
             value={statusFilter}
             onValueChange={(val) => {
+              if (!val) return;
               setStatusFilter(val);
               handleFilter(val, search);
             }}

@@ -65,13 +65,15 @@ export function ProductDetailsView({
   // Track ViewContent on initial product view (Browser Pixel + Server CAPI with shared Event ID)
   React.useEffect(() => {
     const eventId = generateBrowserEventId("vc");
-    const priceVal = product.salePrice ?? product.regularPrice ?? 0;
+    const priceVal = product.numericPrice || 0;
+    const categoryTitle =
+      product.categoryTitle || product.subCategoryName || "Pet Supplies";
 
     trackMetaPixelEvent(
       "ViewContent",
       {
         content_name: product.name,
-        content_category: product.categoryName || "Pet Supplies",
+        content_category: categoryTitle,
         content_ids: [product.sku || product.id],
         content_type: "product",
         value: priceVal,
@@ -84,7 +86,7 @@ export function ProductDetailsView({
       productId: product.id,
       productName: product.name,
       price: priceVal,
-      category: product.categoryName,
+      category: categoryTitle,
       sku: product.sku,
       eventId,
     }).catch(() => {});
@@ -204,14 +206,15 @@ export function ProductDetailsView({
 
     if (nextState) {
       const eventId = generateBrowserEventId("atw");
-      const priceVal =
-        numericCurrentPrice || product.salePrice || product.regularPrice || 0;
+      const priceVal = numericCurrentPrice || product.numericPrice || 0;
+      const categoryTitle =
+        product.categoryTitle || product.subCategoryName || "Pet Supplies";
 
       trackMetaPixelEvent(
         "AddToWishlist",
         {
           content_name: product.name,
-          content_category: product.categoryName || "Pet Supplies",
+          content_category: categoryTitle,
           content_ids: [currentSku || product.id],
           content_type: "product",
           value: priceVal,
@@ -224,7 +227,7 @@ export function ProductDetailsView({
         productId: product.id,
         productName: product.name,
         price: priceVal,
-        category: product.categoryName,
+        category: categoryTitle,
         sku: currentSku,
         eventId,
       }).catch(() => {});
@@ -277,14 +280,15 @@ export function ProductDetailsView({
     }
 
     const eventId = generateBrowserEventId("atc");
-    const priceVal =
-      numericCurrentPrice || product.salePrice || product.regularPrice || 0;
+    const priceVal = numericCurrentPrice || product.numericPrice || 0;
+    const categoryTitle =
+      product.categoryTitle || product.subCategoryName || "Pet Supplies";
 
     trackMetaPixelEvent(
       "AddToCart",
       {
         content_name: product.name,
-        content_category: product.categoryName || "Pet Supplies",
+        content_category: categoryTitle,
         content_ids: [currentSku || product.id],
         content_type: "product",
         value: priceVal * quantity,
@@ -299,7 +303,7 @@ export function ProductDetailsView({
       productName: product.name,
       price: priceVal,
       quantity,
-      category: product.categoryName,
+      category: categoryTitle,
       sku: currentSku,
       eventId,
     }).catch(() => {});

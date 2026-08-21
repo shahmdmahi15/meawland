@@ -96,9 +96,7 @@ export async function getOrderInvoiceDataAction(
     const sessionUser = await getMeAction();
     if (sessionUser) {
       const isStaffOrAdmin =
-        sessionUser.role === Role.ADMIN ||
-        sessionUser.role === Role.OWNER ||
-        sessionUser.role === Role.STAFF;
+        sessionUser.role === Role.ADMIN || sessionUser.role === Role.OWNER;
 
       if (!isStaffOrAdmin && order.userId && order.userId !== sessionUser.id) {
         return {
@@ -188,8 +186,7 @@ export async function getOrderInvoiceDataAction(
 
     const trackingId =
       order.shipment?.trackingCode ||
-      order.shipment?.consignmentId ||
-      "not available";
+      (order.shipment?.consignmentId ? String(order.shipment.consignmentId) : "not available");
 
     const fullAddress = [order.address, order.district]
       .filter(Boolean)

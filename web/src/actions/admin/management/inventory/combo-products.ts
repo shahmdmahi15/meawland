@@ -399,6 +399,8 @@ export async function createComboProductAction(
       name,
       shortDescription,
       longDescription,
+      image,
+      gallery,
     } = parse.data;
 
     const normalizedProductIds = Array.from(
@@ -498,15 +500,15 @@ export async function createComboProductAction(
 
     // 1. Handle custom Main Image upload if provided
     let finalPrimaryImageKey = fallbackPrimaryImage;
-    if (data.image instanceof File && data.image.size > 0) {
-      const buffer = await data.image.arrayBuffer();
-      const ext = data.image.name.split(".").pop() || "jpg";
+    if (image instanceof File && image.size > 0) {
+      const buffer = await image.arrayBuffer();
+      const ext = image.name.split(".").pop() || "jpg";
       const key = `combos/images/${crypto.randomUUID()}.${ext}`;
 
       await uploadFile({
         key,
         body: Buffer.from(buffer),
-        contentType: data.image.type,
+        contentType: image.type,
       });
 
       finalPrimaryImageKey = key;
@@ -514,8 +516,8 @@ export async function createComboProductAction(
 
     // 2. Handle custom Gallery images upload if provided
     const customGalleryKeys: string[] = [];
-    if (data.gallery && Array.isArray(data.gallery)) {
-      for (const item of data.gallery) {
+    if (gallery && Array.isArray(gallery)) {
+      for (const item of gallery) {
         if (item instanceof File && item.size > 0) {
           const buffer = await item.arrayBuffer();
           const ext = item.name.split(".").pop() || "jpg";

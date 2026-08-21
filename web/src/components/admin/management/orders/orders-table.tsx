@@ -890,7 +890,9 @@ export function OrdersTable({
                                 customerName={order.name}
                                 orderCode={order.code}
                                 parcelId={
-                                  order.shipment?.consignmentId || order.code
+                                  order.shipment?.consignmentId
+                                    ? String(order.shipment.consignmentId)
+                                    : order.code
                                 }
                                 variant="inline"
                               />

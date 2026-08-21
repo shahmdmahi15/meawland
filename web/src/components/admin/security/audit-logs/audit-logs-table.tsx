@@ -173,6 +173,7 @@ export function AuditLogsTable({
           <Select
             value={entityFilter}
             onValueChange={(val) => {
+              if (!val) return;
               setEntityFilter(val);
               handleFetch(
                 1,
@@ -205,6 +206,7 @@ export function AuditLogsTable({
           <Select
             value={actionFilter}
             onValueChange={(val) => {
+              if (!val) return;
               setActionFilter(val);
               handleFetch(
                 1,
@@ -237,6 +239,7 @@ export function AuditLogsTable({
           <Select
             value={severityFilter}
             onValueChange={(val) => {
+              if (!val) return;
               setSeverityFilter(val);
               handleFetch(
                 1,
@@ -269,6 +272,7 @@ export function AuditLogsTable({
           <Select
             value={userFilter}
             onValueChange={(val) => {
+              if (!val) return;
               setUserFilter(val);
               handleFetch(
                 1,

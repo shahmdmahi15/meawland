@@ -346,6 +346,7 @@ export function CreateComboProductModal({
       salePrice: effectiveSalePrice || undefined,
       image: mainImageFile || undefined,
       gallery: galleryFiles,
+      retainedGallery: [],
     });
 
     setIsSubmitting(false);

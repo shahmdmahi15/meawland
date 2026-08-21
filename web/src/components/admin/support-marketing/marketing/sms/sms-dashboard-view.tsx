@@ -7,6 +7,7 @@ import {
   type AdminSmsCampaignSummary,
   type AdminSmsTemplateSummary,
   type AdminSmsLogSummary,
+  type AudienceFilterInput,
 } from "@/actions/admin/support-marketing/marketing/sms/types";
 import type { SmsAutomationSettingsSummary } from "@/actions/admin/support-marketing/marketing/sms/automations";
 import { getSmsBalanceAction } from "@/actions/sms/get-balance";
@@ -64,8 +65,8 @@ export function SmsDashboardView({
   const [balance, setBalance] = useState<number>(initialBalance);
   const [isRefreshingBalance, startBalanceTransition] = useTransition();
 
-  const [explorerAudience, setExplorerAudience] = useState({
-    targetType: "ALL_CUSTOMERS" as const,
+  const [explorerAudience, setExplorerAudience] = useState<AudienceFilterInput>({
+    targetType: "ALL_CUSTOMERS",
   });
 
   const handleRefreshBalance = () => {

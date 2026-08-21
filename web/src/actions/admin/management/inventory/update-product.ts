@@ -442,8 +442,6 @@ export async function updateProductAction(input: UpdateProductInput): Promise<{
       changesList.push(
         `Cost Price: ${existing.costPrice ?? "N/A"} → ${data.costPrice}`,
       );
-    if (data.stock !== undefined && data.stock !== existing.stock)
-      changesList.push(`Stock: ${existing.stock} → ${data.stock}`);
 
     const changeSummary =
       changesList.length > 0
@@ -466,14 +464,12 @@ export async function updateProductAction(input: UpdateProductInput): Promise<{
         regularPrice: existing.regularPrice,
         salePrice: existing.salePrice,
         costPrice: existing.costPrice,
-        stock: existing.stock,
       },
       newState: {
         name: data.name,
         regularPrice: data.regularPrice,
         salePrice: data.salePrice,
         costPrice: data.costPrice,
-        stock: data.stock,
       },
       path: `/admin/management/inventory/all-products`,
     });

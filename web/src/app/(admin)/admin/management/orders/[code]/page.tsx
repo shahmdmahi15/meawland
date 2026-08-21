@@ -243,7 +243,11 @@ export default async function AdminOrderDetailPage({ params }: OrderPageProps) {
                     phone={order.phone}
                     customerName={order.name}
                     orderCode={order.code}
-                    parcelId={order.shipment?.consignmentId || order.code}
+                    parcelId={
+                      order.shipment?.consignmentId
+                        ? String(order.shipment.consignmentId)
+                        : order.code
+                    }
                     variant="card"
                   />
                 </div>

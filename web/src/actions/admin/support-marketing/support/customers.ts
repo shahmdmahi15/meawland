@@ -241,7 +241,12 @@ export async function adminUpdateCustomerAction(
 
     const { id, name, phone, district, address } = parsed.data;
 
-    await db.user.update({
+    const existing = await db.user.findUnique({ where: { id } });
+    if (!existing) {
+      return { success: false, message: "Customer not found." };
+    }
+
+    const updated = await db.user.update({
       where: { id },
       data: {
         name,

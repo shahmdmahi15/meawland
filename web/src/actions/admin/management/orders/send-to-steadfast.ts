@@ -37,7 +37,7 @@ function mapSteadfastToCourierStatus(rawStatus?: string | null): CourierStatus {
     case "delivered_approval_pending":
       return CourierStatus.DELIVERED_APPROVAL_PENDING;
     case "partial_delivered_approval_pending":
-      return CourierStatus.PARTIAL_DELIVERY_APPROVAL_PENDING;
+      return CourierStatus.PARTIAL_DELIVERED_APPROVAL_PENDING;
     case "cancelled_approval_pending":
       return CourierStatus.CANCELLED_APPROVAL_PENDING;
     case "unknown_approval_pending":
@@ -76,7 +76,7 @@ function mapCourierToOrderStatus(
       return OrderStatus.HOLD;
     case CourierStatus.DELIVERED_APPROVAL_PENDING:
       return OrderStatus.DELIVERY_APPROVAL_PENDING;
-    case CourierStatus.PARTIAL_DELIVERY_APPROVAL_PENDING:
+    case CourierStatus.PARTIAL_DELIVERED_APPROVAL_PENDING:
       return OrderStatus.PARTIAL_DELIVERY_APPROVAL_PENDING;
     case CourierStatus.CANCELLED_APPROVAL_PENDING:
       return OrderStatus.CANCELLED_APPROVAL_PENDING;
@@ -277,7 +277,7 @@ export async function sendOrderToSteadfastAction(
         codAmount: consignment.cod_amount,
         status: consignment.status,
       },
-      userId: user.id,
+      userId: sessionUser.id,
       path: "/admin/management/orders",
     });
 

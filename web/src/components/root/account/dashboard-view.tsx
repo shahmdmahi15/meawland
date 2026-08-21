@@ -42,14 +42,16 @@ function getActiveStepIndex(status: OrderStatus): number {
   switch (status) {
     case OrderStatus.IN_REVIEW:
       return 0;
-    case OrderStatus.CONFIRMED:
+    case OrderStatus.PENDING:
       return 1;
-    case OrderStatus.PROCESSING:
+    case OrderStatus.DELIVERY_APPROVAL_PENDING:
+    case OrderStatus.PARTIAL_DELIVERY_APPROVAL_PENDING:
       return 2;
-    case OrderStatus.SHIPPED:
-    case OrderStatus.OUT_FOR_DELIVERY:
+    case OrderStatus.HOLD:
+    case OrderStatus.UNKNOWN_APPROVAL_PENDING:
       return 3;
     case OrderStatus.DELIVERED:
+    case OrderStatus.PARTIAL_DELIVERED:
       return 4;
     default:
       return 0;

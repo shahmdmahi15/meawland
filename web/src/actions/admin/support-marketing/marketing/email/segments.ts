@@ -287,7 +287,7 @@ export async function resolveEmailAudienceRecipients(
         const cat = filters.category as Category;
         const items = await db.orderItem.findMany({
           where: {
-            product: { category: cat },
+            product: { subCategory: { category: cat } },
             order: { status: { not: OrderStatus.CANCELLED } },
           },
           include: {
@@ -342,7 +342,7 @@ export async function resolveEmailAudienceRecipients(
     case "CART_ABANDONERS": {
       const activeCarts = await db.cart.findMany({
         where: {
-          items: { some: {} },
+          cartItems: { some: {} },
         },
         include: {
           user: {

@@ -800,7 +800,7 @@ export async function createAdminOrderAction(
         paymentStatus,
         shippingAddress: `${address}, ${district}`,
         deliveryFee: deliveryFee.toString(),
-        discount: totalDiscount.toString(),
+        discount: totalDiscounts.toString(),
         userId: newOrder.userId,
       }).catch((err) => {
         console.error(
@@ -844,7 +844,7 @@ export async function createAdminOrderAction(
         paymentMethod,
         itemsCount: lineCalculations.length,
       },
-      userId: currentAdmin.id,
+      userId: sessionUser.id,
       path: "/admin/management/orders/new-order",
     });
 

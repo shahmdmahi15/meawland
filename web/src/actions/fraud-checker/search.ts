@@ -40,14 +40,12 @@ export async function checkCustomerFraudAction(
     const sessionUser = await getMeAction();
     if (
       !sessionUser ||
-      (sessionUser.role !== Role.ADMIN &&
-        sessionUser.role !== Role.OWNER &&
-        sessionUser.role !== Role.STAFF)
+      (sessionUser.role !== Role.ADMIN && sessionUser.role !== Role.OWNER)
     ) {
       return {
         success: false,
         message:
-          "Unauthorized. Staff or Admin privileges required to use Fraud Checker.",
+          "Unauthorized. Admin privileges required to use Fraud Checker.",
       };
     }
 

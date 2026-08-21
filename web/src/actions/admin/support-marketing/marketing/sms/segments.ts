@@ -411,7 +411,7 @@ export async function resolveAudienceRecipients(
           where: {
             orderItems: {
               some: {
-                product: { category: cat },
+                product: { subCategory: { category: cat } },
               },
             },
           },

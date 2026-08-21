@@ -263,16 +263,32 @@ export async function getDashboardSystemAndIntegrations(): Promise<{
 
   for (const o of allOrdersList) {
     if (o.status === OrderStatus.IN_REVIEW) inReview++;
-    else if (o.status === OrderStatus.CONFIRMED) confirmed++;
-    else if (o.status === OrderStatus.PROCESSING) processing++;
+    else if (o.status === OrderStatus.PENDING) confirmed++;
     else if (
-      o.status === OrderStatus.SHIPPED ||
-      o.status === OrderStatus.OUT_FOR_DELIVERY
+      o.status === OrderStatus.DELIVERY_APPROVAL_PENDING ||
+      o.status === OrderStatus.PARTIAL_DELIVERY_APPROVAL_PENDING
+    )
+      processing++;
+    else if (
+      o.status === OrderStatus.HOLD ||
+      o.status === OrderStatus.UNKNOWN_APPROVAL_PENDING
     )
       shipped++;
-    else if (o.status === OrderStatus.DELIVERED) delivered++;
-    else if (o.status === OrderStatus.CANCELLED) cancelled++;
-    else if (o.status === OrderStatus.RETURNED) returned++;
+    else if (
+      o.status === OrderStatus.DELIVERED ||
+      o.status === OrderStatus.PARTIAL_DELIVERED
+    )
+      delivered++;
+    else if (
+      o.status === OrderStatus.CANCELLED ||
+      o.status === OrderStatus.CANCELLED_APPROVAL_PENDING
+    )
+      cancelled++;
+    else if (
+      o.status === OrderStatus.RETURNED ||
+      o.status === OrderStatus.RETURNED_PARTIAL
+    )
+      returned++;
   }
 
   const totalOrders = allOrdersList.length;

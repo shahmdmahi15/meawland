@@ -1,13 +1,13 @@
 "use server";
 
 import db from "@/lib/db";
+import { Prisma } from "@/generated/prisma/client";
 import { getMeAction } from "@/actions/auth/get-me";
 import {
   Role,
   AuditAction,
   AuditEntity,
   AuditSeverity,
-  Prisma,
 } from "@/generated/prisma/enums";
 import {
   AdminAuditLogFilterInput,

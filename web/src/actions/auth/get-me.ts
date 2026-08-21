@@ -12,6 +12,7 @@ export type NavbarAccount = {
   name: string;
   role: Role;
   code: string;
+  phone?: string | null;
 };
 
 export async function getMeAction(): Promise<NavbarAccount | null> {
@@ -38,6 +39,7 @@ export async function getMeAction(): Promise<NavbarAccount | null> {
             avatar: true,
             role: true,
             code: true,
+            phone: true,
           },
         },
       },

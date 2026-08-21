@@ -215,7 +215,7 @@ export function SubmitFraudReportModal({
                 <Label className="text-xs font-semibold">
                   Courier Provider
                 </Label>
-                <Select value={courier} onValueChange={setCourier}>
+                <Select value={courier} onValueChange={(val) => val && setCourier(val)}>
                   <SelectTrigger className="h-9 text-xs">
                     <SelectValue placeholder="Select Courier">
                       {courier === "Steadfast"

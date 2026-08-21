@@ -220,6 +220,8 @@ export async function placeOrderAction(
       };
     }
 
+    const orderUserId = sessionUser?.id || dbCart.userId || null;
+
     // 3. Pooled Stock Re-validation
     const productDemandMap = new Map<string, number>();
     const variantDemandMap = new Map<string, number>();
