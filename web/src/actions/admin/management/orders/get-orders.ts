@@ -342,110 +342,110 @@ export async function getOrdersAdminAction(
 
     // Format formatted orders list
     const orders: AdminOrder[] = rawOrders.map((o) => {
-        const items: AdminOrderSummaryItem[] = o.orderItems.map((oi) => {
-            let name = "Order Item";
-            let sku: string | null = null;
-            let imageKey: string | null = null;
+      const items: AdminOrderSummaryItem[] = o.orderItems.map((oi) => {
+        let name = "Order Item";
+        let sku: string | null = null;
+        let imageKey: string | null = null;
 
-            if (oi.variant) {
-              name = `${oi.variant.product.name} (${oi.variant.sku})`;
-              sku = oi.variant.sku;
-              imageKey = oi.variant.image || oi.variant.product.image;
-            } else if (oi.product) {
-              name = oi.product.name;
-              sku = oi.product.sku;
-              imageKey = oi.product.image;
-            } else if (oi.comboProduct) {
-              name = oi.comboProduct.name;
-              sku = oi.comboProduct.sku;
-              imageKey = oi.comboProduct.image;
-            }
+        if (oi.variant) {
+          name = `${oi.variant.product.name} (${oi.variant.sku})`;
+          sku = oi.variant.sku;
+          imageKey = oi.variant.image || oi.variant.product.image;
+        } else if (oi.product) {
+          name = oi.product.name;
+          sku = oi.product.sku;
+          imageKey = oi.product.image;
+        } else if (oi.comboProduct) {
+          name = oi.comboProduct.name;
+          sku = oi.comboProduct.sku;
+          imageKey = oi.comboProduct.image;
+        }
 
-            const image = resolveImageUrl(imageKey);
-
-            return {
-              id: oi.id,
-              name,
-              sku,
-              image,
-              quantity: oi.quanitity,
-              unitPrice: oi.unitPrice,
-              totalCost: oi.totalCost,
-              discountCost: oi.discountCost,
-              finalCost: oi.finalCost,
-              status: oi.status,
-              productId: oi.productId,
-              variantId: oi.variantId,
-              comboProductId: oi.comboProductId,
-            };
-        });
+        const image = resolveImageUrl(imageKey);
 
         return {
-          id: o.id,
-          code: o.code,
-          totalQuantity: o.totalQuantity,
-          totalPrice: o.totalPrice,
-          totalCost: o.totalCost,
-          discountCost: o.discountCost,
-          finalCost: o.finalCost,
-          name: o.name,
-          email: o.email,
-          phone: o.phone,
-          address: o.address,
-          district: o.district,
-          note: o.note,
-          status: o.status,
-          type: o.type,
-          paymentMethod: o.paymentMethod,
-          paymentStatus: o.paymentStatus,
-          userId: o.userId,
-          userCode: o.user?.code || null,
-          createdAt: o.createdAt,
-          updatedAt: o.updatedAt,
-          payment: o.payment
-            ? {
-                id: o.payment.id,
-                amount: o.payment.amount,
-                currency: o.payment.currency,
-                paymentMethod: o.payment.paymentMethod,
-                status: o.payment.status,
-                paymentID: o.payment.paymentID,
-                trxID: o.payment.trxID,
-                customerMsisdn: o.payment.customerMsisdn,
-                payerReference: o.payment.payerReference,
-                paymentCreateTime: o.payment.paymentCreateTime,
-                paymentExecuteTime: o.payment.paymentExecuteTime,
-                refundTrxId: o.payment.refundTrxId,
-                refundTransactionStatus: o.payment.refundTransactionStatus,
-                refundAmount: o.payment.refundAmount,
-                refundTime: o.payment.refundTime,
-                refundReason: o.payment.refundReason,
-                statusMessage: o.payment.statusMessage,
-                statusCode: o.payment.statusCode,
-              }
-            : null,
-          shipment: o.shipment
-            ? {
-                id: o.shipment.id,
-                provider: o.shipment.provider,
-                consignmentId: o.shipment.consignmentId,
-                trackingCode: o.shipment.trackingCode,
-                invoice: o.shipment.invoice,
-                recipientName: o.shipment.recipientName,
-                recipientPhone: o.shipment.recipientPhone,
-                recipientAddress: o.shipment.recipientAddress,
-                codAmount: o.shipment.codAmount,
-                deliveryType: o.shipment.deliveryType,
-                note: o.shipment.note,
-                status: o.shipment.status,
-                rawStatus: o.shipment.rawStatus,
-                lastCheckedAt: o.shipment.lastCheckedAt,
-                createdAt: o.shipment.createdAt,
-                updatedAt: o.shipment.updatedAt,
-              }
-            : null,
-          items,
+          id: oi.id,
+          name,
+          sku,
+          image,
+          quantity: oi.quanitity,
+          unitPrice: oi.unitPrice,
+          totalCost: oi.totalCost,
+          discountCost: oi.discountCost,
+          finalCost: oi.finalCost,
+          status: oi.status,
+          productId: oi.productId,
+          variantId: oi.variantId,
+          comboProductId: oi.comboProductId,
         };
+      });
+
+      return {
+        id: o.id,
+        code: o.code,
+        totalQuantity: o.totalQuantity,
+        totalPrice: o.totalPrice,
+        totalCost: o.totalCost,
+        discountCost: o.discountCost,
+        finalCost: o.finalCost,
+        name: o.name,
+        email: o.email,
+        phone: o.phone,
+        address: o.address,
+        district: o.district,
+        note: o.note,
+        status: o.status,
+        type: o.type,
+        paymentMethod: o.paymentMethod,
+        paymentStatus: o.paymentStatus,
+        userId: o.userId,
+        userCode: o.user?.code || null,
+        createdAt: o.createdAt,
+        updatedAt: o.updatedAt,
+        payment: o.payment
+          ? {
+              id: o.payment.id,
+              amount: o.payment.amount,
+              currency: o.payment.currency,
+              paymentMethod: o.payment.paymentMethod,
+              status: o.payment.status,
+              paymentID: o.payment.paymentID,
+              trxID: o.payment.trxID,
+              customerMsisdn: o.payment.customerMsisdn,
+              payerReference: o.payment.payerReference,
+              paymentCreateTime: o.payment.paymentCreateTime,
+              paymentExecuteTime: o.payment.paymentExecuteTime,
+              refundTrxId: o.payment.refundTrxId,
+              refundTransactionStatus: o.payment.refundTransactionStatus,
+              refundAmount: o.payment.refundAmount,
+              refundTime: o.payment.refundTime,
+              refundReason: o.payment.refundReason,
+              statusMessage: o.payment.statusMessage,
+              statusCode: o.payment.statusCode,
+            }
+          : null,
+        shipment: o.shipment
+          ? {
+              id: o.shipment.id,
+              provider: o.shipment.provider,
+              consignmentId: o.shipment.consignmentId,
+              trackingCode: o.shipment.trackingCode,
+              invoice: o.shipment.invoice,
+              recipientName: o.shipment.recipientName,
+              recipientPhone: o.shipment.recipientPhone,
+              recipientAddress: o.shipment.recipientAddress,
+              codAmount: o.shipment.codAmount,
+              deliveryType: o.shipment.deliveryType,
+              note: o.shipment.note,
+              status: o.shipment.status,
+              rawStatus: o.shipment.rawStatus,
+              lastCheckedAt: o.shipment.lastCheckedAt,
+              createdAt: o.shipment.createdAt,
+              updatedAt: o.shipment.updatedAt,
+            }
+          : null,
+        items,
+      };
     });
 
     return {

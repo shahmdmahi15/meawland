@@ -65,9 +65,11 @@ export function SmsDashboardView({
   const [balance, setBalance] = useState<number>(initialBalance);
   const [isRefreshingBalance, startBalanceTransition] = useTransition();
 
-  const [explorerAudience, setExplorerAudience] = useState<AudienceFilterInput>({
-    targetType: "ALL_CUSTOMERS",
-  });
+  const [explorerAudience, setExplorerAudience] = useState<AudienceFilterInput>(
+    {
+      targetType: "ALL_CUSTOMERS",
+    },
+  );
 
   const handleRefreshBalance = () => {
     startBalanceTransition(async () => {

@@ -12,7 +12,10 @@ export async function GET(req: NextRequest) {
 
   if (!oauthCode) {
     return NextResponse.redirect(
-      new URL("/?error=NoCode", env.NEXT_PUBLIC_APP_URL || "https://meawland.com"),
+      new URL(
+        "/?error=NoCode",
+        env.NEXT_PUBLIC_APP_URL || "https://meawland.com",
+      ),
     );
   }
 

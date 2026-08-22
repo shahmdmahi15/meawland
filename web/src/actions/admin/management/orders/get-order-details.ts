@@ -105,41 +105,41 @@ export async function getOrderDetailsAdminAction(
     }
 
     const items = order.orderItems.map((oi) => {
-        let name = "Order Item";
-        let sku: string | null = null;
-        let imageKey: string | null = null;
+      let name = "Order Item";
+      let sku: string | null = null;
+      let imageKey: string | null = null;
 
-        if (oi.variant) {
-          name = `${oi.variant.product.name} (${oi.variant.sku})`;
-          sku = oi.variant.sku;
-          imageKey = oi.variant.image || oi.variant.product.image;
-        } else if (oi.product) {
-          name = oi.product.name;
-          sku = oi.product.sku;
-          imageKey = oi.product.image;
-        } else if (oi.comboProduct) {
-          name = oi.comboProduct.name;
-          sku = oi.comboProduct.sku;
-          imageKey = oi.comboProduct.image;
-        }
+      if (oi.variant) {
+        name = `${oi.variant.product.name} (${oi.variant.sku})`;
+        sku = oi.variant.sku;
+        imageKey = oi.variant.image || oi.variant.product.image;
+      } else if (oi.product) {
+        name = oi.product.name;
+        sku = oi.product.sku;
+        imageKey = oi.product.image;
+      } else if (oi.comboProduct) {
+        name = oi.comboProduct.name;
+        sku = oi.comboProduct.sku;
+        imageKey = oi.comboProduct.image;
+      }
 
-        const image = resolveImageUrl(imageKey);
+      const image = resolveImageUrl(imageKey);
 
-        return {
-          id: oi.id,
-          name,
-          sku,
-          image,
-          quantity: oi.quanitity,
-          unitPrice: oi.unitPrice,
-          totalCost: oi.totalCost,
-          discountCost: oi.discountCost,
-          finalCost: oi.finalCost,
-          status: oi.status,
-          productId: oi.productId,
-          variantId: oi.variantId,
-          comboProductId: oi.comboProductId,
-        };
+      return {
+        id: oi.id,
+        name,
+        sku,
+        image,
+        quantity: oi.quanitity,
+        unitPrice: oi.unitPrice,
+        totalCost: oi.totalCost,
+        discountCost: oi.discountCost,
+        finalCost: oi.finalCost,
+        status: oi.status,
+        productId: oi.productId,
+        variantId: oi.variantId,
+        comboProductId: oi.comboProductId,
+      };
     });
 
     return {

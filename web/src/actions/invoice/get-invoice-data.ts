@@ -186,7 +186,9 @@ export async function getOrderInvoiceDataAction(
 
     const trackingId =
       order.shipment?.trackingCode ||
-      (order.shipment?.consignmentId ? String(order.shipment.consignmentId) : "not available");
+      (order.shipment?.consignmentId
+        ? String(order.shipment.consignmentId)
+        : "not available");
 
     const fullAddress = [order.address, order.district]
       .filter(Boolean)

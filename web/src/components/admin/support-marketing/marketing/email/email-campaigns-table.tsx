@@ -195,7 +195,10 @@ export function EmailCampaignsTable({
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Select value={statusFilter} onValueChange={(val) => val && setStatusFilter(val)}>
+          <Select
+            value={statusFilter}
+            onValueChange={(val) => val && setStatusFilter(val)}
+          >
             <SelectTrigger className="h-8 text-xs w-36 bg-white">
               <SelectValue>
                 {statusFilter === "ALL"

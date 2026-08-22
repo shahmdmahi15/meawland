@@ -16,7 +16,7 @@ export function QuickActionsToolbar() {
   const actions = [
     {
       label: "Create POS Order",
-      href: "/admin/management/orders/create-order",
+      href: "/admin/management/orders/new-order",
       icon: ShoppingBag,
       color: "bg-[#0097a7] hover:bg-[#00838f] text-white",
     },

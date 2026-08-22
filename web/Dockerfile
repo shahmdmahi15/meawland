@@ -41,9 +41,15 @@ RUN corepack enable && corepack prepare pnpm@11.13.0 --activate
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# --- Accept Public Variables at Build Time ---
+ARG NEXT_PUBLIC_APP_URL
+ARG NEXT_PUBLIC_API_URL
+
+ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV SKIP_ENV_VALIDATION=1
 
 RUN pnpm prisma:generate && pnpm build
 

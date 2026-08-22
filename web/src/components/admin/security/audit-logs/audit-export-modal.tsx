@@ -111,7 +111,10 @@ export function AuditExportModal({ trigger }: AuditExportModalProps) {
             <Label className="font-bold text-gray-700 block mb-1">
               Filter by Entity
             </Label>
-            <Select value={entity} onValueChange={(val) => val && setEntity(val)}>
+            <Select
+              value={entity}
+              onValueChange={(val) => val && setEntity(val)}
+            >
               <SelectTrigger className="h-9 text-xs bg-white">
                 <SelectValue>
                   {entity === "ALL" ? "All Entities" : entity}
@@ -134,7 +137,10 @@ export function AuditExportModal({ trigger }: AuditExportModalProps) {
             <Label className="font-bold text-gray-700 block mb-1">
               Filter by Action Type
             </Label>
-            <Select value={action} onValueChange={(val) => val && setAction(val)}>
+            <Select
+              value={action}
+              onValueChange={(val) => val && setAction(val)}
+            >
               <SelectTrigger className="h-9 text-xs bg-white">
                 <SelectValue>
                   {action === "ALL" ? "All Actions" : action}
@@ -157,7 +163,10 @@ export function AuditExportModal({ trigger }: AuditExportModalProps) {
             <Label className="font-bold text-gray-700 block mb-1">
               Severity
             </Label>
-            <Select value={severity} onValueChange={(val) => val && setSeverity(val)}>
+            <Select
+              value={severity}
+              onValueChange={(val) => val && setSeverity(val)}
+            >
               <SelectTrigger className="h-9 text-xs bg-white">
                 <SelectValue>
                   {severity === "ALL" ? "All Severities" : severity}
