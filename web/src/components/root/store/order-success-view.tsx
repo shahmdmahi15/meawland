@@ -64,7 +64,7 @@ export function OrderSuccessView({ order }: OrderSuccessViewProps) {
       },
       `purch_${order.code}`,
     );
-  }, [order.code]);
+  }, [order.code, order.finalCost, order.items, order.totalQuantity]);
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-14 space-y-8">

@@ -5,7 +5,6 @@ import { getMeAction } from "@/actions/auth/get-me";
 import { getCartAction, CartData } from "@/actions/store/cart";
 import { validateStoreCouponAction } from "@/actions/store/coupon";
 import { generateId } from "@/lib/generate-code";
-import { sendEmail } from "@/lib/mail";
 import {
   getDeliveryFee,
   isDhakaDistrict,

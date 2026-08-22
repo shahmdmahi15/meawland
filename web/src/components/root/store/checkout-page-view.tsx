@@ -128,7 +128,7 @@ export function CheckoutPageView({ initialData }: CheckoutPageViewProps) {
         eventId,
       }).catch(() => {});
     }
-  }, []);
+  }, [currentCart.items, grandTotal]);
 
   // Track AddPaymentInfo when payment method changes
   const handlePaymentMethodChange = (method: PaymentMethod) => {

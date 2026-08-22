@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import db from "@/lib/db";
 import { getMeAction } from "@/actions/auth/get-me";
 import { generateId } from "@/lib/generate-code";
-import { sendEmail } from "@/lib/mail";
 import { triggerOrderPlacedSms } from "@/actions/admin/support-marketing/marketing/sms/automations";
 import { triggerOrderPlacedEmail } from "@/actions/admin/support-marketing/marketing/email/automations";
 import {
@@ -20,10 +19,8 @@ import {
 import { getImageBase64 } from "@/lib/storage";
 import { Coupon } from "@/generated/prisma/client";
 import {
-  OrderStatus,
   OrderType,
   PaymentMethod,
-  PaymentStatus,
   StockEventType,
   Role,
   Category,
