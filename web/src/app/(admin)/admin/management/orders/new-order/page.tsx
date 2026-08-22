@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertCircle, ShoppingCart, ArrowLeft, Plus } from "lucide-react";
+import { AlertCircle, ArrowLeft, Plus } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { getNewOrderFormDataAction } from "@/actions/admin/management/orders/create-order";
 import { CreateOrderForm } from "@/components/admin/management/orders/create-order/create-order-form";

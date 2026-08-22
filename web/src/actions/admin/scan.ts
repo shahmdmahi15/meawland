@@ -6,8 +6,6 @@ import {
   Role,
   OrderStatus,
   StockEventType,
-  PaymentMethod,
-  PaymentStatus,
   OrderType,
 } from "@/generated/prisma/enums";
 import { generateId } from "@/lib/generate-code";

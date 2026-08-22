@@ -1171,8 +1171,8 @@ export function EditProductModal({
 
                                   {variant.attributes.length === 0 ? (
                                     <p className="text-xs text-muted-foreground italic">
-                                      No attributes configured. Click "Add
-                                      Attribute" to assign attributes.
+                                      No attributes configured. Click &quot;Add
+                                      Attribute&quot; to assign attributes.
                                     </p>
                                   ) : (
                                     variant.attributes.map((attr, attrIdx) => {

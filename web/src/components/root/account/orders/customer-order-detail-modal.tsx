@@ -27,7 +27,6 @@ import {
   Smartphone,
   Copy,
   Check,
-  CheckCircle2,
   Loader2,
   Truck,
 } from "lucide-react";

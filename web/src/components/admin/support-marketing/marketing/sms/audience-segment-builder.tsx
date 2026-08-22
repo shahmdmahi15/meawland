@@ -25,10 +25,8 @@ import {
   ShoppingCart,
   MapPin,
   Tag,
-  Package,
   Layers,
   PhoneCall,
-  Loader2,
   RefreshCw,
   CheckCircle2,
 } from "lucide-react";
@@ -187,6 +185,7 @@ export function AudienceSegmentBuilder({
     value.minOrders,
     value.inactiveDays,
     value.customNumbers,
+    calculateCount,
   ]);
 
   return (

@@ -12,7 +12,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
@@ -154,7 +153,7 @@ export function ProductStickerModal({
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground">
                 {totalUniqueItems} SKU item(s) • Total {stickers.length}{" "}
-                label(s) (2" × 1" / 50.8mm × 25.4mm)
+                label(s) (2&quot; × 1&quot; / 50.8mm × 25.4mm)
               </DialogDescription>
             </div>
           </div>

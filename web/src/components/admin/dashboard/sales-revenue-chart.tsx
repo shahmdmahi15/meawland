@@ -11,8 +11,8 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
-import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, DollarSign } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { TrendingUp } from "lucide-react";
 
 interface SalesRevenueChartProps {
   data: DashboardSalesChartPoint[];

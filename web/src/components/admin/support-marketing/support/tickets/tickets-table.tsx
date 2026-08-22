@@ -42,7 +42,6 @@ import { SUPPORT_CATEGORIES } from "@/schemas/root/account/support";
 import { toast } from "sonner";
 import {
   cn,
-  formatDate,
   formatSupportChannel,
   formatSupportPriority,
   formatSupportStatus,

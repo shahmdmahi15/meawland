@@ -7,7 +7,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
@@ -15,15 +14,9 @@ import { Progress } from "@/components/ui/progress";
 import {
   ShieldAlert,
   ShieldCheck,
-  ShieldQuestion,
   AlertTriangle,
   Loader2,
   Truck,
-  RotateCcw,
-  CheckCircle2,
-  ExternalLink,
-  Phone,
-  User,
   History,
   AlertCircle,
 } from "lucide-react";

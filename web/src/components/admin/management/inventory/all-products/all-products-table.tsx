@@ -42,8 +42,6 @@ import {
   XCircle,
   Tag,
   Printer,
-  CheckSquare,
-  Square,
 } from "lucide-react";
 import { Category } from "@/generated/prisma/enums";
 import type { FullProduct } from "@/actions/admin/management/inventory/get-all-products";

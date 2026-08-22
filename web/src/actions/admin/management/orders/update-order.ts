@@ -7,7 +7,6 @@ import {
   Role,
   OrderStatus,
   PaymentStatus,
-  StockEventType,
   AuditAction,
   AuditEntity,
   AuditSeverity,

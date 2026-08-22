@@ -4,19 +4,14 @@ import { useState, useMemo } from "react";
 import Image from "next/image";
 import {
   Search,
-  SlidersHorizontal,
   LayoutGrid,
   List,
   Sparkles,
   Package2,
-  Boxes,
-  Tag,
   AlertTriangle,
   CheckCircle2,
   XCircle,
   TrendingDown,
-  Layers,
-  ArrowUpDown,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";

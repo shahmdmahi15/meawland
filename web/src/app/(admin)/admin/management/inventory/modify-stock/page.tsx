@@ -2,14 +2,7 @@ import Link from "next/link";
 import { getModifyStockPageDataAction } from "@/actions/admin/management/inventory/modify-stock";
 import { ModifyStockView } from "@/components/admin/management/inventory/modify-stock/modify-stock-view";
 import { buttonVariants } from "@/components/ui/button";
-import {
-  Boxes,
-  Package,
-  Plus,
-  ArrowLeft,
-  AlertCircle,
-  SlidersHorizontal,
-} from "lucide-react";
+import { Plus, ArrowLeft, AlertCircle, SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";

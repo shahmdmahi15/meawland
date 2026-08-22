@@ -22,7 +22,6 @@ import {
   ExternalLink,
   MessageCircle,
   Send,
-  Copy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MEAWLAND_SOCIALS } from "@/lib/socials";

@@ -11,20 +11,11 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Printer,
-  Download,
-  Loader2,
-  Receipt,
-  FileText,
-  CheckCircle2,
-  ExternalLink,
-} from "lucide-react";
+import { Printer, Download, Loader2, Receipt, FileText } from "lucide-react";
 import { CustomInvoiceDocument } from "./custom-invoice-document";
 import {
   generateAndDownloadInvoicePdf,

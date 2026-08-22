@@ -33,7 +33,6 @@ import {
   AlertCircle,
   Clock,
   Send,
-  Loader2,
 } from "lucide-react";
 
 interface SmsLogsTableProps {

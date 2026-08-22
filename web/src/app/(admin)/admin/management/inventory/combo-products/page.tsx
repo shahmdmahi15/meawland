@@ -3,17 +3,10 @@ import {
   Boxes,
   PackagePlus,
   Sparkles,
-  TrendingDown,
   CheckCircle2,
   Percent,
 } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { CreateComboProductModal } from "@/components/admin/management/inventory/combo-products/create-combo-product-modal";
 import {
   getAllComboProductsAdminAction,

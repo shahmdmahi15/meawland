@@ -35,7 +35,6 @@ import {
   Plus,
   Send,
   Calendar,
-  Layers,
   Sparkles,
   Loader2,
   FileText,

@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { sendQuickDirectSmsAction } from "@/actions/admin/support-marketing/marketing/sms/quick-send";
 import { TestSmsModal } from "./test-sms-modal";
 import { toast } from "sonner";
-import { Send, Zap, Loader2, Sparkles } from "lucide-react";
+import { Send, Zap, Loader2 } from "lucide-react";
 
 interface QuickBroadcastModalProps {
   trigger?: React.ReactNode;

@@ -17,10 +17,7 @@ import {
   clearCartAction,
   type CartData,
 } from "@/actions/store/cart";
-import type {
-  AddToCartInput,
-  UpdateCartItemQuantityInput,
-} from "@/schemas/store/cart";
+import type { AddToCartInput } from "@/schemas/store/cart";
 
 const INITIAL_CART_DATA: CartData = {
   id: null,

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { UnsubscribeView } from "@/components/root/newsletter/unsubscribe-view";
 
 export const metadata: Metadata = {

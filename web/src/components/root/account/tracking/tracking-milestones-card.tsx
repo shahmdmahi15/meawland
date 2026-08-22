@@ -13,7 +13,6 @@ import {
   AlertCircle,
   RotateCcw,
   Sparkles,
-  ShieldCheck,
 } from "lucide-react";
 import { OrderStatus } from "@/generated/prisma/enums";
 import { cn } from "@/lib/utils";

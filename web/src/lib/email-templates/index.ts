@@ -120,7 +120,8 @@ export function buildOrderPlacedEmailHtml(params: {
   trackingUrl?: string;
 }): string {
   const trackingUrl =
-    params.trackingUrl || `${APP_URL}/account/tracking?orderCode=${params.orderCode}`;
+    params.trackingUrl ||
+    `${APP_URL}/account/tracking?orderCode=${params.orderCode}`;
 
   const itemsRows =
     params.items && params.items.length > 0
@@ -238,7 +239,8 @@ export function buildOrderDispatchedEmailHtml(params: {
   const courier = params.courierName || "Steadfast Courier";
   const trackingCode = params.trackingCode || "N/A";
   const trackingUrl =
-    params.trackingUrl || `${APP_URL}/account/tracking?orderCode=${params.orderCode}`;
+    params.trackingUrl ||
+    `${APP_URL}/account/tracking?orderCode=${params.orderCode}`;
 
   const bodyContent = `
     <div style="text-align: center; margin-bottom: 24px;">

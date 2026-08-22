@@ -5,7 +5,6 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import type { SmsAutomationSettingsSummary } from "@/actions/admin/support-marketing/marketing/sms/automations";
 import { updateSmsAutomationSettingsAction } from "@/actions/admin/support-marketing/marketing/sms/automations";
 import { TestSmsModal } from "./test-sms-modal";

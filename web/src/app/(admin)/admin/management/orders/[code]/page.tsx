@@ -2,9 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import {
-  AlertCircle,
   ArrowLeft,
-  ShoppingCart,
   Calendar,
   User,
   MapPin,
@@ -12,10 +10,7 @@ import {
   Mail,
   CreditCard,
   Truck,
-  TrendingUp,
   FileText,
-  Clock,
-  CheckCircle2,
   Package,
 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -29,7 +24,6 @@ import { CourierStickerModal } from "@/components/admin/management/orders/sticke
 import { DeleteOrderButton } from "@/components/admin/management/orders/delete-order-button";
 import { OrderFraudRiskBadge } from "@/components/admin/fraud-checker/order-fraud-risk-badge";
 import {
-  OrderStatus,
   OrderType,
   PaymentMethod,
   PaymentStatus,

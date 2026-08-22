@@ -90,7 +90,14 @@ export function ProductDetailsView({
       sku: product.sku,
       eventId,
     }).catch(() => {});
-  }, [product.id]);
+  }, [
+    product.categoryTitle,
+    product.id,
+    product.name,
+    product.numericPrice,
+    product.sku,
+    product.subCategoryName,
+  ]);
 
   const handleSelectOption = (type: AttributeType, optionName: string) => {
     const updated = {

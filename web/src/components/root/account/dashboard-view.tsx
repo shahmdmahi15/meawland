@@ -3,25 +3,20 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { CustomerDashboardData } from "@/actions/root/account/dashboard";
-import { OrderStatus, PaymentStatus } from "@/generated/prisma/enums";
-import { Card, CardContent } from "@/components/ui/card";
+import { OrderStatus } from "@/generated/prisma/enums";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   ShoppingBag,
   Truck,
   CheckCircle2,
-  Heart,
   MapPin,
   Headphones,
   Settings,
-  ArrowRight,
-  Package,
   Copy,
   Check,
-  Clock,
   Sparkles,
-  ExternalLink,
   ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";

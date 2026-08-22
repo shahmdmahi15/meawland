@@ -12,11 +12,8 @@ import {
   SearchX,
   SlidersHorizontal,
   Bookmark,
-  Calendar,
   RefreshCw,
-  Hash,
   ArrowRight,
-  Filter,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -336,7 +333,7 @@ export function RecentStockEventsTable({
                         </span>
                         {event.note && (
                           <span className="text-[11px] text-muted-foreground italic line-clamp-1">
-                            "{event.note}"
+                            &quot;{event.note}&quot;
                           </span>
                         )}
                       </div>

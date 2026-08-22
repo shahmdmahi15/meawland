@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tag, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 
 interface OfferSearchResultsProps {
   offers: AdminOfferSearchResult[];

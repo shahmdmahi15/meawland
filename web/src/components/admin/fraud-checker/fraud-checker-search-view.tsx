@@ -8,18 +8,8 @@ import {
   AlertTriangle,
   Loader2,
   Truck,
-  RotateCcw,
   CheckCircle2,
-  Info,
-  Clock,
-  History,
-  TrendingUp,
-  Sliders,
-  Send,
   Zap,
-  Check,
-  HelpCircle,
-  ExternalLink,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -36,10 +26,8 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import {
   checkCustomerFraudAction,
   type CheckCustomerFraudResult,

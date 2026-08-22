@@ -29,16 +29,7 @@ import {
 } from "@/actions/admin/support-marketing/marketing/sms/templates";
 import { TestSmsModal } from "./test-sms-modal";
 import { toast } from "sonner";
-import {
-  FileText,
-  Plus,
-  Trash2,
-  Copy,
-  Check,
-  Tag,
-  Sparkles,
-  Loader2,
-} from "lucide-react";
+import { FileText, Plus, Trash2, Copy, Check, Loader2 } from "lucide-react";
 
 interface SmsTemplatesManagerProps {
   initialTemplates: AdminSmsTemplateSummary[];

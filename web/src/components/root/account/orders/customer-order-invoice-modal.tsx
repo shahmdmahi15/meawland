@@ -2,7 +2,7 @@
 
 import React, { ReactNode, ReactElement } from "react";
 import { Button } from "@/components/ui/button";
-import { Download, FileText } from "lucide-react";
+import { Download } from "lucide-react";
 import { CustomerOrderSummary } from "@/schemas/root/account/orders";
 import { CustomInvoiceModal } from "@/components/invoice/custom-invoice-modal";
 

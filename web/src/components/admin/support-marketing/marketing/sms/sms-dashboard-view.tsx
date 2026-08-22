@@ -23,7 +23,6 @@ import {
   MessageSquare,
   Wallet,
   Megaphone,
-  Layers,
   FileText,
   Clock,
   Zap,

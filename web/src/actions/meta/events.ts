@@ -3,7 +3,6 @@
 import {
   MetaServerEventPayload,
   MetaCustomData,
-  MetaContentItem,
   RawClientContext,
 } from "./types";
 import {

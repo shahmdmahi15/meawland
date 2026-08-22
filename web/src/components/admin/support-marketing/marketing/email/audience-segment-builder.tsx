@@ -165,6 +165,7 @@ export function AudienceSegmentBuilder({
     value.minOrders,
     value.inactiveDays,
     value.customEmails,
+    calculateCount,
   ]);
 
   return (

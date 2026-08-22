@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import { useTransition } from "react";
 import Link from "next/link";
 import { retryBkashPaymentAction } from "@/actions/bkash/retry-payment";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,6 @@ import {
   AlertTriangle,
   XCircle,
   Smartphone,
-  RefreshCw,
   ShoppingBag,
   ArrowRight,
   ShieldAlert,

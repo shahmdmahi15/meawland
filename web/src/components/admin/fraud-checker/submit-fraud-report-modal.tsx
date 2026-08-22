@@ -5,7 +5,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
@@ -13,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
@@ -22,18 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  ShieldAlert,
-  Loader2,
-  AlertTriangle,
-  Send,
-  CheckCircle2,
-  Info,
-} from "lucide-react";
-import {
-  FRAUD_REPORT_CATEGORIES,
-  type SubmitFraudReportInput,
-} from "@/schemas/fraud-checker";
+import { ShieldAlert, Loader2, Send } from "lucide-react";
+import { FRAUD_REPORT_CATEGORIES } from "@/schemas/fraud-checker";
 import { submitFraudReportAction } from "@/actions/fraud-checker/report";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";

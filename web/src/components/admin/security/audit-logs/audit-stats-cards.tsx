@@ -3,14 +3,7 @@
 import React from "react";
 import { AdminAuditLogStats } from "@/actions/admin/security/audit-logs/types";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  ShieldAlert,
-  History,
-  Clock,
-  Package,
-  UserCheck,
-  AlertTriangle,
-} from "lucide-react";
+import { ShieldAlert, History, Clock, Package } from "lucide-react";
 
 interface AuditStatsCardsProps {
   stats: AdminAuditLogStats;
@@ -46,7 +39,7 @@ export function AuditStatsCards({ stats }: AuditStatsCardsProps) {
         <CardContent className="p-4 flex flex-col justify-between h-full space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold text-[#0097a7] uppercase tracking-wider">
-              Today's Actions
+              Today&apos;s Actions
             </span>
             <div className="p-1.5 rounded-xl bg-[#EDF5FA] text-[#0097a7]">
               <Clock className="w-4 h-4" />

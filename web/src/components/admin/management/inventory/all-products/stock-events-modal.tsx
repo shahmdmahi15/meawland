@@ -9,7 +9,6 @@ import {
   TrendingUp,
   TrendingDown,
   Boxes,
-  Hash,
   Truck,
   RotateCcw,
   AlertTriangle,
@@ -17,8 +16,6 @@ import {
   SearchX,
   SlidersHorizontal,
   Bookmark,
-  Layers,
-  Tag,
   ArrowRight,
   Filter,
   XCircle,
@@ -483,8 +480,6 @@ export function StockEventsModal({ product }: StockEventsModalProps) {
               ) : (
                 <div className="space-y-3">
                   {filteredEvents.map((event) => {
-                    const isPositive = event.newStock >= event.previousStock;
-
                     return (
                       <div
                         key={event.id}
@@ -555,7 +550,7 @@ export function StockEventsModal({ product }: StockEventsModalProps) {
                               </div>
                               {event.note && (
                                 <p className="text-[11px] text-muted-foreground italic">
-                                  "{event.note}"
+                                  &quot;{event.note}&quot;
                                 </p>
                               )}
 

@@ -16,7 +16,7 @@ import {
   SupportTicketPriority,
   SupportTicketStatus,
 } from "@/generated/prisma/enums";
-import { LifeBuoy, ExternalLink, Package } from "lucide-react";
+import { ExternalLink, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TicketSearchResultsProps {

@@ -42,7 +42,6 @@ import {
   Eye,
   Trash2,
   RefreshCw,
-  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import {

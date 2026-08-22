@@ -68,8 +68,8 @@ export function DeleteSliderButton({
             <AlertDialogTitle>Delete Slider</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete the slider{" "}
-              <strong>"{sliderText}"</strong>? This action cannot be undone. The
-              banner image will also be removed from storage.
+              <strong>&quot;{sliderText}&quot;</strong>? This action cannot be
+              undone. The banner image will also be removed from storage.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex gap-3 justify-end">

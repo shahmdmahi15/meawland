@@ -1,9 +1,7 @@
 "use client";
 
-import React from "react";
 import { DashboardCustomerMetrics } from "@/actions/admin/dashboard/types";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import {
   Users,
   Repeat,

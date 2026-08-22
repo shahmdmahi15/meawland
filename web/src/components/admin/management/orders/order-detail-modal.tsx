@@ -39,7 +39,6 @@ import {
   Send,
   Loader2,
   RefreshCw,
-  ExternalLink,
 } from "lucide-react";
 import {
   OrderStatus,

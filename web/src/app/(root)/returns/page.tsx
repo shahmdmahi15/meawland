@@ -1,12 +1,8 @@
 import { Metadata } from "next";
-import Link from "next/link";
 import {
   RotateCcw,
-  ShieldCheck,
   CheckCircle2,
   AlertCircle,
-  HelpCircle,
-  Truck,
   MessageCircle,
   Sparkles,
 } from "lucide-react";

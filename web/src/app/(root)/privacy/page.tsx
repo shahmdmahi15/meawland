@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { ShieldCheck, Lock, Eye, FileText, CheckCircle2 } from "lucide-react";
+import { ShieldCheck, Lock, Eye, FileText } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | Meawland",

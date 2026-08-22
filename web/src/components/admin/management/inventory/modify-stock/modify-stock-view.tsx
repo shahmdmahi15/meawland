@@ -1,19 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import {
-  Boxes,
-  Package,
-  AlertTriangle,
-  XCircle,
-  Truck,
-  TrendingUp,
-  RotateCcw,
-  Sparkles,
-  SlidersHorizontal,
-} from "lucide-react";
+import { Boxes, Package, AlertTriangle, XCircle } from "lucide-react";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { StockItemSearch } from "./stock-item-search";
 import { StockModifyForm } from "./stock-modify-form";

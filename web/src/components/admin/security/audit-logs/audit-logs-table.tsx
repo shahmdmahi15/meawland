@@ -31,12 +31,8 @@ import {
   RefreshCw,
   Eye,
   Shield,
-  Clock,
-  User,
   ChevronLeft,
   ChevronRight,
-  Filter,
-  Layers,
   FileCode,
 } from "lucide-react";
 import { getAuditLogsAction } from "@/actions/admin/security/audit-logs/logs";

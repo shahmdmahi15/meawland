@@ -9,13 +9,7 @@ import {
   printInvoiceDocument,
 } from "@/lib/invoice-pdf-generator";
 import type { InvoiceData } from "@/schemas/invoice";
-import {
-  Download,
-  Printer,
-  ArrowLeft,
-  Loader2,
-  CheckCircle2,
-} from "lucide-react";
+import { Download, Printer, ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface StandaloneInvoiceViewProps {

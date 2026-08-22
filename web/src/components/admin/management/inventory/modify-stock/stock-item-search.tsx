@@ -4,16 +4,10 @@ import { useState, useEffect, useTransition } from "react";
 import Image from "next/image";
 import {
   Search,
-  Filter,
   Package,
-  Layers,
-  Tag,
   AlertTriangle,
   XCircle,
   CheckCircle2,
-  Boxes,
-  Sparkles,
-  Plus,
   Minus,
   Loader2,
   RefreshCw,

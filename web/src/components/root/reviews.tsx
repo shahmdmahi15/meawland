@@ -1,9 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Star, CheckCircle2, Heart, Quote, Sparkles } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { Star, CheckCircle2, Quote, Sparkles } from "lucide-react";
 import type { StoreCustomerReview } from "@/actions/store/reviews/get-all";
 
 export interface ReviewsProps {

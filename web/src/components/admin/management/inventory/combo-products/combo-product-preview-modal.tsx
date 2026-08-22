@@ -17,11 +17,9 @@ import {
   PackagePlus,
   Package2,
   Layers3,
-  TrendingDown,
   CheckCircle2,
   AlertTriangle,
   XCircle,
-  Sparkles,
   Boxes,
 } from "lucide-react";
 import type { ComboProductRow } from "@/actions/admin/management/inventory/combo-products";

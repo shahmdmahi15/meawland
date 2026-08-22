@@ -1,15 +1,7 @@
-import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Metadata } from "next";
-import {
-  Home,
-  ShoppingBag,
-  ArrowLeft,
-  Search,
-  PawPrint,
-  Sparkles,
-} from "lucide-react";
+import { Home, ShoppingBag, PawPrint, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {

@@ -9,7 +9,6 @@ import {
 } from "@/actions/admin/support-marketing/marketing/email/types";
 import { EmailAutomationSettingsSummary } from "@/actions/admin/support-marketing/marketing/email/automations";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -19,9 +18,6 @@ import {
   CheckCircle2,
   FileText,
   Settings2,
-  Zap,
-  TrendingUp,
-  Sparkles,
   ExternalLink,
 } from "lucide-react";
 import Link from "next/link";

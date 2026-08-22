@@ -26,12 +26,10 @@ import {
   Plus,
   ArrowRight,
   ArrowLeft,
-  Calendar,
   Sparkles,
   Loader2,
   CheckCircle2,
   Eye,
-  Code,
 } from "lucide-react";
 import { toast } from "sonner";
 import { EmailCampaignType } from "@/generated/prisma/enums";
@@ -81,7 +79,6 @@ export function CreateEmailCampaignModal({
   const [contentText, setContentText] = useState("");
   const [scheduleAt, setScheduleAt] = useState<string>("");
   const [isScheduled, setIsScheduled] = useState(false);
-  const [previewMode, setPreviewMode] = useState<"visual" | "html">("visual");
 
   const resetForm = () => {
     setStep(1);

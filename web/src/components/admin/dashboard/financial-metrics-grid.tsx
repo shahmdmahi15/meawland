@@ -169,7 +169,7 @@ export function FinancialMetricsGrid({
         <div className="p-3.5 rounded-2xl bg-white border border-gray-200 shadow-2xs flex items-center justify-between">
           <div>
             <span className="text-[10px] font-bold uppercase text-gray-400 block tracking-wider">
-              Today's Orders
+              Today&apos;s Orders
             </span>
             <span className="text-base sm:text-lg font-black text-gray-900">
               ৳{financials.todayRevenue.toLocaleString()}

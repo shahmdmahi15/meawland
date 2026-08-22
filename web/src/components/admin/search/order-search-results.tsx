@@ -13,7 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { OrderStatus } from "@/generated/prisma/enums";
-import { ExternalLink, ShoppingCart } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface OrderSearchResultsProps {

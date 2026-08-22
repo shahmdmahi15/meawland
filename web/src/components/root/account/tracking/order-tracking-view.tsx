@@ -15,17 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import {
-  MapPin,
-  Search,
-  Truck,
-  Package,
-  ShoppingBag,
-  Loader2,
-  X,
-  Clock,
-  CheckCircle2,
-} from "lucide-react";
+import { Search, Truck, Package, Loader2, X } from "lucide-react";
 import { OrderStatus } from "@/generated/prisma/enums";
 import { cn } from "@/lib/utils";
 

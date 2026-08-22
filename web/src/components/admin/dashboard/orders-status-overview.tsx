@@ -1,8 +1,7 @@
 "use client";
 
-import React from "react";
 import { DashboardOrdersBreakdown } from "@/actions/admin/dashboard/types";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   ShoppingBag,
@@ -12,8 +11,6 @@ import {
   Truck,
   Check,
   XCircle,
-  RotateCcw,
-  ExternalLink,
   ChevronRight,
 } from "lucide-react";
 import Link from "next/link";

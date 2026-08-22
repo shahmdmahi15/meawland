@@ -2,13 +2,10 @@
 
 import {
   Truck,
-  ThumbsUp,
   PackageCheck,
   Headphones,
   Sparkles,
   ShieldCheck,
-  Heart,
-  Clock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 

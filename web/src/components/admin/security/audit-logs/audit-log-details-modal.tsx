@@ -16,19 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Shield,
-  User,
-  Clock,
-  Globe,
-  FileCode,
-  Loader2,
-  ArrowRight,
-  Sparkles,
-  Layers,
-  Copy,
-  Check,
-} from "lucide-react";
+import { Shield, FileCode, Loader2, Layers, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 
 interface AuditLogDetailsModalProps {

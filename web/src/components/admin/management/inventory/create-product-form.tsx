@@ -59,7 +59,6 @@ import {
   Layers3,
   Copy,
   Percent,
-  Sparkles,
 } from "lucide-react";
 
 interface SubCategoryItem {

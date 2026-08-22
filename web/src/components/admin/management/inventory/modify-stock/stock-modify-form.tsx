@@ -16,11 +16,7 @@ import {
   CheckCircle2,
   TrendingUp,
   TrendingDown,
-  Sparkles,
   Loader2,
-  ArrowRight,
-  HelpCircle,
-  Hash,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

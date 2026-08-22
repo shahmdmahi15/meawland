@@ -26,7 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { SmsCampaignStatus, SmsCampaignType } from "@/generated/prisma/enums";
+import { SmsCampaignStatus } from "@/generated/prisma/enums";
 import type { AdminSmsCampaignSummary } from "@/actions/admin/support-marketing/marketing/sms/types";
 import { deleteSmsCampaignAction } from "@/actions/admin/support-marketing/marketing/sms/campaigns";
 import { toast } from "sonner";
@@ -38,7 +38,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Clock,
-  Send,
   Loader2,
   Calendar,
 } from "lucide-react";

@@ -13,7 +13,6 @@ import {
   CreditCard,
   Activity,
   CheckCircle2,
-  AlertCircle,
   ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
