@@ -321,6 +321,17 @@ export function SmsTemplatesManager({
                   <span>{copiedId === t.id ? "Copied" : "Copy"}</span>
                 </Button>
 
+                {onSelectTemplate && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onSelectTemplate(t)}
+                    className="h-7 text-xs px-2 text-primary hover:bg-[#EDF5FA] cursor-pointer"
+                  >
+                    Select
+                  </Button>
+                )}
+
                 <TestSmsModal
                   messageContent={t.body}
                   trigger={

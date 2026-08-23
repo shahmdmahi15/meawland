@@ -31,7 +31,6 @@ interface CustomInvoiceModalProps {
   trigger?: ReactNode;
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
-  autoDownloadOnOpen?: boolean;
 }
 
 export function CustomInvoiceModal({
@@ -40,7 +39,6 @@ export function CustomInvoiceModal({
   trigger,
   isOpen: controlledOpen,
   onOpenChange: setControlledOpen,
-  autoDownloadOnOpen = false,
 }: CustomInvoiceModalProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;

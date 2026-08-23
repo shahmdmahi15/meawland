@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -64,16 +64,18 @@ export function EditBrandDialog({
     },
   });
 
-  useEffect(() => {
-    if (!open) return;
-    reset({
-      id: brand.id,
-      name: brand.name,
-      slug: brand.slug,
-    });
-    setSelectedImage(null);
-    setImagePreview(brand.image || null);
-  }, [brand, open, reset]);
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      reset({
+        id: brand.id,
+        name: brand.name,
+        slug: brand.slug,
+      });
+      setSelectedImage(null);
+      setImagePreview(brand.image || null);
+    }
+    onOpenChange(nextOpen);
+  };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const name = e.target.value;
@@ -145,7 +147,7 @@ export function EditBrandDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Edit Brand</DialogTitle>

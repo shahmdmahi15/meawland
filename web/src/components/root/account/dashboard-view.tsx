@@ -54,7 +54,7 @@ function getActiveStepIndex(status: OrderStatus): number {
 }
 
 export function CustomerDashboardView({ data }: CustomerDashboardViewProps) {
-  const { user, stats, activeOrder, recentOrders, supportTickets } = data;
+  const { user, stats, activeOrder, recentOrders } = data;
   const [copiedCoupon, setCopiedCoupon] = useState(false);
 
   const handleCopyCoupon = (code: string) => {

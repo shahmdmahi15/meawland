@@ -210,9 +210,17 @@ export function FAQ() {
             {/* Right Accordion Questions List */}
             <div className="lg:col-span-7 space-y-3">
               {filteredFAQs.length === 0 ? (
-                <div className="text-center py-10 space-y-2 bg-white/70 rounded-2xl p-6 border border-dashed border-[#D4EEFC]">
-                  <MessageCircleQuestion className="w-8 h-8 text-[#56C8D8] mx-auto" />
-                  <p className="text-sm font-bold text-gray-700">
+                <div className="text-center py-8 space-y-3 bg-white/80 rounded-3xl p-6 border border-dashed border-[#D4EEFC]">
+                  <div className="relative w-28 h-28 mx-auto">
+                    <Image
+                      src="/search.gif"
+                      alt="No FAQ found"
+                      fill
+                      className="object-contain"
+                      unoptimized
+                    />
+                  </div>
+                  <p className="text-sm font-black text-gray-800">
                     No questions found matching &quot;{search}&quot;
                   </p>
                   <Button

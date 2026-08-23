@@ -1,6 +1,14 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useTransition } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useTransition,
+  useSyncExternalStore,
+  useMemo,
+  useCallback,
+} from "react";
 import {
   SearchEntityType,
   AdminGlobalSearchResults,
@@ -47,6 +55,24 @@ const PRESET_QUERIES = [
   { label: "Active Coupons", query: "coupon", type: "OFFERS" as const },
 ];
 
+function subscribeStorage(callback: () => void) {
+  window.addEventListener("storage", callback);
+  return () => window.removeEventListener("storage", callback);
+}
+
+function getStoredSearchesSnapshot(): string {
+  if (typeof window === "undefined") return "[]";
+  try {
+    return localStorage.getItem("meawland_admin_recent_searches") || "[]";
+  } catch {
+    return "[]";
+  }
+}
+
+function getServerStoredSearchesSnapshot(): string {
+  return "[]";
+}
+
 export function AdminSearchView({
   initialResults,
   initialQuery = "",
@@ -59,8 +85,21 @@ export function AdminSearchView({
   const [results, setResults] = useState<AdminGlobalSearchResults | undefined>(
     initialResults,
   );
-  const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [isPending, startTransition] = useTransition();
+
+  const rawRecentSearches = useSyncExternalStore(
+    subscribeStorage,
+    getStoredSearchesSnapshot,
+    getServerStoredSearchesSnapshot,
+  );
+
+  const recentSearches = useMemo(() => {
+    try {
+      return (JSON.parse(rawRecentSearches) as string[]).slice(0, 5);
+    } catch {
+      return [];
+    }
+  }, [rawRecentSearches]);
 
   // Sync URL query parameters smoothly
   useEffect(() => {
@@ -73,40 +112,33 @@ export function AdminSearchView({
     window.history.replaceState(null, "", newUrl);
   }, [query, activeType]);
 
-  // Load recent searches from localStorage
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("meawland_admin_recent_searches");
-      if (stored) {
-        setRecentSearches(JSON.parse(stored).slice(0, 5));
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
-
-  const saveRecentSearch = (term: string) => {
+  const saveRecentSearch = useCallback((term: string) => {
     if (!term.trim()) return;
     const clean = term.trim();
-    const updated = [clean, ...recentSearches.filter((s) => s !== clean)].slice(
-      0,
-      5,
-    );
-    setRecentSearches(updated);
+    let current: string[] = [];
+    try {
+      current = JSON.parse(
+        localStorage.getItem("meawland_admin_recent_searches") || "[]",
+      );
+    } catch {
+      current = [];
+    }
+    const updated = [clean, ...current.filter((s) => s !== clean)].slice(0, 5);
     try {
       localStorage.setItem(
         "meawland_admin_recent_searches",
         JSON.stringify(updated),
       );
+      window.dispatchEvent(new Event("storage"));
     } catch {
       // ignore
     }
-  };
+  }, []);
 
   const clearRecentSearches = () => {
-    setRecentSearches([]);
     try {
       localStorage.removeItem("meawland_admin_recent_searches");
+      window.dispatchEvent(new Event("storage"));
     } catch {
       // ignore
     }
@@ -126,17 +158,20 @@ export function AdminSearchView({
   }, []);
 
   // Perform search
-  const performSearch = (searchTerm: string, searchType: SearchEntityType) => {
-    startTransition(async () => {
-      const res = await adminGlobalSearchAction(searchTerm, searchType, 30);
-      if (res.success && res.results) {
-        setResults(res.results);
-        if (searchTerm.trim()) {
-          saveRecentSearch(searchTerm);
+  const performSearch = useCallback(
+    (searchTerm: string, searchType: SearchEntityType) => {
+      startTransition(async () => {
+        const res = await adminGlobalSearchAction(searchTerm, searchType, 30);
+        if (res.success && res.results) {
+          setResults(res.results);
+          if (searchTerm.trim()) {
+            saveRecentSearch(searchTerm);
+          }
         }
-      }
-    });
-  };
+      });
+    },
+    [saveRecentSearch],
+  );
 
   // Debounced search on typing
   useEffect(() => {
@@ -145,7 +180,7 @@ export function AdminSearchView({
     }, 280);
 
     return () => clearTimeout(timer);
-  }, [query, activeType]);
+  }, [query, activeType, performSearch]);
 
   const handleTypeChange = (newType: SearchEntityType) => {
     setActiveType(newType);

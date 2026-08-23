@@ -1,7 +1,12 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import localFont from "next/font/local";
 import { Toaster } from "@/components/ui/sonner";
+import { Suspense } from "react";
+import { MetaPixelProvider } from "@/components/providers/meta-pixel/meta-pixel-provider";
+import { PWAProvider } from "@/components/providers/pwa-provider";
+import { PWAInstallPrompt } from "@/components/root/pwa-install-prompt";
+import { RootJsonLd } from "@/components/seo/structured-data";
 
 const dmSans = localFont({
   src: "../assets/fonts/DMSans-VariableFont_opsz,wght.ttf",
@@ -15,6 +20,13 @@ const chewy = localFont({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  themeColor: "#56C8D8",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_APP_URL || "https://meawland.com",
@@ -26,6 +38,17 @@ export const metadata: Metadata = {
   },
   description:
     "Shop authentic feline & canine nutrition, gentle grooming care, anti-fungal medicine, handcrafted dresses, collars, and engaging toys with fast nationwide delivery in Bangladesh.",
+  applicationName: "Meawland",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Meawland",
+  },
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
   keywords: [
     "pet store Bangladesh",
     "cat food Dhaka",
@@ -84,9 +107,6 @@ export const metadata: Metadata = {
   },
 };
 
-import { Suspense } from "react";
-import { MetaPixelProvider } from "@/components/providers/meta-pixel/meta-pixel-provider";
-
 export default function EntryLayout({
   children,
 }: {
@@ -98,9 +118,17 @@ export default function EntryLayout({
       lang="en"
       className={`${dmSans.variable} ${chewy.variable} h-full antialiased`}
     >
+      <head>
+        <RootJsonLd />
+      </head>
       <body className="min-h-full flex flex-col">
         <Suspense fallback={null}>
-          <MetaPixelProvider>{children}</MetaPixelProvider>
+          <MetaPixelProvider>
+            <PWAProvider>
+              {children}
+              <PWAInstallPrompt />
+            </PWAProvider>
+          </MetaPixelProvider>
         </Suspense>
         <Toaster richColors />
       </body>

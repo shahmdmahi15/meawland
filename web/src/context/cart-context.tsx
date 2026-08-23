@@ -87,10 +87,26 @@ export function CartProvider({
 
   // Fetch initial cart if not provided from server component
   useEffect(() => {
+    let ignore = false;
     if (!initialCart) {
-      refreshCart();
+      getCartAction()
+        .then((freshCart) => {
+          if (!ignore) {
+            setCart(freshCart);
+            setIsLoading(false);
+          }
+        })
+        .catch((error) => {
+          console.error("[CartContext.refreshCart] Error:", error);
+          if (!ignore) {
+            setIsLoading(false);
+          }
+        });
     }
-  }, [initialCart, refreshCart]);
+    return () => {
+      ignore = true;
+    };
+  }, [initialCart]);
 
   const addToCart = useCallback(
     async (input: AddToCartInput, openDrawerAfter = true): Promise<boolean> => {

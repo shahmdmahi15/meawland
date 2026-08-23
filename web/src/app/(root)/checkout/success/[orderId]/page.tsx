@@ -14,6 +14,12 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Order Placed Successfully | Meawland Pet Store",
   description: "Your pet essentials order has been placed successfully.",
+  robots: {
+    index: false,
+    follow: false,
+    noarchive: true,
+    nosnippet: true,
+  },
 };
 
 export default async function OrderSuccessPage({

@@ -51,7 +51,10 @@ export async function getAllUsers(): Promise<{
       users: users,
     };
   } catch (error) {
-    console.error("[Action.Admin.Security.Users.GetAll:", error);
+    if ((error as { digest?: string })?.digest === "DYNAMIC_SERVER_USAGE") {
+      throw error;
+    }
+    console.error("[Action.Admin.Security.Users.GetAll]:", error);
     return {
       success: false,
       message: "Error when fetching users",

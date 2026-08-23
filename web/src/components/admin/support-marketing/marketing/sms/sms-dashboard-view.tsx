@@ -42,7 +42,6 @@ interface SmsDashboardViewProps {
   automationSettings: SmsAutomationSettingsSummary;
   categories?: { label: string; value: string }[];
   brands?: { id: string; name: string }[];
-  products?: { id: string; name: string }[];
   districts?: string[];
 }
 
@@ -55,7 +54,6 @@ export function SmsDashboardView({
   automationSettings,
   categories,
   brands,
-  products,
   districts,
 }: SmsDashboardViewProps) {
   const [activeTab, setActiveTab] = useState<

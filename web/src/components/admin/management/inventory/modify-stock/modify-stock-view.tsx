@@ -27,7 +27,7 @@ export function ModifyStockView({
   initialEvents,
   categories,
 }: ModifyStockViewProps) {
-  const [metrics, setMetrics] = useState<ModifyStockMetrics>(initialMetrics);
+  const metrics = initialMetrics;
   const [events, setEvents] = useState<StockEventAuditRow[]>(initialEvents);
   const [selectedItem, setSelectedItem] = useState<StockItemSearchRow | null>(
     null,

@@ -6,6 +6,10 @@ import { getWishlistProductIdsAction } from "@/actions/store/wishlist";
 import { ProductDetailsView } from "@/components/root/store/product-details-view";
 import { Button } from "@/components/ui/button";
 import { ShoppingBag } from "lucide-react";
+import {
+  ProductJsonLd,
+  BreadcrumbsJsonLd,
+} from "@/components/seo/structured-data";
 
 interface ProductPageProps {
   params: Promise<{
@@ -86,9 +90,30 @@ export default async function ProductPage({ params }: ProductPageProps) {
   }
 
   const isWishlisted = wishlistIds.includes(productRes.product.id);
+  const p = productRes.product;
 
   return (
     <main className="min-h-screen bg-white pb-20 pt-20 sm:pt-24 md:pt-28">
+      <ProductJsonLd
+        name={p.name}
+        description={p.shortDescription || p.longDescription}
+        price={p.numericPrice || 0}
+        image={p.image}
+        sku={p.code}
+        inStock={!p.isOutOfStock && p.stock > 0}
+        category={p.categoryTitle || "Pet Supplies"}
+      />
+      <BreadcrumbsJsonLd
+        items={[
+          { name: "Home", url: "/" },
+          { name: "Products", url: "/products" },
+          {
+            name: p.categoryTitle || "Category",
+            url: p.categorySlug ? `/category/${p.categorySlug}` : "/products",
+          },
+          { name: p.name, url: `/product/${p.slug}` },
+        ]}
+      />
       <ProductDetailsView
         product={productRes.product}
         initialWishlisted={isWishlisted}

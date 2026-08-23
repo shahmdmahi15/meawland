@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import { toast } from "sonner";
 import {
@@ -189,21 +189,23 @@ export function StockModifyForm({
     [eventType],
   );
 
-  // Auto-fill default reason on event type change
-  useEffect(() => {
+  const handleEventTypeChange = (type: StockEventType) => {
+    setEventType(type);
+    const cfg = EVENT_CONFIGS.find((c) => c.type === type) || EVENT_CONFIGS[0];
     if (!isCustomReason) {
-      setReason(selectedConfig.defaultReason);
+      setReason(cfg.defaultReason);
     }
-  }, [eventType, selectedConfig, isCustomReason]);
+    if (type === StockEventType.ADJUSTMENT || type === StockEventType.INITIAL) {
+      setAdjustmentMode("DELTA");
+    }
+  };
 
-  // If selected item changes or becomes empty, reset quantity
-  useEffect(() => {
-    if (selectedItem) {
-      if (adjustmentMode === "SET_TOTAL") {
-        setQuantity(String(selectedItem.currentStock));
-      }
+  const handleAdjustmentModeChange = (mode: "DELTA" | "SET_TOTAL") => {
+    setAdjustmentMode(mode);
+    if (mode === "SET_TOTAL" && selectedItem) {
+      setQuantity(String(selectedItem.currentStock));
     }
-  }, [selectedItem, adjustmentMode]);
+  };
 
   const numQuantity = Number(quantity) || 0;
   const currentStock = selectedItem?.currentStock ?? 0;
@@ -413,15 +415,7 @@ export function StockModifyForm({
               <button
                 key={cfg.type}
                 type="button"
-                onClick={() => {
-                  setEventType(cfg.type);
-                  if (
-                    cfg.type === StockEventType.ADJUSTMENT ||
-                    cfg.type === StockEventType.INITIAL
-                  ) {
-                    setAdjustmentMode("DELTA");
-                  }
-                }}
+                onClick={() => handleEventTypeChange(cfg.type)}
                 className={`flex flex-col items-start gap-1.5 rounded-xl border p-3 text-left transition-all ${
                   isSelected
                     ? `${cfg.colorClass} ring-2 ring-primary/30 font-medium shadow-sm`
@@ -466,7 +460,7 @@ export function StockModifyForm({
                 type="button"
                 size="sm"
                 variant={adjustmentMode === "DELTA" ? "default" : "ghost"}
-                onClick={() => setAdjustmentMode("DELTA")}
+                onClick={() => handleAdjustmentModeChange("DELTA")}
                 className="h-7 text-xs font-medium"
               >
                 ± Delta
@@ -475,7 +469,7 @@ export function StockModifyForm({
                 type="button"
                 size="sm"
                 variant={adjustmentMode === "SET_TOTAL" ? "default" : "ghost"}
-                onClick={() => setAdjustmentMode("SET_TOTAL")}
+                onClick={() => handleAdjustmentModeChange("SET_TOTAL")}
                 className="h-7 text-xs font-medium"
               >
                 Set Total

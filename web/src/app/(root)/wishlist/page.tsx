@@ -7,6 +7,12 @@ export const metadata: Metadata = {
   title: "My Wishlist | Meawland Pet Store",
   description:
     "View and manage your saved pet food, accessories, and grooming essentials.",
+  robots: {
+    index: false,
+    follow: false,
+    noarchive: true,
+    nosnippet: true,
+  },
 };
 
 export const dynamic = "force-dynamic";

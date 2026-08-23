@@ -8,6 +8,12 @@ import { PaymentStatusView } from "@/components/root/store/payment-status-view";
 export const metadata: Metadata = {
   title: "bKash Payment Status | Meawland",
   description: "Check your bKash payment transaction status",
+  robots: {
+    index: false,
+    follow: false,
+    noarchive: true,
+    nosnippet: true,
+  },
 };
 
 interface PaymentStatusPageProps {

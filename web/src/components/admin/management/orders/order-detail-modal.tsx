@@ -969,6 +969,64 @@ export function OrderDetailModal({
             </div>
           )}
 
+          {/* Steadfast Return Modal */}
+          {isReturnModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+              <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-gray-200">
+                <div className="flex items-center gap-2 text-rose-600">
+                  <RotateCcw className="w-5 h-5" />
+                  <h3 className="font-black text-base text-gray-900">
+                    Create Steadfast Return Request
+                  </h3>
+                </div>
+
+                <p className="text-xs text-gray-600">
+                  This will register a return request with Steadfast Courier for
+                  Consignment #{order.shipment?.consignmentId}.
+                </p>
+
+                <div className="space-y-3 text-xs">
+                  <div>
+                    <label className="font-bold text-gray-700 block mb-1">
+                      Return Reason (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={returnReason}
+                      onChange={(e) => setReturnReason(e.target.value)}
+                      placeholder="e.g. Customer cancelled / unreachable / damaged parcel"
+                      className="w-full h-9 px-3 rounded-lg border border-gray-300 text-gray-900"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsReturnModalOpen(false)}
+                    disabled={isCreatingReturn}
+                    className="rounded-lg text-xs"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleCreateReturn}
+                    disabled={isCreatingReturn}
+                    className="rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs gap-1.5 shadow-sm"
+                  >
+                    {isCreatingReturn
+                      ? "Submitting..."
+                      : "Submit Return Request"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Ordered Items List */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Image from "next/image";
 import {
   Dialog,
@@ -165,8 +165,7 @@ export function EditProductModal({
     [product.gallery, product.galleryBase64],
   );
 
-  useEffect(() => {
-    if (!open) return;
+  const resetFormState = () => {
     setName(product.name);
     setSku(product.sku);
     setSlug(product.slug);
@@ -201,7 +200,14 @@ export function EditProductModal({
     setNewGalleryFiles([]);
     setNewGalleryPreviews([]);
     setRemovedGalleryKeys([]);
-  }, [open, product]);
+  };
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      resetFormState();
+    }
+    setOpen(nextOpen);
+  };
 
   const handleVariantFieldChange = (
     variantId: string,
@@ -661,14 +667,14 @@ export function EditProductModal({
         type="button"
         variant="ghost"
         size="icon-sm"
-        onClick={() => setOpen(true)}
+        onClick={() => handleOpenChange(true)}
         title="Edit product"
         aria-label="Edit product"
       >
         <Pencil className="h-4 w-4" />
       </Button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent className="sm:max-w-[1100px] w-[min(96vw,1100px)] max-w-full max-h-[92vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold sm:text-xl">
@@ -1589,7 +1595,7 @@ export function EditProductModal({
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setOpen(false)}
+                  onClick={() => handleOpenChange(false)}
                 >
                   Cancel
                 </Button>

@@ -65,14 +65,12 @@ export function Footer() {
 
             {/* Right Brand Info */}
             <div className="lg:col-span-8 space-y-3 text-center lg:text-left">
-              <Link href="/" className="inline-block mb-1">
-                <Image
-                  src="/logo.png"
-                  alt="Meawland Logo"
-                  width={180}
-                  height={60}
-                  className="h-12 sm:h-14 w-auto object-contain"
-                />
+              <Link
+                href="/"
+                className="inline-block mb-1 text-3xl sm:text-4xl lg:text-5xl text-[#56C8D8] font-[family-name:var(--font-chewy)] tracking-wide hover:opacity-90 transition-opacity"
+                style={{ fontFamily: "var(--font-chewy), cursive" }}
+              >
+                MEAWLAND
               </Link>
               <p className="text-xs sm:text-sm text-gray-600 font-medium leading-relaxed max-w-2xl">
                 Meawland is Bangladesh&apos;s premier destination for genuine
@@ -329,7 +327,7 @@ export function Footer() {
                   </li>
                   <li>
                     <Link
-                      href="/combos"
+                      href="/combo-products"
                       className="hover:text-[#56C8D8] transition-colors"
                     >
                       Combo Deals
@@ -433,7 +431,7 @@ export function Footer() {
                       rel="noopener noreferrer"
                       className="hover:text-[#56C8D8] transition-colors flex items-center gap-1.5"
                     >
-                      <span>Facebook Community</span>
+                      <span>Facebook</span>
                     </a>
                   </li>
                   <li>
@@ -463,7 +461,7 @@ export function Footer() {
                       rel="noopener noreferrer"
                       className="hover:text-emerald-600 transition-colors flex items-center gap-1.5"
                     >
-                      <span>WhatsApp Support</span>
+                      <span>WhatsApp</span>
                     </a>
                   </li>
                 </ul>

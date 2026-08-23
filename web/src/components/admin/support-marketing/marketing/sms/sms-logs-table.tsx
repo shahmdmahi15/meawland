@@ -66,12 +66,12 @@ const STATUS_CONFIG: Record<
   },
 };
 
-export function SmsLogsTable({ initialLogs, totalLogs }: SmsLogsTableProps) {
+export function SmsLogsTable({ initialLogs }: SmsLogsTableProps) {
   const [logs, setLogs] = useState(initialLogs);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [retryingId, setRetryingId] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   const handleFilter = (status: string, query: string) => {
     startTransition(async () => {

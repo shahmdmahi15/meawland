@@ -33,25 +33,24 @@ export function AuditLogDetailsModal({
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (logSummary?.id) {
-      startTransition(async () => {
-        const res = await getAuditLogDetailsAction(logSummary.id);
-        if (res.success && res.log) {
-          setDetails(res.log);
-        } else {
-          toast.error("Failed to load audit entry details.");
-        }
-      });
-    } else {
-      setDetails(null);
-    }
+    if (!logSummary?.id) return;
+    startTransition(async () => {
+      const res = await getAuditLogDetailsAction(logSummary.id);
+      if (res.success && res.log) {
+        setDetails(res.log);
+      } else {
+        toast.error("Failed to load audit entry details.");
+      }
+    });
   }, [logSummary?.id]);
 
   if (!logSummary) return null;
 
+  const currentDetails = details?.id === logSummary.id ? details : null;
+
   const handleCopyJson = () => {
-    if (!details) return;
-    navigator.clipboard.writeText(JSON.stringify(details, null, 2));
+    if (!currentDetails) return;
+    navigator.clipboard.writeText(JSON.stringify(currentDetails, null, 2));
     setCopied(true);
     toast.success("Audit log JSON copied to clipboard!");
     setTimeout(() => setCopied(false), 2000);
@@ -130,7 +129,7 @@ export function AuditLogDetailsModal({
           </div>
         </DialogHeader>
 
-        {isPending || !details ? (
+        {isPending || !currentDetails ? (
           <div className="py-12 flex flex-col items-center justify-center gap-2 text-xs text-gray-500">
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
             <span>Loading full audit details...</span>
@@ -148,13 +147,13 @@ export function AuditLogDetailsModal({
                     variant="outline"
                     className="text-[10px] font-mono bg-white font-bold text-[#0097a7]"
                   >
-                    {details.action}
+                    {currentDetails.action}
                   </Badge>
                   <Badge
                     variant="outline"
                     className="text-[10px] font-mono bg-white"
                   >
-                    {details.entity}
+                    {currentDetails.entity}
                   </Badge>
                 </div>
               </div>
@@ -165,17 +164,17 @@ export function AuditLogDetailsModal({
                 </span>
                 <div className="flex items-center gap-1.5 mt-1">
                   <div className="h-5 w-5 rounded-full bg-[#56C8D8] text-white flex items-center justify-center text-[10px] font-black">
-                    {details.actor?.name
-                      ? details.actor.name[0].toUpperCase()
+                    {currentDetails.actor?.name
+                      ? currentDetails.actor.name[0].toUpperCase()
                       : "S"}
                   </div>
                   <span className="font-bold text-gray-900 truncate">
-                    {details.actor?.name || "System Automated"}
+                    {currentDetails.actor?.name || "System Automated"}
                   </span>
                 </div>
-                {details.actor?.email && (
+                {currentDetails.actor?.email && (
                   <span className="text-[10px] text-gray-500 block truncate">
-                    {details.actor.email} ({details.actor.role})
+                    {currentDetails.actor.email} ({currentDetails.actor.role})
                   </span>
                 )}
               </div>
@@ -185,11 +184,11 @@ export function AuditLogDetailsModal({
                   Network &amp; IP
                 </span>
                 <p className="font-mono text-gray-800 font-semibold mt-1">
-                  {details.ipAddress || "Internal Server"}
+                  {currentDetails.ipAddress || "Internal Server"}
                 </p>
-                {details.path && (
+                {currentDetails.path && (
                   <span className="text-[10px] text-gray-500 block truncate font-mono">
-                    {details.path}
+                    {currentDetails.path}
                   </span>
                 )}
               </div>
@@ -199,7 +198,7 @@ export function AuditLogDetailsModal({
                   Timestamp
                 </span>
                 <p className="text-gray-800 font-semibold mt-1">
-                  {new Date(details.createdAt).toLocaleString("en-US", {
+                  {new Date(currentDetails.createdAt).toLocaleString("en-US", {
                     month: "short",
                     day: "numeric",
                     year: "numeric",
@@ -218,18 +217,20 @@ export function AuditLogDetailsModal({
                 Audit Event Summary
               </span>
               <p className="font-bold text-xs text-gray-900">
-                {details.summary}
+                {currentDetails.summary}
               </p>
-              {details.entityName && (
+              {currentDetails.entityName && (
                 <p className="text-[11px] text-gray-600 mt-0.5">
-                  Target: <strong>{details.entityName}</strong>{" "}
-                  {details.entityId ? `(#${details.entityId})` : ""}
+                  Target: <strong>{currentDetails.entityName}</strong>{" "}
+                  {currentDetails.entityId
+                    ? `(#${currentDetails.entityId})`
+                    : ""}
                 </p>
               )}
             </div>
 
             {/* State Delta / JSON Diff Comparison */}
-            {details.hasStateDiff ? (
+            {currentDetails.hasStateDiff ? (
               <div className="space-y-2">
                 <span className="font-bold text-xs text-gray-800 flex items-center gap-1.5">
                   <FileCode className="w-3.5 h-3.5 text-primary" /> State
@@ -243,8 +244,8 @@ export function AuditLogDetailsModal({
                       Previous Value (Before)
                     </span>
                     <pre className="p-3 rounded-2xl bg-rose-50/50 border border-rose-200/80 font-mono text-[11px] text-rose-950 overflow-x-auto max-h-60 overflow-y-auto leading-relaxed">
-                      {details.previousState
-                        ? JSON.stringify(details.previousState, null, 2)
+                      {currentDetails.previousState
+                        ? JSON.stringify(currentDetails.previousState, null, 2)
                         : "// No previous state recorded (New entity creation)"}
                     </pre>
                   </div>
@@ -255,8 +256,8 @@ export function AuditLogDetailsModal({
                       Updated Value (After)
                     </span>
                     <pre className="p-3 rounded-2xl bg-emerald-50/50 border border-emerald-200/80 font-mono text-[11px] text-emerald-950 overflow-x-auto max-h-60 overflow-y-auto leading-relaxed">
-                      {details.newState
-                        ? JSON.stringify(details.newState, null, 2)
+                      {currentDetails.newState
+                        ? JSON.stringify(currentDetails.newState, null, 2)
                         : "// Entity deleted"}
                     </pre>
                   </div>
@@ -265,17 +266,18 @@ export function AuditLogDetailsModal({
             ) : null}
 
             {/* Metadata (if present) */}
-            {details.metadata && Object.keys(details.metadata).length > 0 && (
-              <div className="space-y-1">
-                <span className="font-bold text-xs text-gray-700 flex items-center gap-1">
-                  <Layers className="w-3.5 h-3.5 text-gray-500" /> Additional
-                  Metadata
-                </span>
-                <pre className="p-3 rounded-2xl bg-gray-50 border border-gray-200 font-mono text-[11px] text-gray-800 overflow-x-auto max-h-40 overflow-y-auto">
-                  {JSON.stringify(details.metadata, null, 2)}
-                </pre>
-              </div>
-            )}
+            {currentDetails.metadata &&
+              Object.keys(currentDetails.metadata).length > 0 && (
+                <div className="space-y-1">
+                  <span className="font-bold text-xs text-gray-700 flex items-center gap-1">
+                    <Layers className="w-3.5 h-3.5 text-gray-500" /> Additional
+                    Metadata
+                  </span>
+                  <pre className="p-3 rounded-2xl bg-gray-50 border border-gray-200 font-mono text-[11px] text-gray-800 overflow-x-auto max-h-40 overflow-y-auto">
+                    {JSON.stringify(currentDetails.metadata, null, 2)}
+                  </pre>
+                </div>
+              )}
           </div>
         )}
 

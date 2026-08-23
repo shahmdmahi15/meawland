@@ -733,9 +733,9 @@ export function AllProductsView({
             {/* Empty State */}
             {sortedProducts.length === 0 ? (
               <div className="bg-[#F0F8FF]/60 border border-dashed border-[#D4EEFC] rounded-3xl p-8 sm:p-12 text-center space-y-4">
-                <div className="relative w-32 h-32 sm:w-40 sm:h-40 mx-auto">
+                <div className="relative w-36 h-36 sm:w-44 sm:h-44 mx-auto">
                   <Image
-                    src="/empty-cat.gif"
+                    src="/search.gif"
                     alt="No products found"
                     fill
                     className="object-contain"

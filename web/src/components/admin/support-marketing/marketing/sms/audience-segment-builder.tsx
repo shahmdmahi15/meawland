@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useTransition } from "react";
+import React, { useState, useEffect, useTransition, useCallback } from "react";
 import { type AudienceFilterInput } from "@/actions/admin/support-marketing/marketing/sms/types";
 import { calculateAudienceCountAction } from "@/actions/admin/support-marketing/marketing/sms/segments";
 import { Label } from "@/components/ui/label";
@@ -164,7 +164,7 @@ export function AudienceSegmentBuilder({
     Array<{ maskedPhone: string; name: string; district?: string | null }>
   >([]);
 
-  const calculateCount = () => {
+  const calculateCount = useCallback(() => {
     startTransition(async () => {
       const res = await calculateAudienceCountAction(value);
       if (res.success) {
@@ -172,21 +172,11 @@ export function AudienceSegmentBuilder({
         setSampleRecipients(res.sampleRecipients || []);
       }
     });
-  };
+  }, [value]);
 
   useEffect(() => {
     calculateCount();
-  }, [
-    value.targetType,
-    value.district,
-    value.category,
-    value.brandId,
-    value.minSpend,
-    value.minOrders,
-    value.inactiveDays,
-    value.customNumbers,
-    calculateCount,
-  ]);
+  }, [calculateCount]);
 
   return (
     <div className="space-y-4">

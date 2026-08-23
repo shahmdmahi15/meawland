@@ -6,6 +6,12 @@ export const metadata: Metadata = {
   title: "Shopping Cart | Meawland Pet Store",
   description:
     "Review your pet meals, grooming essentials, toys, and checkout securely with fast nationwide delivery in Bangladesh.",
+  robots: {
+    index: false,
+    follow: false,
+    noarchive: true,
+    nosnippet: true,
+  },
 };
 
 export const dynamic = "force-dynamic";

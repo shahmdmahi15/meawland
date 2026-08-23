@@ -8,6 +8,12 @@ export const metadata: Metadata = {
   title: "Secure Checkout | Meawland Pet Store",
   description:
     "Complete your order with cash on delivery or bKash payment across Bangladesh.",
+  robots: {
+    index: false,
+    follow: false,
+    noarchive: true,
+    nosnippet: true,
+  },
 };
 
 export default async function CheckoutPage() {

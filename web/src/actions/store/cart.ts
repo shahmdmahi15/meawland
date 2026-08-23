@@ -699,6 +699,9 @@ export async function getCartAction(): Promise<CartData> {
       checkoutDisableReason,
     };
   } catch (error) {
+    if ((error as { digest?: string })?.digest === "DYNAMIC_SERVER_USAGE") {
+      throw error;
+    }
     console.error("[Action.Store.Cart.GetCart] Error:", error);
     return {
       id: null,

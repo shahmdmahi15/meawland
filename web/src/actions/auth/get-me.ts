@@ -58,6 +58,9 @@ export async function getMeAction(): Promise<NavbarAccount | null> {
 
     return session.user || null;
   } catch (error) {
+    if ((error as { digest?: string })?.digest === "DYNAMIC_SERVER_USAGE") {
+      throw error;
+    }
     console.error("[Actions.Auth.GetNavbarAccount]:", error);
     return null;
   }

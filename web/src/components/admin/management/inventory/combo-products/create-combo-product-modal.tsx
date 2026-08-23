@@ -245,12 +245,6 @@ export function CreateComboProductModal({
   const bundleCapacity =
     allSelectedStocks.length > 0 ? Math.min(...allSelectedStocks) : 0;
 
-  const sourceImage =
-    selectedVariants[0]?.variant.imageBase64 ||
-    selectedSimpleProducts[0]?.imageBase64 ||
-    selectedVariants[0]?.product.imageBase64 ||
-    "";
-
   const selectionCount =
     selectedSimpleProducts.length + selectedVariants.length;
 
@@ -458,7 +452,7 @@ export function CreateComboProductModal({
                         </span>
                       ))}
 
-                      {selectedVariants.map(({ product, variant }) => (
+                      {selectedVariants.map(({ variant }) => (
                         <span
                           key={variant.id}
                           className="inline-flex items-center gap-1 rounded-md border bg-background px-2 py-0.5 text-[11px] font-medium text-foreground shadow-2xs"

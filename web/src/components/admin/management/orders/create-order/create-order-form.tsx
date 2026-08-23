@@ -38,6 +38,7 @@ import {
   X,
   Loader2,
   Tag,
+  ShieldAlert,
 } from "lucide-react";
 import {
   PaymentMethod,
@@ -59,6 +60,7 @@ import {
   DELIVERY_FEE_OUTSIDE_DHAKA,
 } from "@/constants/cart";
 import { BANGLADESH_DISTRICTS } from "@/lib/bangladesh-districts";
+import { OrderFraudRiskBadge } from "@/components/admin/fraud-checker/order-fraud-risk-badge";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -130,6 +132,8 @@ export function CreateOrderForm({ formData }: CreateOrderFormProps) {
 
   const rawWatchedItems = useWatch({ control, name: "items" });
   const watchedItems = useMemo(() => rawWatchedItems ?? [], [rawWatchedItems]);
+  const watchedName = useWatch({ control, name: "name" }) || "";
+  const watchedPhone = useWatch({ control, name: "phone" }) || "";
   const watchedDistrict = useWatch({ control, name: "district" }) || "Dhaka";
   const watchedCustomDeliveryFee = useWatch({
     control,
@@ -564,21 +568,60 @@ export function CreateOrderForm({ formData }: CreateOrderFormProps) {
 
                 {/* Phone */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-foreground">
-                    Phone Number <span className="text-destructive">*</span>
-                  </label>
-                  <Input
-                    {...register("phone")}
-                    placeholder="e.g. 01712345678"
-                    className="h-9 text-xs"
-                  />
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-foreground">
+                      Phone Number <span className="text-destructive">*</span>
+                    </label>
+                    {watchedPhone.trim().length >= 11 && (
+                      <span className="text-[11px] text-muted-foreground flex items-center gap-1 font-medium">
+                        <ShieldAlert className="w-3.5 h-3.5 text-primary" />
+                        Fraud Check Available
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      {...register("phone")}
+                      placeholder="e.g. 01712345678"
+                      className="h-9 text-xs flex-1"
+                    />
+                    {watchedPhone.trim().length >= 11 ? (
+                      <OrderFraudRiskBadge
+                        key={watchedPhone.trim()}
+                        phone={watchedPhone.trim()}
+                        customerName={watchedName || "Customer"}
+                        variant="button"
+                        className="h-9 text-xs px-3 bg-amber-500/10 border-amber-500/30 text-amber-700 hover:bg-amber-500/20 hover:text-amber-800 dark:text-amber-400 font-bold shrink-0 cursor-pointer shadow-2xs"
+                      />
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled
+                        className="h-9 text-xs px-3 opacity-50 gap-1.5 shrink-0"
+                        title="Enter 11-digit phone number to check fraud"
+                      >
+                        <ShieldAlert className="w-3.5 h-3.5 text-muted-foreground" />
+                        Check Fraud
+                      </Button>
+                    )}
+                  </div>
                   {errors.phone ? (
                     <p className="text-[11px] text-destructive">
                       {errors.phone.message}
                     </p>
                   ) : (
-                    <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                      📱 Customer will receive instant SMS confirmation.
+                    <p className="text-[10px] text-muted-foreground flex items-center justify-between gap-1">
+                      <span>
+                        📱 Customer will receive instant SMS confirmation.
+                      </span>
+                      {watchedPhone.trim().length >= 11 && (
+                        <span className="text-primary font-medium">
+                          Click &quot;Check Courier Fraud&quot; to verify
+                          delivery reliability.
+                        </span>
+                      )}
                     </p>
                   )}
                 </div>

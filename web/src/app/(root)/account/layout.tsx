@@ -1,5 +1,16 @@
+import { Metadata } from "next";
 import { getMeAction } from "@/actions/auth/get-me";
 import { AccountSidebar } from "@/components/root/account/account-sidebar";
+
+export const metadata: Metadata = {
+  title: "My Account | Meawland",
+  robots: {
+    index: false,
+    follow: false,
+    noarchive: true,
+    nosnippet: true,
+  },
+};
 
 export default async function AccountLayout({
   children,

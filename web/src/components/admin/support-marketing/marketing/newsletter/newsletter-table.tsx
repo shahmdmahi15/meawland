@@ -57,7 +57,7 @@ export function NewsletterTable({ subscribers, stats }: NewsletterTableProps) {
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [sourceFilter, setSourceFilter] = useState<string>("ALL");
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(15);
+  const pageSize = 15;
   const [isPending, startTransition] = useTransition();
 
   // Extract unique sources for filter dropdown
@@ -68,6 +68,29 @@ export function NewsletterTable({ subscribers, stats }: NewsletterTableProps) {
     }
     return Array.from(set);
   }, [subscribers]);
+
+  // Filtered subscribers
+  const filteredSubscribers = useMemo(() => {
+    return subscribers.filter((s) => {
+      if (statusFilter !== "ALL" && s.status !== statusFilter) return false;
+      if (sourceFilter !== "ALL" && (s.source || "UNKNOWN") !== sourceFilter) {
+        return false;
+      }
+
+      if (search.trim()) {
+        const q = search.trim().toLowerCase();
+        if (!s.email.toLowerCase().includes(q)) return false;
+      }
+
+      return true;
+    });
+  }, [subscribers, search, statusFilter, sourceFilter]);
+
+  const totalPages = Math.ceil(filteredSubscribers.length / pageSize) || 1;
+  const paginatedSubscribers = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredSubscribers.slice(start, start + pageSize);
+  }, [filteredSubscribers, currentPage, pageSize]);
 
   // Toggle status inline
   const handleToggleStatus = (id: string, currentStatus: NewsletterStatus) => {
@@ -131,29 +154,6 @@ export function NewsletterTable({ subscribers, stats }: NewsletterTableProps) {
     document.body.removeChild(link);
     toast.success("Subscriber list exported to CSV!");
   };
-
-  // Filtered subscribers
-  const filteredSubscribers = useMemo(() => {
-    return subscribers.filter((s) => {
-      if (statusFilter !== "ALL" && s.status !== statusFilter) return false;
-      if (sourceFilter !== "ALL" && (s.source || "UNKNOWN") !== sourceFilter) {
-        return false;
-      }
-
-      if (search.trim()) {
-        const q = search.trim().toLowerCase();
-        if (!s.email.toLowerCase().includes(q)) return false;
-      }
-
-      return true;
-    });
-  }, [subscribers, search, statusFilter, sourceFilter]);
-
-  const totalPages = Math.ceil(filteredSubscribers.length / pageSize) || 1;
-  const paginatedSubscribers = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return filteredSubscribers.slice(start, start + pageSize);
-  }, [filteredSubscribers, currentPage, pageSize]);
 
   return (
     <div className="space-y-6">

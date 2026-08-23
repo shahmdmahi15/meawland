@@ -8,6 +8,16 @@ import {
   type ProductCampaignBadge,
 } from "@/lib/campaign-helper";
 
+export type StoreComboIncludedItem = {
+  id: string;
+  name: string;
+  image?: string;
+  isVariant: boolean;
+  sku?: string;
+  regularPrice?: string | null;
+  salePrice?: string | null;
+};
+
 export type StoreComboProduct = {
   id: string;
   name: string;
@@ -22,15 +32,21 @@ export type StoreComboProduct = {
   savingsAmount?: number;
   campaignBadge?: ProductCampaignBadge | null;
   image: string;
+  gallery: string[];
   bundleStockCapacity: number;
   isAvailable: boolean;
   itemsCount: number;
-  includedItems: Array<{
-    id: string;
-    name: string;
-    image?: string;
-    isVariant: boolean;
-  }>;
+  includedItems: StoreComboIncludedItem[];
+  createdAt: string;
+};
+
+export type StoreComboFilterMeta = {
+  minPrice: number;
+  maxPrice: number;
+  totalCombos: number;
+  inStockCount: number;
+  outOfStockCount: number;
+  availableCampaigns: string[];
 };
 
 async function safeGetImageBase64(
@@ -49,10 +65,14 @@ async function safeGetImageBase64(
   }
 }
 
-export async function getStoreComboProductsAction(): Promise<{
+/**
+ * Retrieves all active combo products with full pricing, stock capacity, bundled contents, and filter meta.
+ */
+export async function getAllStoreComboProductsAction(): Promise<{
   success: boolean;
   message: string;
   combos: StoreComboProduct[];
+  meta: StoreComboFilterMeta;
 }> {
   try {
     const [dbCombos, activeCampaigns] = await Promise.all([
@@ -98,6 +118,14 @@ export async function getStoreComboProductsAction(): Promise<{
         success: true,
         message: "No combo products found",
         combos: [],
+        meta: {
+          minPrice: 0,
+          maxPrice: 0,
+          totalCombos: 0,
+          inStockCount: 0,
+          outOfStockCount: 0,
+          availableCampaigns: [],
+        },
       };
     }
 
@@ -148,18 +176,23 @@ export async function getStoreComboProductsAction(): Promise<{
         const isAvailable = bundleStockCapacity > 0;
 
         // Included items preview
-        const includedItems = [
+        const includedItems: StoreComboIncludedItem[] = [
           ...combo.products.map((p) => ({
             id: p.id,
             name: p.name,
             image: p.image,
             isVariant: false,
+            regularPrice: p.regularPrice,
+            salePrice: p.salePrice,
           })),
           ...combo.variants.map((v) => ({
             id: v.id,
             name: `${v.product.name} (${v.sku})`,
             image: v.image,
             isVariant: true,
+            sku: v.sku,
+            regularPrice: v.regularPrice,
+            salePrice: v.salePrice,
           })),
         ];
 
@@ -192,21 +225,73 @@ export async function getStoreComboProductsAction(): Promise<{
           isAvailable,
           itemsCount: combo.products.length + combo.variants.length,
           includedItems,
+          createdAt: combo.createdAt.toISOString(),
         };
       }),
     );
+
+    // Compute meta stats
+    const numericPrices = combos
+      .map((c) => c.numericPrice)
+      .filter((p) => p > 0);
+    const minPrice = numericPrices.length > 0 ? Math.min(...numericPrices) : 0;
+    const maxPrice = numericPrices.length > 0 ? Math.max(...numericPrices) : 0;
+    const inStockCount = combos.filter((c) => c.isAvailable).length;
+    const outOfStockCount = combos.length - inStockCount;
+
+    const campaignSet = new Set<string>();
+    for (const c of combos) {
+      if (c.campaignBadge?.badgeText) {
+        campaignSet.add(c.campaignBadge.badgeText);
+      }
+    }
 
     return {
       success: true,
       message: `Successfully retrieved ${combos.length} combo products`,
       combos,
+      meta: {
+        minPrice,
+        maxPrice,
+        totalCombos: combos.length,
+        inStockCount,
+        outOfStockCount,
+        availableCampaigns: Array.from(campaignSet),
+      },
     };
   } catch (error) {
-    console.error("[GetStoreComboProductsAction Error]:", error);
+    if ((error as { digest?: string })?.digest === "DYNAMIC_SERVER_USAGE") {
+      throw error;
+    }
+    console.error("[GetAllStoreComboProductsAction Error]:", error);
     return {
       success: false,
       message: "Failed to fetch combo products",
       combos: [],
+      meta: {
+        minPrice: 0,
+        maxPrice: 0,
+        totalCombos: 0,
+        inStockCount: 0,
+        outOfStockCount: 0,
+        availableCampaigns: [],
+      },
     };
   }
+}
+
+/**
+ * Backwards compatibility helper for existing components.
+ */
+export async function getStoreComboProductsAction(): Promise<{
+  success: boolean;
+  message: string;
+  combos: StoreComboProduct[];
+}> {
+  const result = await getAllStoreComboProductsAction();
+  return {
+    success: result.success,
+    message: result.message,
+    combos: result.combos,
+  };
 }

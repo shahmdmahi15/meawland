@@ -20,6 +20,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { MeawlandLoading } from "@/components/ui/meawland-loading";
+
 interface ProductsPageProps {
   searchParams: Promise<{
     q?: string;
@@ -41,9 +43,11 @@ export default async function ProductsPage({
     <main className="min-h-screen bg-white">
       <Suspense
         fallback={
-          <div className="min-h-screen flex items-center justify-center">
-            <div className="w-8 h-8 rounded-full border-2 border-[#56C8D8] border-t-transparent animate-spin" />
-          </div>
+          <MeawlandLoading
+            variant="page"
+            text="Loading all products..."
+            subtext="Exploring genuine pet food, care & accessories"
+          />
         }
       >
         <AllProductsView

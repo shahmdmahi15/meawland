@@ -32,6 +32,7 @@ export const CustomInvoiceDocument = forwardRef<
     >
       {/* Background Watermark Illustration */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden flex items-center justify-center opacity-85">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/invoice-bg.svg"
           alt="Invoice Watermark"
@@ -46,6 +47,7 @@ export const CustomInvoiceDocument = forwardRef<
           <div className="flex items-start justify-between gap-4">
             {/* Left: Logo */}
             <div className="w-[120px] flex items-center justify-start">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/logo.svg"
                 alt="Meawland"

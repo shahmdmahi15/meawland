@@ -66,16 +66,5 @@
     "tsx": "^4.23.5",
     "typescript": "^5"
   },
-  "packageManager": "pnpm@11.13.0",
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@prisma/client",
-      "@prisma/engines",
-      "core-js",
-      "esbuild",
-      "prisma",
-      "unrs-resolver"
-    ],
-    "ignoredBuiltDependencies": []
-  }
+  "packageManager": "pnpm@11.13.0"
 }

@@ -21,6 +21,7 @@ const categories = [
   { name: "Pet Dress", href: "/category/pet-dress" },
   { name: "Pet Toy", href: "/category/pet-toy" },
   { name: "Pet Litter", href: "/category/pet-litter" },
+  { name: "Combo Deals", href: "/combo-products" },
 ];
 
 import { useCart } from "@/context/cart-context";

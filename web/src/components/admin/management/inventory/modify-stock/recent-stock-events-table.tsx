@@ -228,8 +228,6 @@ export function RecentStockEventsTable({
               </TableRow>
             ) : (
               filteredEvents.map((event) => {
-                const isPositive = event.newStock >= event.previousStock;
-
                 return (
                   <TableRow key={event.id} className="hover:bg-muted/20">
                     {/* Timestamp */}

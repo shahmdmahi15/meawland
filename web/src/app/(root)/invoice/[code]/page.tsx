@@ -16,6 +16,12 @@ export async function generateMetadata({
   return {
     title: `Sales Invoice #${code} | Meawland`,
     description: `Official Sales Invoice for Order #${code} from Meawland Pet Store.`,
+    robots: {
+      index: false,
+      follow: false,
+      noarchive: true,
+      nosnippet: true,
+    },
   };
 }
 

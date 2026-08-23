@@ -74,7 +74,6 @@ export function CreateCampaignModal({
   const [campaignType, setCampaignType] = useState<SmsCampaignType>(
     SmsCampaignType.TARGETED_SEGMENT,
   );
-  const [senderId, setSenderId] = useState("");
   const [message, setMessage] = useState("");
   const [isScheduled, setIsScheduled] = useState(false);
   const [scheduleDate, setScheduleDate] = useState("");
@@ -112,7 +111,6 @@ export function CreateCampaignModal({
         title: title.trim(),
         type: campaignType,
         message: message.trim(),
-        senderId: senderId.trim() || undefined,
         filters: audienceFilter,
         scheduleAt: isScheduled && scheduleDate ? scheduleDate : null,
       });

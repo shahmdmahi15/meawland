@@ -458,7 +458,7 @@ export function EditComboProductModal({
                         </span>
                       ))}
 
-                      {selectedVariants.map(({ product, variant }) => (
+                      {selectedVariants.map(({ variant }) => (
                         <span
                           key={variant.id}
                           className="inline-flex items-center gap-1 rounded-md border bg-background px-2 py-0.5 text-[11px] font-medium text-foreground shadow-2xs"

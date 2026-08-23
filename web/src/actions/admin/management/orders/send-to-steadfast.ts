@@ -1,6 +1,7 @@
 "use server";
 
 import db from "@/lib/db";
+import { Prisma } from "@/generated/prisma/client";
 import { getMeAction } from "@/actions/auth/get-me";
 import { Role } from "@/generated/prisma/enums";
 import {
@@ -200,7 +201,9 @@ export async function sendOrderToSteadfastAction(
           note: consignment.note,
           status: courierStatus,
           rawStatus: consignment.status,
-          rawResponse: result.data as any,
+          rawResponse:
+            (result.data as unknown as Prisma.InputJsonValue) ??
+            Prisma.JsonNull,
           lastCheckedAt: new Date(),
         },
         update: {
@@ -216,7 +219,9 @@ export async function sendOrderToSteadfastAction(
           note: consignment.note,
           status: courierStatus,
           rawStatus: consignment.status,
-          rawResponse: result.data as any,
+          rawResponse:
+            (result.data as unknown as Prisma.InputJsonValue) ??
+            Prisma.JsonNull,
           lastCheckedAt: new Date(),
         },
       });

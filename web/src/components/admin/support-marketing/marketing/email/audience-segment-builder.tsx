@@ -144,7 +144,7 @@ export function AudienceSegmentBuilder({
     Array<{ maskedEmail: string; name: string; district?: string | null }>
   >([]);
 
-  const calculateCount = () => {
+  useEffect(() => {
     startTransition(async () => {
       const res = await calculateEmailAudienceCountAction(value);
       if (res.success) {
@@ -152,21 +152,7 @@ export function AudienceSegmentBuilder({
         setSampleRecipients(res.sampleRecipients || []);
       }
     });
-  };
-
-  useEffect(() => {
-    calculateCount();
-  }, [
-    value.targetType,
-    value.district,
-    value.category,
-    value.brandId,
-    value.minSpend,
-    value.minOrders,
-    value.inactiveDays,
-    value.customEmails,
-    calculateCount,
-  ]);
+  }, [value]);
 
   return (
     <div className="space-y-4">

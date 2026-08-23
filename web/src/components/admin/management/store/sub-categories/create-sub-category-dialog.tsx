@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import {
   Dialog,
   DialogContent,
@@ -65,8 +65,8 @@ export function CreateSubCategoryDialog({
     handleSubmit,
     formState: { errors },
     setValue,
-    watch,
     reset,
+    control,
   } = useForm<CreateSubCategoryInput>({
     resolver: zodResolver(createSubCategorySchema),
     defaultValues: {
@@ -76,7 +76,11 @@ export function CreateSubCategoryDialog({
     },
   });
 
-  const selectedCategory = watch("category");
+  const selectedCategory = useWatch({
+    control,
+    name: "category",
+    defaultValue: Category.PET_ACCESSORIES,
+  });
 
   // Auto-generate slug from name
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {

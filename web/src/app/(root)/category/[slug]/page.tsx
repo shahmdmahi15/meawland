@@ -6,6 +6,7 @@ import { CategoryHeader } from "@/components/root/store/category-header";
 import { SubCategoryCarousel } from "@/components/root/store/sub-category-carousel";
 import { SubCategoryPills } from "@/components/root/store/sub-category-pills";
 import { ProductGrid } from "@/components/root/store/product-grid";
+import { BreadcrumbsJsonLd } from "@/components/seo/structured-data";
 
 interface CategoryPageProps {
   params: Promise<{
@@ -49,6 +50,13 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
   return (
     <main className="min-h-screen bg-white pb-20">
+      <BreadcrumbsJsonLd
+        items={[
+          { name: "Home", url: "/" },
+          { name: "Categories", url: "/categories" },
+          { name: categoryTitle, url: `/category/${slug}` },
+        ]}
+      />
       {/* Category Header Banner */}
       <CategoryHeader
         title={categoryTitle}

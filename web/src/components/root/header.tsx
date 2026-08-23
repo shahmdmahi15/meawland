@@ -22,13 +22,14 @@ import {
 import { useCart } from "@/context/cart-context";
 
 const navItems = [
-  { label: "Pet Accessories", href: "/category/pet-accessories" },
-  { label: "Pet Care", href: "/category/pet-care" },
-  { label: "Pet Food", href: "/category/pet-food" },
-  { label: "Pet Medicine", href: "/category/pet-medicine" },
-  { label: "Pet Dress", href: "/category/pet-dress" },
-  { label: "Pet Toy", href: "/category/pet-toy" },
-  { label: "Pet Litter", href: "/category/pet-litter" },
+  { label: "Accessories", href: "/category/pet-accessories" },
+  { label: "Care", href: "/category/pet-care" },
+  { label: "Food", href: "/category/pet-food" },
+  { label: "Medicine", href: "/category/pet-medicine" },
+  { label: "Dress", href: "/category/pet-dress" },
+  { label: "Toy", href: "/category/pet-toy" },
+  { label: "Litter", href: "/category/pet-litter" },
+  { label: "Combo Deals", href: "/combo-products" },
 ];
 
 export function Header({ user }: { user: NavbarAccount | null }) {
@@ -190,9 +191,9 @@ export function Header({ user }: { user: NavbarAccount | null }) {
 
                   {searchResult.products.length === 0 ? (
                     <div className="py-4 text-center flex flex-col items-center justify-center space-y-1">
-                      <div className="relative w-14 h-14 mx-auto">
+                      <div className="relative w-16 h-16 mx-auto">
                         <Image
-                          src="/empty-cat.gif"
+                          src="/search.gif"
                           alt="No matches"
                           fill
                           className="object-contain"

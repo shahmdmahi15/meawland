@@ -437,9 +437,9 @@ export function ProductGrid({
         {/* Main Products Rendering */}
         {filteredAndSortedProducts.length === 0 ? (
           <div className="py-12 sm:py-16 text-center flex flex-col items-center justify-center gap-3 bg-[#F0F8FF]/40 rounded-3xl border border-dashed border-[#D4EEFC] px-4">
-            <div className="relative w-32 h-32 sm:w-40 sm:h-40 mx-auto">
+            <div className="relative w-36 h-36 sm:w-44 sm:h-44 mx-auto">
               <Image
-                src="/empty-cat.gif"
+                src="/search.gif"
                 alt="Empty products"
                 fill
                 className="object-contain"

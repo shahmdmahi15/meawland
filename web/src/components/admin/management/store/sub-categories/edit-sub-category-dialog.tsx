@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import {
   Dialog,
   DialogContent,
@@ -73,8 +73,8 @@ export function EditSubCategoryDialog({
     handleSubmit,
     formState: { errors },
     setValue,
-    watch,
     reset,
+    control,
   } = useForm<UpdateSubCategoryInput>({
     resolver: zodResolver(updateSubCategorySchema),
     defaultValues: {
@@ -85,19 +85,25 @@ export function EditSubCategoryDialog({
     },
   });
 
-  const selectedCategory = watch("category");
+  const selectedCategory = useWatch({
+    control,
+    name: "category",
+    defaultValue: subCategory.category,
+  });
 
-  useEffect(() => {
-    if (!open) return;
-    reset({
-      id: subCategory.id,
-      name: subCategory.name,
-      slug: subCategory.slug,
-      category: subCategory.category,
-    });
-    setSelectedImage(null);
-    setImagePreview(subCategory.image || null);
-  }, [open, reset, subCategory]);
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      reset({
+        id: subCategory.id,
+        name: subCategory.name,
+        slug: subCategory.slug,
+        category: subCategory.category,
+      });
+      setSelectedImage(null);
+      setImagePreview(subCategory.image || null);
+    }
+    onOpenChange(nextOpen);
+  };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const name = e.target.value;
@@ -171,7 +177,7 @@ export function EditSubCategoryDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Edit Sub-Category</DialogTitle>

@@ -75,7 +75,7 @@ export function AuditLogsTable({
   const [logs, setLogs] = useState<AdminAuditLogSummary[]>(initialLogs);
   const [total, setTotal] = useState<number>(initialTotal);
   const [page, setPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(20);
+  const pageSize = 20;
 
   // Filters State
   const [search, setSearch] = useState("");

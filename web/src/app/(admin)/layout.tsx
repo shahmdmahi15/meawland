@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import {
   SidebarInset,
   SidebarProvider,
@@ -6,6 +7,16 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { AdminSidebar } from "@/components/admin/sidebar/sidebar";
 import { getMeAction } from "@/actions/auth/get-me";
+
+export const metadata: Metadata = {
+  title: "Admin Portal | Meawland",
+  robots: {
+    index: false,
+    follow: false,
+    noarchive: true,
+    nosnippet: true,
+  },
+};
 
 export default async function AdminLayout({
   children,
