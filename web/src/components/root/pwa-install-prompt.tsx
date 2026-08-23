@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import Image from "next/image";
 import { Download, X, Sparkles } from "lucide-react";
 import { usePWA } from "@/components/providers/pwa-provider";
