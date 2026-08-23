@@ -117,7 +117,7 @@ export const CourierStickerCard = forwardRef<
         <div className="w-full flex items-center justify-center overflow-hidden">
           <InvoiceBarcode
             value={sticker.consignmentId}
-            width={1.3}
+            width={0.95}
             height={20}
             displayValue={false}
             className="max-w-full h-[18px] object-contain"
@@ -145,7 +145,7 @@ export const CourierStickerCard = forwardRef<
         <div className="w-full flex items-center justify-center overflow-hidden">
           <InvoiceBarcode
             value={sticker.invoiceId}
-            width={1.3}
+            width={0.95}
             height={20}
             displayValue={false}
             className="max-w-full h-[18px] object-contain"

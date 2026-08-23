@@ -408,6 +408,7 @@ model Product {
   regularPrice     String?
   salePrice        String?
   stock            Int?
+  specifications   Json?
 
   // Forign Keys
   subCategoryId String

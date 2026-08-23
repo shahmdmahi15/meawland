@@ -54,7 +54,7 @@ export function Hero({ sliders }: HeroProps) {
   const currentSlide = displaySlides[selectedIndex] ?? displaySlides[0];
 
   return (
-    <section className="relative w-full h-[40vh] md:h-[60vh] lg:h-[80vh] xl:h-[90vh] overflow-hidden rounded-b-[2.5rem] md:rounded-b-[4rem] shadow-2xl">
+    <section className="relative w-full h-[40vh] md:h-[60vh] lg:h-[80vh] xl:h-[90vh] overflow-hidden rounded-b-2xl sm:rounded-b-3xl md:rounded-b-[4rem] shadow-2xl">
       {/* Embla Carousel */}
       <div className="absolute inset-0 overflow-hidden" ref={emblaRef}>
         <div className="flex h-full">

@@ -13,8 +13,8 @@ interface InvoiceBarcodeProps {
 
 export function InvoiceBarcode({
   value,
-  width = 1.6,
-  height = 36,
+  width = 1.0,
+  height = 32,
   displayValue = false,
   className,
 }: InvoiceBarcodeProps) {

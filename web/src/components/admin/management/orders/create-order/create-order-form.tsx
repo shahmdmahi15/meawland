@@ -1202,7 +1202,7 @@ export function CreateOrderForm({ formData }: CreateOrderFormProps) {
               <Button
                 type="submit"
                 disabled={isPending || fields.length === 0}
-                className="w-full h-10 mt-4 text-xs font-bold gap-2"
+                className="w-full h-11 sm:h-12 min-h-[44px] mt-4 text-xs sm:text-sm font-black gap-2 shadow-md cursor-pointer"
               >
                 {isPending ? (
                   <>

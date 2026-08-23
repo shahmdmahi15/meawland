@@ -42,6 +42,8 @@ import { AttributeType, Category } from "@/generated/prisma/enums";
 import { formatCategory } from "@/lib/utils";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { SpecificationsBuilder } from "./specifications-builder";
+import { RichDescriptionEditor } from "./rich-description-editor";
 
 import {
   ArrowLeft,
@@ -116,6 +118,7 @@ export function CreateProductForm({
       regularPrice: "",
       salePrice: "",
       stock: 0,
+      specifications: [],
       // Empty variants by default — populated when user selects Variable Product
       variants: [],
     },
@@ -124,6 +127,16 @@ export function CreateProductForm({
   const isVariable = useWatch({
     control,
     name: "isVariable",
+  });
+
+  const specifications = useWatch({
+    control,
+    name: "specifications",
+  });
+
+  const longDescription = useWatch({
+    control,
+    name: "longDescription",
   });
 
   // Dynamic variants array for Variable Products
@@ -488,18 +501,35 @@ export function CreateProductForm({
               {/* Long Description */}
               <Field>
                 <FieldLabel htmlFor="longDescription">
-                  Full Detailed Description *
+                  Full Detailed Description (Rich Text, HTML &amp; Markdown) *
                 </FieldLabel>
                 <FieldContent>
-                  <Textarea
-                    id="longDescription"
-                    placeholder="Comprehensive description, features, feeding guide, ingredients..."
-                    rows={5}
-                    {...register("longDescription")}
+                  <RichDescriptionEditor
+                    value={longDescription || ""}
+                    onChange={(val) =>
+                      setValue("longDescription", val, {
+                        shouldValidate: true,
+                      })
+                    }
+                    disabled={isSubmitting}
+                    placeholder="Comprehensive description, key highlights, feeding guide, ingredients..."
                   />
                   <FieldError errors={[errors.longDescription]} />
                 </FieldContent>
               </Field>
+            </CardContent>
+          </Card>
+
+          {/* ── Custom Specifications Card ── */}
+          <Card>
+            <CardContent className="p-5 sm:p-6">
+              <SpecificationsBuilder
+                specifications={specifications || []}
+                onChange={(specs) =>
+                  setValue("specifications", specs, { shouldValidate: true })
+                }
+                disabled={isSubmitting}
+              />
             </CardContent>
           </Card>
 

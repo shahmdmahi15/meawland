@@ -65,6 +65,15 @@ const updateVariantSchema = z.object({
 
 export type UpdateVariantInput = z.infer<typeof updateVariantSchema>;
 
+export const productSpecificationSchema = z.object({
+  key: z.string().min(1, "Specification label is required"),
+  value: z.string().min(1, "Specification value is required"),
+});
+
+export type ProductSpecificationInput = z.infer<
+  typeof productSpecificationSchema
+>;
+
 export const updateProductSchema = z
   .object({
     id: z.string().min(1, "Product ID is required"),
@@ -82,6 +91,8 @@ export const updateProductSchema = z
     longDescription: z.string().min(10, "Long description is required"),
     subCategoryId: z.string().min(1, "Sub-category selection is required"),
     brandId: z.string().nullable().optional(),
+
+    specifications: z.array(productSpecificationSchema).optional().default([]),
 
     image: optionalFileSchema.optional(),
     galleryAdd: z.array(fileSchema).optional().default([]),

@@ -76,8 +76,8 @@ export const CustomInvoiceDocument = forwardRef<
               <div className="flex justify-end">
                 <InvoiceBarcode
                   value={data.invoiceCode}
-                  width={1.4}
-                  height={34}
+                  width={0.95}
+                  height={30}
                 />
               </div>
               <div className="text-[12px] font-medium text-gray-800 leading-tight">

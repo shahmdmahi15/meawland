@@ -710,51 +710,82 @@ export function ProductDetailsView({
           )}
 
           {activeTab === "specs" && (
-            <div className="bg-[#F0F8FF]/40 rounded-3xl p-6 sm:p-8 border border-[#D4EEFC]">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm">
-                <div className="flex justify-between py-2 border-b border-gray-200">
-                  <span className="text-gray-500 font-medium">
-                    Product Brand
-                  </span>
-                  <span className="font-bold text-gray-900">
-                    {product.brandName || "Meawland Original"}
-                  </span>
-                </div>
-                <div className="flex justify-between py-2 border-b border-gray-200">
-                  <span className="text-gray-500 font-medium">Category</span>
-                  <span className="font-bold text-gray-900">
-                    {product.categoryTitle || "Pet Supplies"}
-                  </span>
-                </div>
-                <div className="flex justify-between py-2 border-b border-gray-200">
-                  <span className="text-gray-500 font-medium">
-                    Sub Category
-                  </span>
-                  <span className="font-bold text-gray-900">
-                    {product.subCategoryName || "General Care"}
-                  </span>
-                </div>
-                <div className="flex justify-between py-2 border-b border-gray-200">
-                  <span className="text-gray-500 font-medium">SKU</span>
-                  <span className="font-bold text-gray-900 uppercase">
-                    {currentSku}
-                  </span>
-                </div>
-                <div className="flex justify-between py-2 border-b border-gray-200">
-                  <span className="text-gray-500 font-medium">Item Code</span>
-                  <span className="font-bold text-gray-900">
-                    {product.code}
-                  </span>
-                </div>
-                <div className="flex justify-between py-2 border-b border-gray-200">
-                  <span className="text-gray-500 font-medium">
-                    Available Stock
-                  </span>
-                  <span className="font-bold text-gray-900">
-                    {activeStock} Units
-                  </span>
+            <div className="bg-[#F0F8FF]/40 rounded-3xl p-6 sm:p-8 border border-[#D4EEFC] space-y-6">
+              {/* Predefined Core Specifications */}
+              <div>
+                <h4 className="text-xs font-black text-gray-400 uppercase tracking-wider mb-3">
+                  General Product Information
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-xs sm:text-sm">
+                  <div className="flex justify-between py-2 border-b border-gray-200">
+                    <span className="text-gray-500 font-medium">
+                      Product Brand
+                    </span>
+                    <span className="font-bold text-gray-900">
+                      {product.brandName || "Meawland Original"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b border-gray-200">
+                    <span className="text-gray-500 font-medium">Category</span>
+                    <span className="font-bold text-gray-900">
+                      {product.categoryTitle || "Pet Supplies"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b border-gray-200">
+                    <span className="text-gray-500 font-medium">
+                      Sub Category
+                    </span>
+                    <span className="font-bold text-gray-900">
+                      {product.subCategoryName || "General Care"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b border-gray-200">
+                    <span className="text-gray-500 font-medium">SKU</span>
+                    <span className="font-bold text-gray-900 uppercase font-mono">
+                      {currentSku}
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b border-gray-200">
+                    <span className="text-gray-500 font-medium">Item Code</span>
+                    <span className="font-bold text-gray-900 font-mono">
+                      {product.code}
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b border-gray-200">
+                    <span className="text-gray-500 font-medium">
+                      Available Stock
+                    </span>
+                    <span className="font-bold text-emerald-600">
+                      {activeStock} Units
+                    </span>
+                  </div>
                 </div>
               </div>
+
+              {/* Custom Defined Specifications (Material, Pet Type, Life Stage, Origin, etc.) */}
+              {product.customSpecifications &&
+                product.customSpecifications.length > 0 && (
+                  <div className="pt-2 border-t border-[#D4EEFC]/60">
+                    <h4 className="text-xs font-black text-gray-400 uppercase tracking-wider mb-3">
+                      Detailed Attributes &amp; Specifications
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-xs sm:text-sm">
+                      {product.customSpecifications.map((spec, idx) => (
+                        <div
+                          key={`${spec.key}-${idx}`}
+                          className="flex justify-between items-center py-2.5 border-b border-gray-200"
+                        >
+                          <span className="text-gray-500 font-medium">
+                            {spec.key}
+                          </span>
+                          <span className="font-bold text-gray-900 text-right max-w-[240px] break-words">
+                            {spec.value}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
             </div>
           )}
         </div>
@@ -834,7 +865,7 @@ export function ProductDetailsView({
                 </div>
 
                 <div className="w-full mt-3">
-                  <div className="w-full py-1.5 rounded-xl border border-[#56C8D8] text-[#56C8D8] group-hover:bg-[#56C8D8] group-hover:text-white font-bold text-[10px] sm:text-xs transition-colors">
+                  <div className="w-full min-h-[38px] flex items-center justify-center py-2 px-3 rounded-xl border border-[#56C8D8] text-[#56C8D8] group-hover:bg-[#56C8D8] group-hover:text-white font-black text-xs transition-colors">
                     View Product
                   </div>
                 </div>

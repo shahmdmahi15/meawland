@@ -352,7 +352,7 @@ export function buildBkashPaymentEmailHtml(params: {
     </div>
 
     <div style="text-align: center;">
-      <a href="${APP_URL}/checkout/success/${params.orderCode}" style="display: inline-block; background-color: ${BRAND_COLOR}; color: #ffffff; font-weight: 800; font-size: 14px; text-decoration: none; padding: 14px 32px; border-radius: 14px;">
+      <a href="${APP_URL}/invoice/${params.orderCode}" style="display: inline-block; background-color: ${BRAND_COLOR}; color: #ffffff; font-weight: 800; font-size: 14px; text-decoration: none; padding: 14px 32px; border-radius: 14px;">
         View Order Receipt 📄
       </a>
     </div>

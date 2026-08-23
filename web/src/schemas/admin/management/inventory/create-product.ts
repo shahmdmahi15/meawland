@@ -52,6 +52,15 @@ export type VariantInput = z.infer<typeof variantSchema>;
 // This is the only reliable way to prevent Zod from validating variant
 // fields (e.g. image File check) when isVariable === false.
 // -----------------------------------------------------------------------
+export const productSpecificationSchema = z.object({
+  key: z.string().min(1, "Specification label is required"),
+  value: z.string().min(1, "Specification value is required"),
+});
+
+export type ProductSpecificationInput = z.infer<
+  typeof productSpecificationSchema
+>;
+
 export const baseProductSchema = z.object({
   name: z.string().min(2, "Product name must be at least 2 characters"),
   sku: z.string().min(1, "Product SKU is required"),
@@ -66,6 +75,9 @@ export const baseProductSchema = z.object({
   longDescription: z.string().min(10, "Long description is required"),
   subCategoryId: z.string().min(1, "Sub-category selection is required"),
   brandId: z.string().nullable().optional(),
+
+  // Custom Specifications array
+  specifications: z.array(productSpecificationSchema).optional().default([]),
 
   // Primary image & Gallery images
   image: fileSchema,

@@ -1071,7 +1071,7 @@ function ComboGridCard({
           <div className="grid grid-cols-2 gap-2 pt-1">
             <Link
               href={`/product/${comboSlug}`}
-              className="w-full text-center py-2.5 px-3 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold transition-colors"
+              className="w-full min-h-[40px] flex items-center justify-center text-center py-2.5 px-3 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold transition-colors"
             >
               View Deal
             </Link>
@@ -1081,7 +1081,7 @@ function ComboGridCard({
               disabled={!combo.isAvailable || isAdding}
               onClick={onAddToCart}
               className={cn(
-                "w-full h-auto py-2.5 px-3 rounded-2xl text-xs font-bold text-white transition-all shadow-md gap-1.5 cursor-pointer",
+                "w-full min-h-[40px] py-2.5 px-3 rounded-2xl text-xs font-bold text-white transition-all shadow-md gap-1.5 cursor-pointer",
                 combo.isAvailable
                   ? "bg-[#56C8D8] hover:bg-[#38bdf8]"
                   : "bg-gray-300 cursor-not-allowed",
@@ -1221,7 +1221,7 @@ function ComboListCard({
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <Link
             href={`/product/${comboSlug}`}
-            className="flex-1 sm:flex-none py-2 px-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold text-center"
+            className="flex-1 sm:flex-none min-h-[40px] flex items-center justify-center py-2.5 px-4 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold text-center transition-colors"
           >
             Details
           </Link>
@@ -1229,7 +1229,7 @@ function ComboListCard({
             type="button"
             disabled={!combo.isAvailable || isAdding}
             onClick={onAddToCart}
-            className="flex-1 sm:flex-none h-9 text-xs font-bold text-white bg-[#56C8D8] hover:bg-[#38bdf8] rounded-xl gap-1.5 shadow-xs"
+            className="flex-1 sm:flex-none min-h-[40px] h-10 text-xs font-bold text-white bg-[#56C8D8] hover:bg-[#38bdf8] rounded-xl gap-1.5 shadow-xs px-4"
           >
             {isAdding ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />

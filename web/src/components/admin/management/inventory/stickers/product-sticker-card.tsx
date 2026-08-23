@@ -103,7 +103,7 @@ export const ProductStickerCard = forwardRef<
         <div className="w-full flex items-center justify-center overflow-hidden">
           <InvoiceBarcode
             value={sticker.barcodeValue || sticker.sku}
-            width={1.35}
+            width={1.0}
             height={22}
             displayValue={false}
             className="max-w-full h-[19px] object-contain"

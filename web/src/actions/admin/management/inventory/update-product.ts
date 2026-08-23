@@ -285,6 +285,7 @@ export async function updateProductAction(input: UpdateProductInput): Promise<{
           brandId: data.brandId || null,
           image: nextMainImageKey,
           gallery: nextGallery,
+          specifications: data.specifications ?? undefined,
           costPrice: existing.isVariable ? existing.costPrice : data.costPrice,
           regularPrice: existing.isVariable
             ? existing.regularPrice

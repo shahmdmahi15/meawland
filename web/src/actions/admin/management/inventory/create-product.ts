@@ -181,6 +181,12 @@ export async function createProductAction(input: CreateProductInput): Promise<{
           salePrice: !data.isVariable ? data.salePrice : null,
           stock: !data.isVariable ? data.stock : null,
 
+          // Custom specifications (key-value pairs)
+          specifications:
+            data.specifications && data.specifications.length > 0
+              ? data.specifications
+              : undefined,
+
           // Foreign keys
           subCategoryId: data.subCategoryId,
           brandId: data.brandId || null,

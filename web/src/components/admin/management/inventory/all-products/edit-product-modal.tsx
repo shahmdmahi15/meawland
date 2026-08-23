@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -35,6 +34,9 @@ import { formatCategory } from "@/lib/utils";
 import { Category, AttributeType } from "@/generated/prisma/enums";
 import type { FullProduct } from "@/actions/admin/management/inventory/get-all-products";
 import { updateProductAction } from "@/actions/admin/management/inventory/update-product";
+import { SpecificationsBuilder } from "../specifications-builder";
+import { RichDescriptionEditor } from "../rich-description-editor";
+import type { ProductSpecificationInput } from "@/schemas/admin/management/inventory/update-product";
 
 interface EditProductModalProps {
   product: FullProduct;
@@ -122,6 +124,14 @@ export function EditProductModal({
   const [subCategoryId, setSubCategoryId] = useState(product.subCategoryId);
   const [brandId, setBrandId] = useState(product.brandId || "NONE");
 
+  const [specifications, setSpecifications] = useState<
+    ProductSpecificationInput[]
+  >(
+    Array.isArray(product.specifications)
+      ? (product.specifications as ProductSpecificationInput[])
+      : [],
+  );
+
   const [costPrice, setCostPrice] = useState(product.costPrice || "");
   const [regularPrice, setRegularPrice] = useState(product.regularPrice || "");
   const [salePrice, setSalePrice] = useState(product.salePrice || "");
@@ -173,6 +183,11 @@ export function EditProductModal({
     setLongDescription(product.longDescription);
     setSubCategoryId(product.subCategoryId);
     setBrandId(product.brandId || "NONE");
+    setSpecifications(
+      Array.isArray(product.specifications)
+        ? (product.specifications as ProductSpecificationInput[])
+        : [],
+    );
     setCostPrice(product.costPrice || "");
     setRegularPrice(product.regularPrice || "");
     setSalePrice(product.salePrice || "");
@@ -611,6 +626,9 @@ export function EditProductModal({
       longDescription: longDescription.trim(),
       subCategoryId,
       brandId: brandId === "NONE" ? null : brandId,
+      specifications: specifications.filter(
+        (s) => s.key.trim() && s.value.trim(),
+      ),
       image: mainImageFile || undefined,
       galleryAdd: newGalleryFiles,
       removeGalleryKeys: removedGalleryKeys,
@@ -919,13 +937,21 @@ export function EditProductModal({
 
               <div className="space-y-2">
                 <Label htmlFor={`edit-product-long-${product.id}`}>
-                  Long Description
+                  Full Detailed Description (Rich Text &amp; HTML)
                 </Label>
-                <Textarea
-                  id={`edit-product-long-${product.id}`}
+                <RichDescriptionEditor
                   value={longDescription}
-                  onChange={(e) => setLongDescription(e.target.value)}
-                  rows={5}
+                  onChange={setLongDescription}
+                  disabled={isSubmitting}
+                  placeholder="Comprehensive description, features, feeding guide, ingredients..."
+                />
+              </div>
+
+              <div className="rounded-2xl border p-4 bg-muted/20">
+                <SpecificationsBuilder
+                  specifications={specifications}
+                  onChange={setSpecifications}
+                  disabled={isSubmitting}
                 />
               </div>
 

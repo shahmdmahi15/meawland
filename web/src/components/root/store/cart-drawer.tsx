@@ -372,7 +372,7 @@ export function CartDrawer() {
                 >
                   <Button
                     disabled={cart.isCheckoutDisabled}
-                    className="w-full h-11 rounded-full bg-[#56C8D8] hover:bg-[#45B0BF] text-white font-black text-xs sm:text-sm shadow-md gap-2 cursor-pointer transition-all hover:scale-[1.01]"
+                    className="w-full h-12 min-h-[48px] rounded-full bg-[#56C8D8] hover:bg-[#45B0BF] text-white font-black text-sm shadow-md gap-2 cursor-pointer transition-all hover:scale-[1.01]"
                   >
                     <span>Proceed to Checkout</span>
                     <ArrowRight className="w-4 h-4" />
@@ -382,7 +382,7 @@ export function CartDrawer() {
                 <Link
                   href="/cart"
                   onClick={closeDrawer}
-                  className="block text-center text-xs font-bold text-gray-600 hover:text-[#56C8D8] transition-colors py-1"
+                  className="block text-center text-xs font-bold text-gray-600 hover:text-[#56C8D8] transition-colors py-2 min-h-[38px] flex items-center justify-center"
                 >
                   View &amp; Edit Full Cart Page
                 </Link>

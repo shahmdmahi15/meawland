@@ -643,7 +643,7 @@ function ProductGridCard({ product }: { product: ProductGridItem }) {
 
         {/* View Product CTA Button */}
         <div className="w-full mt-auto">
-          <div className="w-full border-2 border-[#56C8D8] text-[#56C8D8] group-hover:bg-[#56C8D8] group-hover:text-white font-black text-[10px] sm:text-xs tracking-wider uppercase rounded-2xl py-2 sm:py-2.5 px-3 transition-all shadow-xs text-center">
+          <div className="w-full border-2 border-[#56C8D8] text-[#56C8D8] group-hover:bg-[#56C8D8] group-hover:text-white font-black text-xs tracking-wider uppercase rounded-2xl min-h-[40px] sm:min-h-[44px] flex items-center justify-center py-2.5 px-3 transition-all shadow-xs text-center">
             {"isVariable" in product && product.isVariable
               ? "SELECT OPTIONS"
               : "VIEW PRODUCT"}
@@ -788,7 +788,7 @@ function ProductListCard({ product }: { product: ProductGridItem }) {
             />
           </button>
 
-          <div className="border-2 border-[#56C8D8] text-[#56C8D8] group-hover:bg-[#56C8D8] group-hover:text-white font-black text-xs tracking-wider uppercase rounded-2xl py-2 px-4 transition-all text-center">
+          <div className="border-2 border-[#56C8D8] text-[#56C8D8] group-hover:bg-[#56C8D8] group-hover:text-white font-black text-xs tracking-wider uppercase rounded-2xl min-h-[40px] flex items-center justify-center py-2.5 px-4 transition-all text-center">
             View Details
           </div>
         </div>

@@ -72,6 +72,11 @@ export type RelatedProductItem = {
   subCategoryName?: string;
 };
 
+export type ProductSpecificationItem = {
+  key: string;
+  value: string;
+};
+
 export type ProductDetailData = {
   id: string;
   itemType: "PRODUCT" | "COMBO";
@@ -104,6 +109,7 @@ export type ProductDetailData = {
   subCategorySlug?: string;
   brandName?: string;
   brandSlug?: string;
+  customSpecifications?: ProductSpecificationItem[];
   variants: ProductDetailVariant[];
   attributeGroups: AttributeGroup[];
   comboProducts?: ComboBundleItem[];
@@ -434,6 +440,9 @@ export async function getProductDetailsAction(slug: string): Promise<{
           subCategorySlug: product.subCategory.slug,
           brandName: product.brand?.name,
           brandSlug: product.brand?.slug,
+          customSpecifications: Array.isArray(product.specifications)
+            ? (product.specifications as ProductSpecificationItem[])
+            : [],
           variants: processedVariants,
           attributeGroups,
           relatedProducts,
