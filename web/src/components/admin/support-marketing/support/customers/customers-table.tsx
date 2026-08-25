@@ -468,13 +468,14 @@ export function CustomersTable({ customers, stats }: CustomersTableProps) {
                           customerSummary={cust}
                           isOpen={effectiveActiveCustomerId === cust.id}
                           onOpenChange={(isOpen) => {
-                            if (
-                              !isOpen &&
-                              effectiveActiveCustomerId === cust.id
-                            ) {
-                              setActiveModalCustomerId(null);
-                              if (urlCustomerId || urlCustomerCode) {
-                                router.replace(pathname, { scroll: false });
+                            if (isOpen) {
+                              setActiveModalCustomerId(cust.id);
+                            } else {
+                              if (effectiveActiveCustomerId === cust.id) {
+                                setActiveModalCustomerId(null);
+                                if (urlCustomerId || urlCustomerCode) {
+                                  router.replace(pathname, { scroll: false });
+                                }
                               }
                             }
                           }}

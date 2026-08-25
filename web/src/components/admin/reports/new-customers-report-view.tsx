@@ -451,7 +451,7 @@ export function NewCustomersReportView({
                     {/* Action */}
                     <TableCell className="text-right">
                       <Link
-                        href={`/admin/support-marketing/support/customers`}
+                        href={`/admin/support-marketing/support/customers?customerId=${c.id}`}
                         className="text-xs font-bold text-[#0097a7] hover:underline inline-flex items-center gap-1"
                       >
                         <span>Profile</span>

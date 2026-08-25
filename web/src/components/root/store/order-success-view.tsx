@@ -88,6 +88,19 @@ export function OrderSuccessView({ order }: OrderSuccessViewProps) {
           </p>
         </div>
 
+        {/* Celebration GIF */}
+        <div className="flex justify-center py-1">
+          <Image
+            src="/order-success.gif"
+            alt="Order Successful Celebration"
+            width={180}
+            height={180}
+            className="w-36 h-36 sm:w-44 sm:h-44 object-contain"
+            priority
+            unoptimized
+          />
+        </div>
+
         {/* Order Code Badge */}
         <div className="pt-2 flex items-center justify-center gap-2">
           <div className="px-4 py-2 rounded-2xl bg-white border border-[#D4EEFC] shadow-2xs flex items-center gap-3">

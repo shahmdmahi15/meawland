@@ -443,7 +443,7 @@ export function BestSellingReportView({
                     {/* Action */}
                     <TableCell className="text-right">
                       <Link
-                        href={`//admin/management/inventory/all-products`}
+                        href={`/admin/management/inventory/all-products?productId=${item.productId}`}
                         className="text-xs font-bold text-[#0097a7] hover:underline inline-flex items-center gap-1"
                       >
                         <span>Manage</span>
