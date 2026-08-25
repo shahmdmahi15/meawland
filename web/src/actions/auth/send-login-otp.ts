@@ -29,6 +29,22 @@ export async function sendLoginOtpAction(input: LoginInput): Promise<{
       where: { email: validate.data.email },
     });
 
+    // Rate Limiting: 60-second cooldown between OTP requests
+    if (
+      userExists &&
+      userExists.otpExpiresAt &&
+      userExists.otpExpiresAt.getTime() - Date.now() > 4 * 60 * 1000
+    ) {
+      const remainingSeconds = Math.ceil(
+        (userExists.otpExpiresAt.getTime() - Date.now() - 4 * 60 * 1000) / 1000,
+      );
+      return {
+        success: false,
+        message: `Please wait ${remainingSeconds} second(s) before requesting a new OTP.`,
+        userId: userExists.id,
+      };
+    }
+
     if (!userExists) {
       const user = await db.$transaction(async (tx) => {
         const code = await generateId("CUSTOMER", tx);

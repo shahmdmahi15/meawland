@@ -22,6 +22,7 @@ export const metadata: Metadata = {
 };
 
 import { MeawlandLoading } from "@/components/ui/meawland-loading";
+import { BreadcrumbsJsonLd } from "@/components/seo/structured-data";
 
 interface ComboProductsPageProps {
   searchParams: Promise<{
@@ -42,6 +43,12 @@ export default async function ComboProductsPage({
 
   return (
     <main className="min-h-screen bg-white">
+      <BreadcrumbsJsonLd
+        items={[
+          { name: "Home", url: "/" },
+          { name: "Combo Deals & Bundles", url: "/combo-products" },
+        ]}
+      />
       <Suspense
         fallback={
           <MeawlandLoading

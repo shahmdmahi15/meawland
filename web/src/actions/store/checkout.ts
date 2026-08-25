@@ -480,10 +480,19 @@ export async function placeOrderAction(
         });
       }
 
-      // Inventory decrement & stock events for direct variants
+      // Inventory decrement & stock events for direct variants (transaction-safe)
       for (const [vId, demanded] of variantDemandMap.entries()) {
-        const currentStock = variantStockMap.get(vId) ?? 0;
-        const newStock = Math.max(0, currentStock - demanded);
+        const currentVariant = await tx.variant.findUnique({
+          where: { id: vId },
+          select: { stock: true },
+        });
+        const currentStock = currentVariant?.stock ?? 0;
+        if (currentStock < demanded) {
+          throw new Error(
+            `Insufficient stock for item (${variantNames.get(vId) || "Variant"}). Only ${currentStock} available.`,
+          );
+        }
+        const newStock = currentStock - demanded;
 
         await tx.variant.update({
           where: { id: vId },
@@ -503,10 +512,19 @@ export async function placeOrderAction(
         });
       }
 
-      // Inventory decrement & stock events for direct products
+      // Inventory decrement & stock events for direct products (transaction-safe)
       for (const [pId, demanded] of productDemandMap.entries()) {
-        const currentStock = productStockMap.get(pId) ?? 0;
-        const newStock = Math.max(0, currentStock - demanded);
+        const currentProduct = await tx.product.findUnique({
+          where: { id: pId },
+          select: { stock: true },
+        });
+        const currentStock = currentProduct?.stock ?? 0;
+        if (currentStock < demanded) {
+          throw new Error(
+            `Insufficient stock for item (${productNames.get(pId) || "Product"}). Only ${currentStock} available.`,
+          );
+        }
+        const newStock = currentStock - demanded;
 
         await tx.product.update({
           where: { id: pId },
@@ -861,6 +879,101 @@ export async function getOrderConfirmationAction(orderId: string): Promise<{
     return {
       success: false,
       message: "Failed to load order confirmation details.",
+    };
+  }
+}
+
+/**
+ * Allows a customer to convert an unpaid / failed bKash order to Cash on Delivery (COD).
+ */
+export async function switchOrderToCodAction(orderIdOrCode: string): Promise<{
+  success: boolean;
+  message?: string;
+  orderId?: string;
+}> {
+  try {
+    if (!orderIdOrCode) {
+      return { success: false, message: "Order identifier is required." };
+    }
+
+    const order = await db.order.findFirst({
+      where: {
+        OR: [{ id: orderIdOrCode }, { code: orderIdOrCode }],
+      },
+      include: {
+        payment: true,
+      },
+    });
+
+    if (!order) {
+      return { success: false, message: "Order not found." };
+    }
+
+    if (order.paymentStatus === PaymentStatus.PAID) {
+      return {
+        success: false,
+        message: "This order has already been paid successfully.",
+      };
+    }
+
+    await db.$transaction(async (tx) => {
+      await tx.order.update({
+        where: { id: order.id },
+        data: {
+          paymentMethod: PaymentMethod.COD,
+        },
+      });
+
+      if (order.payment) {
+        await tx.payment.update({
+          where: { id: order.payment.id },
+          data: {
+            paymentMethod: PaymentMethod.COD,
+            status: PaymentStatus.PENDING,
+            statusMessage:
+              "Payment method switched from bKash to Cash on Delivery by customer.",
+          },
+        });
+      } else {
+        await tx.payment.create({
+          data: {
+            orderId: order.id,
+            userId: order.userId,
+            amount: order.finalCost,
+            currency: "BDT",
+            paymentMethod: PaymentMethod.COD,
+            status: PaymentStatus.PENDING,
+            statusMessage: "Cash on Delivery",
+          },
+        });
+      }
+
+      await recordAuditLog({
+        action: AuditAction.UPDATE,
+        entity: AuditEntity.ORDER,
+        entityId: order.id,
+        entityName: `Order #${order.code}`,
+        summary: `Payment method for Order #${order.code} switched to Cash on Delivery (COD)`,
+        severity: AuditSeverity.INFO,
+        userId: order.userId,
+        path: "/checkout/payment-status",
+      }).catch(() => {});
+    });
+
+    revalidatePath(`/checkout/success/${order.id}`);
+    revalidatePath("/account/orders");
+    revalidatePath("/admin/management/orders");
+
+    return {
+      success: true,
+      message: "Order successfully converted to Cash on Delivery!",
+      orderId: order.id,
+    };
+  } catch (error) {
+    console.error("[Action.Store.Checkout.SwitchOrderToCod] Error:", error);
+    return {
+      success: false,
+      message: "Failed to switch payment method. Please contact support.",
     };
   }
 }

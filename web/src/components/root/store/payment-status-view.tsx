@@ -2,7 +2,9 @@
 
 import { useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { retryBkashPaymentAction } from "@/actions/bkash/retry-payment";
+import { switchOrderToCodAction } from "@/actions/store/checkout";
 import { Button } from "@/components/ui/button";
 import {
   AlertTriangle,
@@ -12,6 +14,7 @@ import {
   ArrowRight,
   ShieldAlert,
   Loader2,
+  Truck,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -29,6 +32,7 @@ export function PaymentStatusView({
   orderCode,
   reason,
 }: PaymentStatusViewProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const isCancelled = status === "cancelled";
 
@@ -48,6 +52,24 @@ export function PaymentStatusView({
         toast.error(
           res.message || "Failed to initiate payment. Please try again.",
         );
+      }
+    });
+  };
+
+  const handleSwitchToCod = () => {
+    const target = orderId || orderCode;
+    if (!target) {
+      toast.error("Order details missing.");
+      return;
+    }
+
+    startTransition(async () => {
+      const res = await switchOrderToCodAction(target);
+      if (res.success && res.orderId) {
+        toast.success(res.message || "Switched to Cash on Delivery!");
+        router.push(`/checkout/success/${res.orderId}?payment=cod_switch`);
+      } else {
+        toast.error(res.message || "Failed to switch payment method.");
       }
     });
   };
@@ -93,9 +115,9 @@ export function PaymentStatusView({
 
           <p className="text-xs sm:text-sm text-gray-600 max-w-md mx-auto">
             {isCancelled
-              ? "You cancelled the payment transaction on the bKash page. Your order is saved as pending and you can complete payment anytime."
+              ? "You cancelled the payment transaction on the bKash page. Your order is saved as pending and you can complete payment anytime or switch to Cash on Delivery."
               : reason ||
-                "Your bKash payment could not be processed. This might be due to insufficient wallet balance, incorrect PIN, or session timeout."}
+                "Your bKash payment could not be processed. You can retry with bKash or switch your order to Cash on Delivery."}
           </p>
         </div>
 
@@ -123,16 +145,29 @@ export function PaymentStatusView({
               ) : (
                 <Smartphone className="w-4 h-4" />
               )}
-              <span>{isPending ? "Connecting..." : "Pay Now with bKash"}</span>
+              <span>{isPending ? "Processing..." : "Pay Now with bKash"}</span>
+            </Button>
+          )}
+
+          {(orderId || orderCode) && (
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isPending}
+              onClick={handleSwitchToCod}
+              className="w-full sm:w-auto h-12 px-5 rounded-2xl border-emerald-300 bg-emerald-50/50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs sm:text-sm gap-2 cursor-pointer transition-all"
+            >
+              <Truck className="w-4 h-4 text-emerald-600" />
+              <span>Switch to Cash on Delivery</span>
             </Button>
           )}
 
           <Link href="/account/orders" className="w-full sm:w-auto">
             <Button
               variant="outline"
-              className="w-full h-12 px-6 rounded-2xl border-gray-300 hover:bg-gray-50 text-gray-800 font-bold text-xs sm:text-sm gap-2 cursor-pointer"
+              className="w-full h-12 px-5 rounded-2xl border-gray-300 hover:bg-gray-50 text-gray-800 font-bold text-xs sm:text-sm gap-2 cursor-pointer"
             >
-              <span>View My Orders</span>
+              <span>View Orders</span>
               <ArrowRight className="w-4 h-4" />
             </Button>
           </Link>

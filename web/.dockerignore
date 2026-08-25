@@ -90,6 +90,7 @@ Jenkinsfile
 
 # Sensitive or unnecessary configuration files
 *.pem
+*.bat
 .editorconfig
 .prettierrc*
 prettier.config.*
