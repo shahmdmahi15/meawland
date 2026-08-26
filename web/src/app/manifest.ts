@@ -14,13 +14,19 @@ export default function manifest(): MetadataRoute.Manifest {
     scope: "/",
     icons: [
       {
-        src: "/logo.png",
+        src: "/android-chrome-192x192.png",
         sizes: "192x192",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/logo.png",
+        src: "/android-chrome-512x512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/android-chrome-512x512.png",
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",
@@ -33,21 +39,21 @@ export default function manifest(): MetadataRoute.Manifest {
         short_name: "Products",
         description: "Browse all pet food and care essentials",
         url: "/products",
-        icons: [{ src: "/logo.png", sizes: "192x192" }],
+        icons: [{ src: "/android-chrome-192x192.png", sizes: "192x192" }],
       },
       {
         name: "Combo Deals",
         short_name: "Combos",
         description: "Save big on curated money-saving pet bundles",
         url: "/combo-products",
-        icons: [{ src: "/logo.png", sizes: "192x192" }],
+        icons: [{ src: "/android-chrome-192x192.png", sizes: "192x192" }],
       },
       {
         name: "Track Order",
         short_name: "Tracking",
         description: "Check your order delivery live status",
         url: "/account/tracking",
-        icons: [{ src: "/logo.png", sizes: "192x192" }],
+        icons: [{ src: "/android-chrome-192x192.png", sizes: "192x192" }],
       },
     ],
   };
