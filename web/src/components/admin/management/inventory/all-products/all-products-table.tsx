@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
@@ -90,10 +90,6 @@ export function AllProductsTable({
   const urlProductCode = searchParams.get("productCode");
   const urlSearch = searchParams.get("search");
 
-  const [activeModalProductId, setActiveModalProductId] = useState<
-    string | null
-  >(null);
-
   // Pure derived URL matched product ID
   const urlMatchedProductId = useMemo(() => {
     if (urlProductId) {
@@ -109,7 +105,34 @@ export function AllProductsTable({
     return null;
   }, [urlProductId, urlProductCode, products]);
 
-  const effectiveActiveProductId = activeModalProductId ?? urlMatchedProductId;
+  const [activeModalProductId, setActiveModalProductId] = useState<
+    string | null
+  >(() => urlMatchedProductId);
+
+  useEffect(() => {
+    if (urlMatchedProductId) {
+      setActiveModalProductId(urlMatchedProductId);
+    }
+  }, [urlMatchedProductId]);
+
+  const handleOpenProductDetail = (productId: string, isOpen: boolean) => {
+    if (isOpen) {
+      setActiveModalProductId(productId);
+    } else {
+      if (activeModalProductId === productId) {
+        setActiveModalProductId(null);
+      }
+      if (urlProductId || urlProductCode) {
+        const params = new URLSearchParams(searchParams.toString());
+        params.delete("productId");
+        params.delete("productCode");
+        const nextQuery = params.toString();
+        router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
+          scroll: false,
+        });
+      }
+    }
+  };
 
   // State for search and filters
   const [search, setSearch] = useState(() => urlSearch || "");
@@ -829,7 +852,7 @@ export function AllProductsTable({
                     product.id === urlProductId ||
                     product.code.toLowerCase() ===
                       urlProductCode?.toLowerCase() ||
-                    effectiveActiveProductId === product.id;
+                    activeModalProductId === product.id;
 
                   const mainRow = (
                     <TableRow
@@ -1006,18 +1029,10 @@ export function AllProductsTable({
                           />
                           <ProductDetailModal
                             product={product}
-                            isOpen={effectiveActiveProductId === product.id}
-                            onOpenChange={(isOpen) => {
-                              if (
-                                !isOpen &&
-                                effectiveActiveProductId === product.id
-                              ) {
-                                setActiveModalProductId(null);
-                                if (urlProductId || urlProductCode) {
-                                  router.replace(pathname, { scroll: false });
-                                }
-                              }
-                            }}
+                            isOpen={activeModalProductId === product.id}
+                            onOpenChange={(isOpen) =>
+                              handleOpenProductDetail(product.id, isOpen)
+                            }
                           />
                           <StockEventsModal product={product} />
                           <EditProductModal
@@ -1373,7 +1388,13 @@ export function AllProductsTable({
                           </Button>
                         }
                       />
-                      <ProductDetailModal product={product} />
+                      <ProductDetailModal
+                        product={product}
+                        isOpen={activeModalProductId === product.id}
+                        onOpenChange={(isOpen) =>
+                          handleOpenProductDetail(product.id, isOpen)
+                        }
+                      />
                       <StockEventsModal product={product} />
                       <EditProductModal
                         product={product}

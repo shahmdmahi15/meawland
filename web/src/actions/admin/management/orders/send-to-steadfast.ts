@@ -237,6 +237,13 @@ export async function sendOrderToSteadfastAction(
           status: updatedOrderStatus,
         },
       });
+
+      await tx.orderItem.updateMany({
+        where: { orderId: order.id },
+        data: {
+          status: updatedOrderStatus,
+        },
+      });
     });
 
     // Trigger automated SMS notification with Steadfast tracking code
@@ -525,6 +532,13 @@ export async function syncSteadfastShipmentStatusAction(
             order.paymentStatus !== PaymentStatus.PAID && {
               paymentStatus: PaymentStatus.PAID,
             }),
+        },
+      });
+
+      await tx.orderItem.updateMany({
+        where: { orderId: order.id },
+        data: {
+          status: updatedOrderStatus,
         },
       });
     });

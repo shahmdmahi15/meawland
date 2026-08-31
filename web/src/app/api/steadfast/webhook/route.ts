@@ -231,6 +231,14 @@ export async function POST(request: NextRequest) {
           },
         });
 
+        // Update all Order Items status to match the new order status
+        await tx.orderItem.updateMany({
+          where: { orderId: order.id },
+          data: {
+            status: newOrderStatus,
+          },
+        });
+
         // If payment record exists and order was delivered, mark payment as PAID
         if (
           isDelivered &&
@@ -275,6 +283,9 @@ export async function POST(request: NextRequest) {
 
       // Revalidate cache paths
       revalidatePath("/admin/management/orders");
+      revalidatePath("/admin/management/orders/all-orders");
+      revalidatePath("/admin/management/orders/web-orders");
+      revalidatePath("/admin/management/orders/other-orders");
       revalidatePath(`/admin/management/orders/${order.code}`);
       revalidatePath("/account/orders");
       revalidatePath("/account/tracking");
