@@ -103,7 +103,7 @@ export type NewOrderFormData = {
   coupons: OrderFormDataCoupon[];
 };
 
-export function safeGetImageBase64(key: string | null | undefined): string {
+function safeGetImageBase64(key: string | null | undefined): string {
   return getPublicUrl(key);
 }
 
