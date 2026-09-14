@@ -12,7 +12,7 @@ import {
   AuditSeverity,
 } from "@/generated/prisma/enums";
 import { recordAuditLog } from "@/lib/audit-logger";
-import { uploadFile, deleteFile, getImageBase64 } from "@/lib/storage";
+import { uploadFile, deleteFile, getPublicUrl } from "@/lib/storage";
 import crypto from "crypto";
 import { CATEGORY_MAP } from "@/lib/category-helpers";
 import {
@@ -105,19 +105,8 @@ export type CampaignMetrics = {
   avgDiscountPercent: number;
 };
 
-async function safeGetImageBase64(
-  key: string | null | undefined,
-): Promise<string> {
-  if (!key) return "";
-  try {
-    return await getImageBase64(key);
-  } catch (error) {
-    console.error(
-      `[Storage.GetCampaignBase64] Failed for key "${key}":`,
-      error,
-    );
-    return "";
-  }
+function safeGetImageBase64(key: string | null | undefined): string {
+  return getPublicUrl(key);
 }
 
 function computeCampaignStatus(
@@ -234,53 +223,45 @@ export async function getCampaignFormDataAction(): Promise<{
     );
 
     // Brands catalog
-    const brands: CouponCatalogBrand[] = await Promise.all(
-      rawBrands.map(async (b) => ({
-        id: b.id,
-        name: b.name,
-        slug: b.slug,
-        image: b.image,
-        imageBase64: await safeGetImageBase64(b.image),
-        productCount: b._count.products,
-      })),
-    );
+    const brands: CouponCatalogBrand[] = rawBrands.map((b) => ({
+      id: b.id,
+      name: b.name,
+      slug: b.slug,
+      image: b.image,
+      imageBase64: safeGetImageBase64(b.image),
+      productCount: b._count.products,
+    }));
 
-    const products: CouponCatalogProduct[] = await Promise.all(
-      rawProducts.map(async (p) => {
-        const imageBase64 = await safeGetImageBase64(p.image);
-        const variantsWithImages = await Promise.all(
-          p.variants.map(async (v) => ({
-            ...v,
-            imageBase64: await safeGetImageBase64(v.image || p.image),
-          })),
-        );
+    const products: CouponCatalogProduct[] = rawProducts.map((p) => {
+      const imageBase64 = safeGetImageBase64(p.image);
+      const variantsWithImages = p.variants.map((v) => ({
+        ...v,
+        imageBase64: safeGetImageBase64(v.image || p.image),
+      }));
 
-        return {
-          id: p.id,
-          name: p.name,
-          code: p.code,
-          sku: p.sku,
-          image: p.image,
-          imageBase64,
-          isVariable: p.isVariable,
-          regularPrice: p.regularPrice,
-          salePrice: p.salePrice,
-          categoryName: p.subCategory?.name,
-          subCategoryId: p.subCategory?.id,
-          categoryEnum: p.subCategory?.category,
-          brandId: p.brand?.id,
-          brandName: p.brand?.name,
-          variants: variantsWithImages,
-        };
-      }),
-    );
+      return {
+        id: p.id,
+        name: p.name,
+        code: p.code,
+        sku: p.sku,
+        image: p.image,
+        imageBase64,
+        isVariable: p.isVariable,
+        regularPrice: p.regularPrice,
+        salePrice: p.salePrice,
+        categoryName: p.subCategory?.name,
+        subCategoryId: p.subCategory?.id,
+        categoryEnum: p.subCategory?.category,
+        brandId: p.brand?.id,
+        brandName: p.brand?.name,
+        variants: variantsWithImages,
+      };
+    });
 
-    const combos: CouponCatalogCombo[] = await Promise.all(
-      rawCombos.map(async (c) => ({
-        ...c,
-        imageBase64: await safeGetImageBase64(c.image),
-      })),
-    );
+    const combos: CouponCatalogCombo[] = rawCombos.map((c) => ({
+      ...c,
+      imageBase64: safeGetImageBase64(c.image),
+    }));
 
     return {
       success: true,
@@ -353,70 +334,68 @@ export async function getAllCampaignsAdminAction(): Promise<{
     let percentSum = 0;
     let percentCount = 0;
 
-    const formattedCampaigns: CampaignRow[] = await Promise.all(
-      campaigns.map(async (c) => {
-        const bannerBase64 = await safeGetImageBase64(c.banner);
-        const status = computeCampaignStatus(
-          c.endsAt,
-          c.maxRedemptions,
-          c.currentRedemptions,
-        );
+    const formattedCampaigns: CampaignRow[] = campaigns.map((c) => {
+      const bannerBase64 = safeGetImageBase64(c.banner);
+      const status = computeCampaignStatus(
+        c.endsAt,
+        c.maxRedemptions,
+        c.currentRedemptions,
+      );
 
-        if (status === "ACTIVE") activeCampaigns++;
-        else expiredCampaigns++;
+      if (status === "ACTIVE") activeCampaigns++;
+      else expiredCampaigns++;
 
-        totalRedemptions += c.currentRedemptions;
+      totalRedemptions += c.currentRedemptions;
 
-        if (c.discountType === DiscountType.PERCENTAGE && c.discount) {
-          const p = parseFloat(c.discount);
-          if (!isNaN(p)) {
-            percentSum += p;
-            percentCount++;
-          }
+      if (c.discountType === DiscountType.PERCENTAGE && c.discount) {
+        const p = parseFloat(c.discount);
+        if (!isNaN(p)) {
+          percentSum += p;
+          percentCount++;
         }
+      }
 
-        return {
-          id: c.id,
-          name: c.name,
-          description: c.description,
-          banner: c.banner,
-          bannerBase64,
-          discount: c.discount,
-          discountType: c.discountType,
-          minPurchaseAmount: c.minPurchaseAmount,
-          maxRedemptions: c.maxRedemptions,
-          currentRedemptions: c.currentRedemptions,
-          forAllCategories: c.forAllCategories,
-          forAllSubCategories: c.forAllSubCategories,
-          forAllBrands: c.forAllBrands,
-          forAllProducts: c.forAllProducts,
-          forAllCombos: c.forAllCombos,
-          endsAt: c.endsAt,
-          createdAt: c.createdAt,
-          updatedAt: c.updatedAt,
-          status,
-          categoryCount: c.categories.length,
-          subCategoryCount: c.subCategories.length,
-          brandCount: c.brands.length,
-          productCount: c.products.length,
-          variantCount: c.variants.length,
-          comboCount: c.comboProducts.length,
-          categories: c.categories,
-          subCategories: c.subCategories,
-          brands: c.brands,
-          products: c.products,
-          variants: c.variants.map((v) => ({
-            id: v.id,
-            sku: v.sku,
-            productId: v.productId,
-            productName: v.product.name,
-            regularPrice: v.regularPrice,
-            salePrice: v.salePrice,
-          })),
-          comboProducts: c.comboProducts,
-        };
-      }),
-    );
+      return {
+        id: c.id,
+        name: c.name,
+        description: c.description,
+        banner: c.banner,
+        bannerBase64,
+        discount: c.discount,
+        discountType: c.discountType,
+        minPurchaseAmount: c.minPurchaseAmount,
+        maxRedemptions: c.maxRedemptions,
+        currentRedemptions: c.currentRedemptions,
+        forAllCategories: c.forAllCategories,
+        forAllSubCategories: c.forAllSubCategories,
+        forAllBrands: c.forAllBrands,
+        forAllProducts: c.forAllProducts,
+        forAllCombos: c.forAllCombos,
+        endsAt: c.endsAt,
+        createdAt: c.createdAt,
+        updatedAt: c.updatedAt,
+        status,
+        categoryCount: c.categories.length,
+        subCategoryCount: c.subCategories.length,
+        brandCount: c.brands.length,
+        productCount: c.products.length,
+        variantCount: c.variants.length,
+        comboCount: c.comboProducts.length,
+        categories: c.categories,
+        subCategories: c.subCategories,
+        brands: c.brands,
+        products: c.products,
+        variants: c.variants.map((v) => ({
+          id: v.id,
+          sku: v.sku,
+          productId: v.productId,
+          productName: v.product.name,
+          regularPrice: v.regularPrice,
+          salePrice: v.salePrice,
+        })),
+        comboProducts: c.comboProducts,
+      };
+    });
 
     const avgDiscountPercent =
       percentCount > 0 ? Math.round((percentSum / percentCount) * 10) / 10 : 0;
@@ -490,7 +469,7 @@ export async function getCampaignByIdAdminAction(id: string): Promise<{
       return { success: false, message: "Campaign not found" };
     }
 
-    const bannerBase64 = await safeGetImageBase64(c.banner);
+    const bannerBase64 = safeGetImageBase64(c.banner);
     const status = computeCampaignStatus(
       c.endsAt,
       c.maxRedemptions,

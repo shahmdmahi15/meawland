@@ -2,7 +2,7 @@
 
 import db from "@/lib/db";
 import { getMeAction } from "@/actions/auth/get-me";
-import { getImageBase64 } from "@/lib/storage";
+import { getPublicUrl } from "@/lib/storage";
 import { Prisma } from "@/generated/prisma/client";
 import { OrderStatus } from "@/generated/prisma/enums";
 import {
@@ -13,24 +13,8 @@ import {
   customerOrdersFilterSchema,
 } from "@/schemas/root/account/orders";
 
-async function safeGetImageBase64(
-  key: string | null | undefined,
-): Promise<string> {
-  if (!key) return "";
-  if (
-    key.startsWith("data:") ||
-    key.startsWith("http://") ||
-    key.startsWith("https://") ||
-    key.startsWith("/")
-  ) {
-    return key;
-  }
-  try {
-    return await getImageBase64(key);
-  } catch (error) {
-    console.error(`[Storage.GetBase64] Failed for key "${key}":`, error);
-    return "";
-  }
+function resolveOrderItemImage(key: string | null | undefined): string {
+  return getPublicUrl(key);
 }
 
 /**
@@ -226,89 +210,85 @@ export async function getCustomerOrdersAction(
       totalSpent,
     };
 
-    // Format formatted orders list with safely resolved base64 images
-    const orders: CustomerOrderSummary[] = await Promise.all(
-      rawOrders.map(async (o) => {
-        const items: CustomerOrderItemSummary[] = await Promise.all(
-          o.orderItems.map(async (oi) => {
-            let name = "Order Item";
-            let sku: string | null = null;
-            let imageKey: string | null = null;
-            let slug: string | null = null;
+    // Format formatted orders list with safely resolved S3 image URLs
+    const orders: CustomerOrderSummary[] = rawOrders.map((o) => {
+      const items: CustomerOrderItemSummary[] = o.orderItems.map((oi) => {
+        let name = "Order Item";
+        let sku: string | null = null;
+        let imageKey: string | null = null;
+        let slug: string | null = null;
 
-            if (oi.variant) {
-              name = `${oi.variant.product.name} (${oi.variant.sku})`;
-              sku = oi.variant.sku;
-              imageKey = oi.variant.image || oi.variant.product.image;
-              slug = oi.variant.product.slug;
-            } else if (oi.product) {
-              name = oi.product.name;
-              sku = oi.product.sku;
-              imageKey = oi.product.image;
-              slug = oi.product.slug;
-            } else if (oi.comboProduct) {
-              name = oi.comboProduct.name;
-              sku = oi.comboProduct.sku;
-              imageKey = oi.comboProduct.image;
-              slug = oi.comboProduct.slug;
-            }
+        if (oi.variant) {
+          name = `${oi.variant.product.name} (${oi.variant.sku})`;
+          sku = oi.variant.sku;
+          imageKey = oi.variant.image || oi.variant.product.image;
+          slug = oi.variant.product.slug;
+        } else if (oi.product) {
+          name = oi.product.name;
+          sku = oi.product.sku;
+          imageKey = oi.product.image;
+          slug = oi.product.slug;
+        } else if (oi.comboProduct) {
+          name = oi.comboProduct.name;
+          sku = oi.comboProduct.sku;
+          imageKey = oi.comboProduct.image;
+          slug = oi.comboProduct.slug;
+        }
 
-            const image = await safeGetImageBase64(imageKey);
-
-            return {
-              id: oi.id,
-              name,
-              sku,
-              image,
-              quantity: oi.quanitity,
-              unitPrice: oi.unitPrice,
-              totalCost: oi.totalCost,
-              discountCost: oi.discountCost,
-              finalCost: oi.finalCost,
-              status: oi.status,
-              productId: oi.productId,
-              variantId: oi.variantId,
-              comboProductId: oi.comboProductId,
-              slug,
-            };
-          }),
-        );
+        const image = resolveOrderItemImage(imageKey);
 
         return {
-          id: o.id,
-          code: o.code,
-          totalQuantity: o.totalQuantity,
-          totalPrice: o.totalPrice,
-          discountCost: o.discountCost,
-          finalCost: o.finalCost,
-          status: o.status,
-          type: o.type,
-          paymentMethod: o.paymentMethod,
-          paymentStatus: o.paymentStatus,
-          address: o.address,
-          district: o.district,
-          note: o.note,
-          name: o.name,
-          phone: o.phone,
-          email: o.email,
-          createdAt: o.createdAt,
-          updatedAt: o.updatedAt,
-          payment: o.payment || null,
-          shipment: o.shipment
-            ? {
-                id: o.shipment.id,
-                provider: o.shipment.provider,
-                consignmentId: o.shipment.consignmentId,
-                trackingCode: o.shipment.trackingCode,
-                status: o.shipment.status,
-                rawStatus: o.shipment.rawStatus,
-                lastCheckedAt: o.shipment.lastCheckedAt,
-              }
-            : null,
-          items,
+          id: oi.id,
+          name,
+          sku,
+          image,
+          quantity: oi.quanitity,
+          unitPrice: oi.unitPrice,
+          totalCost: oi.totalCost,
+          discountCost: oi.discountCost,
+          finalCost: oi.finalCost,
+          status: oi.status,
+          productId: oi.productId,
+          variantId: oi.variantId,
+          comboProductId: oi.comboProductId,
+          slug,
         };
-      }),
-    );
+      });
+
+      return {
+        id: o.id,
+        code: o.code,
+        totalQuantity: o.totalQuantity,
+        totalPrice: o.totalPrice,
+        discountCost: o.discountCost,
+        finalCost: o.finalCost,
+        status: o.status,
+        type: o.type,
+        paymentMethod: o.paymentMethod,
+        paymentStatus: o.paymentStatus,
+        address: o.address,
+        district: o.district,
+        note: o.note,
+        name: o.name,
+        phone: o.phone,
+        email: o.email,
+        createdAt: o.createdAt,
+        updatedAt: o.updatedAt,
+        payment: o.payment || null,
+        shipment: o.shipment
+          ? {
+              id: o.shipment.id,
+              provider: o.shipment.provider,
+              consignmentId: o.shipment.consignmentId,
+              trackingCode: o.shipment.trackingCode,
+              status: o.shipment.status,
+              rawStatus: o.shipment.rawStatus,
+              lastCheckedAt: o.shipment.lastCheckedAt,
+            }
+          : null,
+        items,
+      };
+    });
 
     return {
       success: true,
@@ -407,50 +387,48 @@ export async function getCustomerOrderDetailsAction(
       };
     }
 
-    const items: CustomerOrderItemSummary[] = await Promise.all(
-      order.orderItems.map(async (oi) => {
-        let name = "Order Item";
-        let sku: string | null = null;
-        let imageKey: string | null = null;
-        let slug: string | null = null;
+    const items: CustomerOrderItemSummary[] = order.orderItems.map((oi) => {
+      let name = "Order Item";
+      let sku: string | null = null;
+      let imageKey: string | null = null;
+      let slug: string | null = null;
 
-        if (oi.variant) {
-          name = `${oi.variant.product.name} (${oi.variant.sku})`;
-          sku = oi.variant.sku;
-          imageKey = oi.variant.image || oi.variant.product.image;
-          slug = oi.variant.product.slug;
-        } else if (oi.product) {
-          name = oi.product.name;
-          sku = oi.product.sku;
-          imageKey = oi.product.image;
-          slug = oi.product.slug;
-        } else if (oi.comboProduct) {
-          name = oi.comboProduct.name;
-          sku = oi.comboProduct.sku;
-          imageKey = oi.comboProduct.image;
-          slug = oi.comboProduct.slug;
-        }
+      if (oi.variant) {
+        name = `${oi.variant.product.name} (${oi.variant.sku})`;
+        sku = oi.variant.sku;
+        imageKey = oi.variant.image || oi.variant.product.image;
+        slug = oi.variant.product.slug;
+      } else if (oi.product) {
+        name = oi.product.name;
+        sku = oi.product.sku;
+        imageKey = oi.product.image;
+        slug = oi.product.slug;
+      } else if (oi.comboProduct) {
+        name = oi.comboProduct.name;
+        sku = oi.comboProduct.sku;
+        imageKey = oi.comboProduct.image;
+        slug = oi.comboProduct.slug;
+      }
 
-        const image = await safeGetImageBase64(imageKey);
+      const image = resolveOrderItemImage(imageKey);
 
-        return {
-          id: oi.id,
-          name,
-          sku,
-          image,
-          quantity: oi.quanitity,
-          unitPrice: oi.unitPrice,
-          totalCost: oi.totalCost,
-          discountCost: oi.discountCost,
-          finalCost: oi.finalCost,
-          status: oi.status,
-          productId: oi.productId,
-          variantId: oi.variantId,
-          comboProductId: oi.comboProductId,
-          slug,
-        };
-      }),
-    );
+      return {
+        id: oi.id,
+        name,
+        sku,
+        image,
+        quantity: oi.quanitity,
+        unitPrice: oi.unitPrice,
+        totalCost: oi.totalCost,
+        discountCost: oi.discountCost,
+        finalCost: oi.finalCost,
+        status: oi.status,
+        productId: oi.productId,
+        variantId: oi.variantId,
+        comboProductId: oi.comboProductId,
+        slug,
+      };
+    });
 
     return {
       success: true,

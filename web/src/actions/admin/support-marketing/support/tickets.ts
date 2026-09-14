@@ -12,7 +12,7 @@ import {
 } from "@/generated/prisma/enums";
 import { recordAuditLog } from "@/lib/audit-logger";
 import { generateId } from "@/lib/generate-code";
-import { getImageBase64 } from "@/lib/storage";
+import { getPublicUrl } from "@/lib/storage";
 import { revalidatePath } from "next/cache";
 import {
   AdminSupportTicket,
@@ -23,24 +23,8 @@ import {
   adminUpdateTicketPrioritySchema,
 } from "@/schemas/admin/support-marketing/support/tickets";
 
-async function safeGetImageBase64(
-  key: string | null | undefined,
-): Promise<string> {
-  if (!key) return "";
-  if (
-    key.startsWith("data:") ||
-    key.startsWith("http://") ||
-    key.startsWith("https://") ||
-    key.startsWith("/")
-  ) {
-    return key;
-  }
-  try {
-    return await getImageBase64(key);
-  } catch (error) {
-    console.error(`[Storage.GetBase64] Failed for key "${key}":`, error);
-    return "";
-  }
+function safeGetImageBase64(key: string | null | undefined): string {
+  return getPublicUrl(key);
 }
 
 /**
@@ -85,42 +69,40 @@ export async function getAdminSupportTicketsAction(): Promise<{
       },
     });
 
-    const tickets: AdminSupportTicket[] = await Promise.all(
-      rawTickets.map(async (t) => {
-        const resolvedAvatar = await safeGetImageBase64(t.user.avatar);
-        return {
-          id: t.id,
-          code: t.code,
-          subject: t.subject,
-          message: t.message,
-          category: t.category,
-          status: t.status,
-          priority: t.priority,
-          channel: t.channel,
-          createdAt: t.createdAt,
-          updatedAt: t.updatedAt,
-          user: {
-            id: t.user.id,
-            code: t.user.code,
-            name: t.user.name,
-            email: t.user.email,
-            phone: t.user.phone,
-            avatar: resolvedAvatar || null,
-            district: t.user.district,
-          },
-          order: t.order
-            ? {
-                id: t.order.id,
-                code: t.order.code,
-                status: t.order.status,
-                finalCost: t.order.finalCost,
-                totalQuantity: t.order.totalQuantity,
-                createdAt: t.order.createdAt,
-              }
-            : null,
-        };
-      }),
-    );
+    const tickets: AdminSupportTicket[] = rawTickets.map((t) => {
+      const resolvedAvatar = safeGetImageBase64(t.user.avatar);
+      return {
+        id: t.id,
+        code: t.code,
+        subject: t.subject,
+        message: t.message,
+        category: t.category,
+        status: t.status,
+        priority: t.priority,
+        channel: t.channel,
+        createdAt: t.createdAt,
+        updatedAt: t.updatedAt,
+        user: {
+          id: t.user.id,
+          code: t.user.code,
+          name: t.user.name,
+          email: t.user.email,
+          phone: t.user.phone,
+          avatar: resolvedAvatar || null,
+          district: t.user.district,
+        },
+        order: t.order
+          ? {
+              id: t.order.id,
+              code: t.order.code,
+              status: t.order.status,
+              finalCost: t.order.finalCost,
+              totalQuantity: t.order.totalQuantity,
+              createdAt: t.order.createdAt,
+            }
+          : null,
+      };
+    });
 
     let openTickets = 0;
     let inProgressTickets = 0;

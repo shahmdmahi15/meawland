@@ -1,7 +1,7 @@
 "use server";
 
 import db from "@/lib/db";
-import { getImageBase64 } from "@/lib/storage";
+import { getPublicUrl } from "@/lib/storage";
 
 export type StoreSlider = {
   id: string;
@@ -39,37 +39,18 @@ export async function getSlidersAction(): Promise<{
       };
     }
 
-    const slidersWithImageBase64 = await Promise.all(
-      sliders.map(async (slider) => {
-        try {
-          const base64 = await getImageBase64(slider.image);
-          return {
-            id: slider.id,
-            text: slider.text,
-            buttonText: slider.buttonText,
-            buttonLink: slider.buttonLink,
-            image: base64,
-          };
-        } catch (error) {
-          console.warn(
-            `[Action.Store.Sliders.Get] Failed to load image for slider ${slider.id}:`,
-            error,
-          );
-          return {
-            id: slider.id,
-            text: slider.text,
-            buttonText: slider.buttonText,
-            buttonLink: slider.buttonLink,
-            image: "/fallback-slider.webp",
-          };
-        }
-      }),
-    );
+    const slidersWithUrl = sliders.map((slider) => ({
+      id: slider.id,
+      text: slider.text,
+      buttonText: slider.buttonText,
+      buttonLink: slider.buttonLink,
+      image: getPublicUrl(slider.image, "/fallback-slider.webp"),
+    }));
 
     return {
       success: true,
       message: "Successfully retrieved sliders for storefront",
-      sliders: slidersWithImageBase64,
+      sliders: slidersWithUrl,
     };
   } catch (error) {
     console.error("[Action.Store.Sliders.Get]:", error);

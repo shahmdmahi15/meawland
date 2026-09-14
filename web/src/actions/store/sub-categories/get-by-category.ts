@@ -1,7 +1,7 @@
 "use server";
 
 import db from "@/lib/db";
-import { getImageBase64 } from "@/lib/storage";
+import { getPublicUrl } from "@/lib/storage";
 import { getCategoryBySlug } from "@/lib/category-helpers";
 
 export type StoreSubCategory = {
@@ -45,34 +45,14 @@ export async function getSubCategoriesByCategoryAction(
       },
     });
 
-    const subCategoriesWithImage = await Promise.all(
-      subCategories.map(async (subCat) => {
-        try {
-          const base64 = await getImageBase64(subCat.image);
-          return {
-            id: subCat.id,
-            name: subCat.name,
-            slug: subCat.slug,
-            image: base64,
-            category: subCat.category,
-            productCount: subCat._count.products,
-          };
-        } catch (error) {
-          console.warn(
-            `[GetSubCategoriesByCategory] Failed to load image for ${subCat.name}:`,
-            error,
-          );
-          return {
-            id: subCat.id,
-            name: subCat.name,
-            slug: subCat.slug,
-            image: "/fallback-slider.webp",
-            category: subCat.category,
-            productCount: subCat._count.products,
-          };
-        }
-      }),
-    );
+    const subCategoriesWithImage = subCategories.map((subCat) => ({
+      id: subCat.id,
+      name: subCat.name,
+      slug: subCat.slug,
+      image: getPublicUrl(subCat.image, "/fallback-slider.webp"),
+      category: subCat.category,
+      productCount: subCat._count.products,
+    }));
 
     return {
       success: true,

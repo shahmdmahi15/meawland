@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
@@ -108,12 +108,16 @@ export function AllProductsTable({
   const [activeModalProductId, setActiveModalProductId] = useState<
     string | null
   >(() => urlMatchedProductId);
+  const [prevUrlMatchedId, setPrevUrlMatchedId] = useState<string | null>(
+    () => urlMatchedProductId,
+  );
 
-  useEffect(() => {
+  if (urlMatchedProductId !== prevUrlMatchedId) {
+    setPrevUrlMatchedId(urlMatchedProductId);
     if (urlMatchedProductId) {
       setActiveModalProductId(urlMatchedProductId);
     }
-  }, [urlMatchedProductId]);
+  }
 
   const handleOpenProductDetail = (productId: string, isOpen: boolean) => {
     if (isOpen) {

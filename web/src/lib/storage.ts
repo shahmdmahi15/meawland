@@ -46,7 +46,19 @@ interface FileActionOptions {
 /**
  * Helper to get the direct public asset URL
  */
-export function getPublicUrl(key: string): string {
+export function getPublicUrl(
+  key: string | null | undefined,
+  fallback = "",
+): string {
+  if (!key) return fallback;
+  if (
+    key.startsWith("data:") ||
+    key.startsWith("http://") ||
+    key.startsWith("https://") ||
+    key.startsWith("/")
+  ) {
+    return key;
+  }
   return `https://${BUCKET_NAME}.s3.${REGION}.amazonaws.com/${key}`;
 }
 

@@ -9,7 +9,7 @@ import {
   OrderType,
 } from "@/generated/prisma/enums";
 import { generateId } from "@/lib/generate-code";
-import { getImageBase64 } from "@/lib/storage";
+import { getPublicUrl } from "@/lib/storage";
 import { revalidatePath } from "next/cache";
 import {
   BarcodeLookupResult,
@@ -27,24 +27,8 @@ import {
   POSReceiptData,
 } from "@/schemas/admin/scan";
 
-async function safeGetImageBase64(
-  key: string | null | undefined,
-): Promise<string> {
-  if (!key) return "";
-  if (
-    key.startsWith("data:") ||
-    key.startsWith("http://") ||
-    key.startsWith("https://") ||
-    key.startsWith("/")
-  ) {
-    return key;
-  }
-  try {
-    return await getImageBase64(key);
-  } catch (error) {
-    console.error(`[Storage.GetBase64] Failed for key "${key}":`, error);
-    return "";
-  }
+function safeGetImageBase64(key: string | null | undefined): string {
+  return getPublicUrl(key);
 }
 
 /**
@@ -92,36 +76,33 @@ export async function lookupBarcodeAction(barcode: string): Promise<{
     });
 
     if (variantMatch) {
-      const thumb = await safeGetImageBase64(
+      const thumb = safeGetImageBase64(
         variantMatch.image || variantMatch.product.image,
       );
       const variantLabel = variantMatch.attributes
         .map((a) => `${a.name}: ${a.value}`)
         .join(", ");
 
-      const availableVariants = await Promise.all(
-        variantMatch.product.variants.map(async (v) => {
-          const vThumb = await safeGetImageBase64(
-            v.image || variantMatch.product.image,
-          );
-          const label =
-            v.attributes.map((a) => `${a.name}: ${a.value}`).join(", ") ||
-            v.sku;
-          return {
-            id: v.id,
-            sku: v.sku,
-            regularPrice: v.regularPrice,
-            salePrice: v.salePrice,
-            stock: v.stock,
-            attributes: v.attributes.map((a) => ({
-              name: a.name,
-              value: a.value,
-            })),
-            label,
-            thumbnail: vThumb || null,
-          };
-        }),
-      );
+      const availableVariants = variantMatch.product.variants.map((v) => {
+        const vThumb = safeGetImageBase64(
+          v.image || variantMatch.product.image,
+        );
+        const label =
+          v.attributes.map((a) => `${a.name}: ${a.value}`).join(", ") || v.sku;
+        return {
+          id: v.id,
+          sku: v.sku,
+          regularPrice: v.regularPrice,
+          salePrice: v.salePrice,
+          stock: v.stock,
+          attributes: v.attributes.map((a) => ({
+            name: a.name,
+            value: a.value,
+          })),
+          label,
+          thumbnail: vThumb || null,
+        };
+      });
 
       const product: ScannedProductItem = {
         id: variantMatch.product.id,
@@ -169,32 +150,28 @@ export async function lookupBarcodeAction(barcode: string): Promise<{
     });
 
     if (productMatch) {
-      const thumb = await safeGetImageBase64(productMatch.image);
+      const thumb = safeGetImageBase64(productMatch.image);
 
       if (productMatch.isVariable && productMatch.variants.length > 0) {
-        const availableVariants = await Promise.all(
-          productMatch.variants.map(async (v) => {
-            const vThumb = await safeGetImageBase64(
-              v.image || productMatch.image,
-            );
-            const label =
-              v.attributes.map((a) => `${a.name}: ${a.value}`).join(", ") ||
-              v.sku;
-            return {
-              id: v.id,
-              sku: v.sku,
-              regularPrice: v.regularPrice,
-              salePrice: v.salePrice,
-              stock: v.stock,
-              attributes: v.attributes.map((a) => ({
-                name: a.name,
-                value: a.value,
-              })),
-              label,
-              thumbnail: vThumb || null,
-            };
-          }),
-        );
+        const availableVariants = productMatch.variants.map((v) => {
+          const vThumb = safeGetImageBase64(v.image || productMatch.image);
+          const label =
+            v.attributes.map((a) => `${a.name}: ${a.value}`).join(", ") ||
+            v.sku;
+          return {
+            id: v.id,
+            sku: v.sku,
+            regularPrice: v.regularPrice,
+            salePrice: v.salePrice,
+            stock: v.stock,
+            attributes: v.attributes.map((a) => ({
+              name: a.name,
+              value: a.value,
+            })),
+            label,
+            thumbnail: vThumb || null,
+          };
+        });
 
         const firstVar = availableVariants[0];
 
@@ -274,7 +251,7 @@ export async function lookupBarcodeAction(barcode: string): Promise<{
     });
 
     if (comboMatch) {
-      const thumb = await safeGetImageBase64(comboMatch.image);
+      const thumb = safeGetImageBase64(comboMatch.image);
 
       const comboItems: ScannedComboComponentItem[] = [
         ...comboMatch.products.map((p) => ({
@@ -357,38 +334,36 @@ export async function lookupBarcodeAction(barcode: string): Promise<{
     });
 
     if (orderMatch) {
-      const items = await Promise.all(
-        orderMatch.orderItems.map(async (item) => {
-          const imgKey =
-            item.comboProduct?.image ||
-            item.variant?.image ||
-            item.product?.image;
-          const thumb = await safeGetImageBase64(imgKey);
-          const variantLabel = item.variant?.attributes
-            ?.map((a) => `${a.name}: ${a.value}`)
-            .join(", ");
+      const items = orderMatch.orderItems.map((item) => {
+        const imgKey =
+          item.comboProduct?.image ||
+          item.variant?.image ||
+          item.product?.image;
+        const thumb = safeGetImageBase64(imgKey);
+        const variantLabel = item.variant?.attributes
+          ?.map((a) => `${a.name}: ${a.value}`)
+          .join(", ");
 
-          return {
-            id: item.id,
-            productId: item.productId || item.comboProductId || "",
-            variantId: item.variantId || null,
-            comboProductId: item.comboProductId || null,
-            isCombo: !!item.comboProductId,
-            productName:
-              item.comboProduct?.name || item.product?.name || "Product",
-            sku:
-              item.comboProduct?.sku ||
-              item.variant?.sku ||
-              item.product?.sku ||
-              "N/A",
-            quantity: item.quanitity,
-            unitPrice: item.unitPrice,
-            finalCost: item.finalCost,
-            thumbnail: thumb || null,
-            variantLabel,
-          };
-        }),
-      );
+        return {
+          id: item.id,
+          productId: item.productId || item.comboProductId || "",
+          variantId: item.variantId || null,
+          comboProductId: item.comboProductId || null,
+          isCombo: !!item.comboProductId,
+          productName:
+            item.comboProduct?.name || item.product?.name || "Product",
+          sku:
+            item.comboProduct?.sku ||
+            item.variant?.sku ||
+            item.product?.sku ||
+            "N/A",
+          quantity: item.quanitity,
+          unitPrice: item.unitPrice,
+          finalCost: item.finalCost,
+          thumbnail: thumb || null,
+          variantLabel,
+        };
+      });
 
       const order: ScannedOrderResult = {
         id: orderMatch.id,
@@ -433,7 +408,7 @@ export async function lookupBarcodeAction(barcode: string): Promise<{
     });
 
     if (customerMatch) {
-      const avatar = await safeGetImageBase64(customerMatch.avatar);
+      const avatar = safeGetImageBase64(customerMatch.avatar);
       const totalSpent = customerMatch.orders.reduce(
         (sum, o) => sum + (parseFloat(o.finalCost || "0") || 0),
         0,

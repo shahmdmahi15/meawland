@@ -1,7 +1,7 @@
 "use server";
 
 import db from "@/lib/db";
-import { getImageBase64 } from "@/lib/storage";
+import { getPublicUrl } from "@/lib/storage";
 import { SubCategory } from "@/generated/prisma/client";
 
 export type SubCategoryWithCount = SubCategory & { productCount: number };
@@ -20,21 +20,16 @@ export async function getAllSubCategoriesAdminAction(): Promise<{
       },
     });
 
-    const subCategoriesWithImageBase64 = await Promise.all(
-      subCategories.map(async (subCategory) => {
-        const base64 = await getImageBase64(subCategory.image);
-        return {
-          ...subCategory,
-          image: base64,
-          productCount: subCategory._count.products,
-        };
-      }),
-    );
+    const subCategoriesWithPublicUrl = subCategories.map((subCategory) => ({
+      ...subCategory,
+      image: getPublicUrl(subCategory.image),
+      productCount: subCategory._count.products,
+    }));
 
     return {
       success: true,
       message: "Sucessfully retrieved all the sub categories for admin",
-      subCategories: subCategoriesWithImageBase64,
+      subCategories: subCategoriesWithPublicUrl,
     };
   } catch (error) {
     console.error("[Action.Admin.Management.SubCategories.GetAll:", error);

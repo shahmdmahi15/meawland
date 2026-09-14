@@ -3,7 +3,7 @@
 import db from "@/lib/db";
 import { getMeAction } from "@/actions/auth/get-me";
 import { Role, OrderStatus } from "@/generated/prisma/enums";
-import { getImageBase64 } from "@/lib/storage";
+import { getPublicUrl } from "@/lib/storage";
 import {
   BANGLADESH_DIVISIONS,
   BANGLADESH_DIVISIONS_MAP,
@@ -26,24 +26,8 @@ import {
   NewCustomerItem,
 } from "@/schemas/admin/reports";
 
-async function safeGetImageBase64(
-  key: string | null | undefined,
-): Promise<string> {
-  if (!key) return "";
-  if (
-    key.startsWith("data:") ||
-    key.startsWith("http://") ||
-    key.startsWith("https://") ||
-    key.startsWith("/")
-  ) {
-    return key;
-  }
-  try {
-    return await getImageBase64(key);
-  } catch (error) {
-    console.error(`[Storage.GetBase64] Failed for key "${key}":`, error);
-    return "";
-  }
+function safeGetImageBase64(key: string | null | undefined): string {
+  return getPublicUrl(key);
 }
 
 function getTimeframeStartDate(timeframe: ReportTimeframe): Date | undefined {
@@ -141,29 +125,27 @@ export async function getAdminBestSellingProductsReportAction(
     let totalProductsSold = 0;
     let totalRevenue = 0;
 
-    const topSellingItems: BestSellingProductItem[] = await Promise.all(
-      aggregatedList.map(
-        async ({ product, unitsSold, totalRevenue: itemRev }) => {
-          totalProductsSold += unitsSold;
-          totalRevenue += itemRev;
-          const thumbnail = await safeGetImageBase64(product.image);
+    const topSellingItems: BestSellingProductItem[] = aggregatedList.map(
+      ({ product, unitsSold, totalRevenue: itemRev }) => {
+        totalProductsSold += unitsSold;
+        totalRevenue += itemRev;
+        const thumbnail = safeGetImageBase64(product.image);
 
-          return {
-            productId: product.id,
-            code: product.code,
-            name: product.name,
-            sku: product.sku,
-            categoryName: product.subCategory.name,
-            brandName: product.brand?.name || null,
-            thumbnail: thumbnail || null,
-            unitsSold,
-            totalRevenue: itemRev,
-            currentStock: product.stock ?? 0,
-            isVariable: product.isVariable,
-            averageSellingPrice: unitsSold > 0 ? itemRev / unitsSold : 0,
-          };
-        },
-      ),
+        return {
+          productId: product.id,
+          code: product.code,
+          name: product.name,
+          sku: product.sku,
+          categoryName: product.subCategory.name,
+          brandName: product.brand?.name || null,
+          thumbnail: thumbnail || null,
+          unitsSold,
+          totalRevenue: itemRev,
+          currentStock: product.stock ?? 0,
+          isVariable: product.isVariable,
+          averageSellingPrice: unitsSold > 0 ? itemRev / unitsSold : 0,
+        };
+      },
     );
 
     return {
@@ -250,7 +232,7 @@ export async function getAdminLowStocksReportAction(
         warningStockCount++;
       }
 
-      const thumb = await safeGetImageBase64(p.image);
+      const thumb = safeGetImageBase64(p.image);
 
       items.push({
         productId: p.id,
@@ -285,7 +267,7 @@ export async function getAdminLowStocksReportAction(
       const variantLabel = v.attributes
         .map((a) => `${a.name}: ${a.value}`)
         .join(", ");
-      const thumb = await safeGetImageBase64(v.image || v.product.image);
+      const thumb = safeGetImageBase64(v.image || v.product.image);
 
       items.push({
         productId: v.product.id,
@@ -662,7 +644,7 @@ export async function getAdminTopCustomersReportAction(
         }
 
         const avgOrderValue = totalOrders > 0 ? totalSpent / totalOrders : 0;
-        const avatar = await safeGetImageBase64(u.avatar);
+        const avatar = safeGetImageBase64(u.avatar);
         const division = u.district ? getDivisionByDistrict(u.district) : null;
 
         let loyaltyTier: "VIP PLATINUM" | "GOLD" | "SILVER" | "BRONZE" =
@@ -772,7 +754,7 @@ export async function getAdminNewCustomersReportAction(
         const div = u.district ? getDivisionByDistrict(u.district) : "Unknown";
         divisionDistribution[div] = (divisionDistribution[div] || 0) + 1;
 
-        const avatar = await safeGetImageBase64(u.avatar);
+        const avatar = safeGetImageBase64(u.avatar);
 
         return {
           id: u.id,

@@ -15,7 +15,7 @@ import {
   placeOrderSchema,
   type PlaceOrderInput,
 } from "@/schemas/store/checkout";
-import { getImageBase64 } from "@/lib/storage";
+import { getPublicUrl } from "@/lib/storage";
 import {
   OrderStatus,
   OrderType,
@@ -34,24 +34,8 @@ import { triggerOrderPlacedEmail } from "@/actions/admin/support-marketing/marke
 import { trackMetaPurchaseAction } from "@/actions/meta";
 import { revalidatePath } from "next/cache";
 
-async function safeGetImageBase64(
-  key: string | null | undefined,
-): Promise<string> {
-  if (!key) return "";
-  if (
-    key.startsWith("data:") ||
-    key.startsWith("http://") ||
-    key.startsWith("https://") ||
-    key.startsWith("/")
-  ) {
-    return key;
-  }
-  try {
-    return await getImageBase64(key);
-  } catch (error) {
-    console.error(`[Storage.GetBase64] Failed for key "${key}":`, error);
-    return "";
-  }
+function resolveOrderItemImage(key: string | null | undefined): string {
+  return getPublicUrl(key);
 }
 
 export type UserCheckoutProfile = {
@@ -818,36 +802,34 @@ export async function getOrderConfirmationAction(orderId: string): Promise<{
       return { success: false, message: "Order not found." };
     }
 
-    const items = await Promise.all(
-      order.orderItems.map(async (oi) => {
-        let name = "Item";
-        let imageKey: string | null = null;
+    const items = order.orderItems.map((oi) => {
+      let name = "Item";
+      let imageKey: string | null = null;
 
-        if (oi.variant) {
-          name = `${oi.variant.product.name} (${oi.variant.sku})`;
-          imageKey = oi.variant.image || oi.variant.product.image;
-        } else if (oi.product) {
-          name = oi.product.name;
-          imageKey = oi.product.image;
-        } else if (oi.comboProduct) {
-          name = oi.comboProduct.name;
-          imageKey = oi.comboProduct.image;
-        }
+      if (oi.variant) {
+        name = `${oi.variant.product.name} (${oi.variant.sku})`;
+        imageKey = oi.variant.image || oi.variant.product.image;
+      } else if (oi.product) {
+        name = oi.product.name;
+        imageKey = oi.product.image;
+      } else if (oi.comboProduct) {
+        name = oi.comboProduct.name;
+        imageKey = oi.comboProduct.image;
+      }
 
-        const image = await safeGetImageBase64(imageKey);
+      const image = resolveOrderItemImage(imageKey);
 
-        return {
-          id: oi.id,
-          name,
-          image,
-          quantity: oi.quanitity,
-          unitPrice: oi.unitPrice,
-          totalCost: oi.totalCost,
-          discountCost: oi.discountCost,
-          finalCost: oi.finalCost,
-        };
-      }),
-    );
+      return {
+        id: oi.id,
+        name,
+        image,
+        quantity: oi.quanitity,
+        unitPrice: oi.unitPrice,
+        totalCost: oi.totalCost,
+        discountCost: oi.discountCost,
+        finalCost: oi.finalCost,
+      };
+    });
 
     return {
       success: true,

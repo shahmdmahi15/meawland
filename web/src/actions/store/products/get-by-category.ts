@@ -1,7 +1,7 @@
 "use server";
 
 import db from "@/lib/db";
-import { getImageBase64 } from "@/lib/storage";
+import { getPublicUrl } from "@/lib/storage";
 import { getCategoryBySlug } from "@/lib/category-helpers";
 import {
   getActiveCampaigns,
@@ -30,19 +30,11 @@ export type CategoryStoreProduct = {
   brandName?: string;
 };
 
-async function safeGetImageBase64(
+function resolveProductImage(
   key: string | null | undefined,
-): Promise<string> {
-  if (!key) return "/fallback-product.png";
-  try {
-    return await getImageBase64(key);
-  } catch (error) {
-    console.warn(
-      `[GetProductsByCategory] Failed to load S3 image for key "${key}":`,
-      error,
-    );
-    return "/fallback-product.png";
-  }
+  fallback = "/fallback-product.png",
+): string {
+  return getPublicUrl(key, fallback);
 }
 
 export async function getProductsByCategoryAction(
@@ -104,78 +96,76 @@ export async function getProductsByCategoryAction(
       foundSubCategoryTitle = sc?.name;
     }
 
-    const products: CategoryStoreProduct[] = await Promise.all(
-      dbProducts.map(async (p) => {
-        const base64Image = await safeGetImageBase64(p.image);
+    const products: CategoryStoreProduct[] = dbProducts.map((p) => {
+      const image = resolveProductImage(p.image);
 
-        let price = "0 tk";
-        let originalPrice: string | undefined = undefined;
-        let numericPrice = 0;
-        let numericOriginalPrice: number | undefined = undefined;
+      let price = "0 tk";
+      let originalPrice: string | undefined = undefined;
+      let numericPrice = 0;
+      let numericOriginalPrice: number | undefined = undefined;
 
-        if (p.isVariable && p.variants.length > 0) {
-          const firstVariant = p.variants[0];
-          const hasSale =
-            firstVariant.salePrice &&
-            firstVariant.salePrice !== firstVariant.regularPrice;
+      if (p.isVariable && p.variants.length > 0) {
+        const firstVariant = p.variants[0];
+        const hasSale =
+          firstVariant.salePrice &&
+          firstVariant.salePrice !== firstVariant.regularPrice;
 
-          if (hasSale) {
-            price = `${firstVariant.salePrice} tk`;
-            originalPrice = `${firstVariant.regularPrice} tk`;
-            numericPrice = parseFloat(firstVariant.salePrice || "0");
-            numericOriginalPrice = parseFloat(firstVariant.regularPrice || "0");
-          } else if (firstVariant.regularPrice) {
-            price = `${firstVariant.regularPrice} tk`;
-            numericPrice = parseFloat(firstVariant.regularPrice || "0");
-          }
-        } else {
-          const hasSale = p.salePrice && p.salePrice !== p.regularPrice;
-
-          if (hasSale) {
-            price = `${p.salePrice} tk`;
-            numericPrice = parseFloat(p.salePrice || "0");
-            if (p.regularPrice) {
-              originalPrice = `${p.regularPrice} tk`;
-              numericOriginalPrice = parseFloat(p.regularPrice || "0");
-            }
-          } else if (p.regularPrice) {
-            price = `${p.regularPrice} tk`;
-            numericPrice = parseFloat(p.regularPrice || "0");
-          }
+        if (hasSale) {
+          price = `${firstVariant.salePrice} tk`;
+          originalPrice = `${firstVariant.regularPrice} tk`;
+          numericPrice = parseFloat(firstVariant.salePrice || "0");
+          numericOriginalPrice = parseFloat(firstVariant.regularPrice || "0");
+        } else if (firstVariant.regularPrice) {
+          price = `${firstVariant.regularPrice} tk`;
+          numericPrice = parseFloat(firstVariant.regularPrice || "0");
         }
+      } else {
+        const hasSale = p.salePrice && p.salePrice !== p.regularPrice;
 
-        const stock = p.isVariable
-          ? p.variants.reduce((acc, v) => acc + (v.stock || 0), 0)
-          : (p.stock ?? 0);
+        if (hasSale) {
+          price = `${p.salePrice} tk`;
+          numericPrice = parseFloat(p.salePrice || "0");
+          if (p.regularPrice) {
+            originalPrice = `${p.regularPrice} tk`;
+            numericOriginalPrice = parseFloat(p.regularPrice || "0");
+          }
+        } else if (p.regularPrice) {
+          price = `${p.regularPrice} tk`;
+          numericPrice = parseFloat(p.regularPrice || "0");
+        }
+      }
 
-        const campaignBadge = matchProductCampaign(
-          p.id,
-          p.variants.map((v) => v.id),
-          activeCampaigns,
-        );
+      const stock = p.isVariable
+        ? p.variants.reduce((acc, v) => acc + (v.stock || 0), 0)
+        : (p.stock ?? 0);
 
-        return {
-          id: p.id,
-          name: p.name,
-          slug: p.slug,
-          code: p.code,
-          sku: p.sku,
-          price,
-          originalPrice,
-          numericPrice,
-          numericOriginalPrice,
-          campaignBadge,
-          image: base64Image,
-          isVariable: p.isVariable,
-          stock,
-          shortDescription: p.shortDescription,
-          subCategoryName: p.subCategory.name,
-          subCategorySlug: p.subCategory.slug,
-          categorySlug,
-          brandName: p.brand?.name,
-        };
-      }),
-    );
+      const campaignBadge = matchProductCampaign(
+        p.id,
+        p.variants.map((v) => v.id),
+        activeCampaigns,
+      );
+
+      return {
+        id: p.id,
+        name: p.name,
+        slug: p.slug,
+        code: p.code,
+        sku: p.sku,
+        price,
+        originalPrice,
+        numericPrice,
+        numericOriginalPrice,
+        campaignBadge,
+        image,
+        isVariable: p.isVariable,
+        stock,
+        shortDescription: p.shortDescription,
+        subCategoryName: p.subCategory.name,
+        subCategorySlug: p.subCategory.slug,
+        categorySlug,
+        brandName: p.brand?.name,
+      };
+    });
 
     return {
       success: true,

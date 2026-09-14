@@ -2,7 +2,7 @@
 
 import db from "@/lib/db";
 import { getMeAction } from "@/actions/auth/get-me";
-import { getImageBase64, uploadFile, deleteFile } from "@/lib/storage";
+import { getPublicUrl, uploadFile, deleteFile } from "@/lib/storage";
 import { revalidatePath } from "next/cache";
 import {
   UserProfileDetails,
@@ -16,24 +16,8 @@ import {
 } from "@/generated/prisma/enums";
 import { recordAuditLog } from "@/lib/audit-logger";
 
-async function safeGetImageBase64(
-  key: string | null | undefined,
-): Promise<string> {
-  if (!key) return "";
-  if (
-    key.startsWith("data:") ||
-    key.startsWith("http://") ||
-    key.startsWith("https://") ||
-    key.startsWith("/")
-  ) {
-    return key;
-  }
-  try {
-    return await getImageBase64(key);
-  } catch (error) {
-    console.error(`[Storage.GetBase64] Failed for key "${key}":`, error);
-    return "";
-  }
+function resolveAvatarUrl(key: string | null | undefined): string {
+  return getPublicUrl(key);
 }
 
 /**
@@ -77,7 +61,7 @@ export async function getUserProfileSettingsAction(): Promise<{
       };
     }
 
-    const resolvedAvatar = await safeGetImageBase64(user.avatar);
+    const resolvedAvatar = resolveAvatarUrl(user.avatar);
 
     return {
       success: true,
@@ -194,7 +178,7 @@ export async function updateUserProfileSettingsAction(
 
     let resolvedAvatar: string | null = null;
     if (newAvatarKey) {
-      resolvedAvatar = await safeGetImageBase64(newAvatarKey);
+      resolvedAvatar = resolveAvatarUrl(newAvatarKey);
     }
 
     await recordAuditLog({

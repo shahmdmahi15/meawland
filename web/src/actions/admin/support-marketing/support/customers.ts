@@ -9,7 +9,7 @@ import {
   AuditSeverity,
 } from "@/generated/prisma/enums";
 import { recordAuditLog } from "@/lib/audit-logger";
-import { getImageBase64 } from "@/lib/storage";
+import { getPublicUrl } from "@/lib/storage";
 import { revalidatePath } from "next/cache";
 import {
   AdminCustomerSummary,
@@ -19,24 +19,8 @@ import {
   adminUpdateCustomerSchema,
 } from "@/schemas/admin/support-marketing/support/customers";
 
-async function safeGetImageBase64(
-  key: string | null | undefined,
-): Promise<string> {
-  if (!key) return "";
-  if (
-    key.startsWith("data:") ||
-    key.startsWith("http://") ||
-    key.startsWith("https://") ||
-    key.startsWith("/")
-  ) {
-    return key;
-  }
-  try {
-    return await getImageBase64(key);
-  } catch (error) {
-    console.error(`[Storage.GetBase64] Failed for key "${key}":`, error);
-    return "";
-  }
+function safeGetImageBase64(key: string | null | undefined): string {
+  return getPublicUrl(key);
 }
 
 /**
@@ -75,40 +59,38 @@ export async function getAdminCustomersAction(): Promise<{
     let totalRevenueSum = 0;
     let totalInquiriesCount = 0;
 
-    const customers: AdminCustomerSummary[] = await Promise.all(
-      rawUsers.map(async (u) => {
-        const resolvedAvatar = await safeGetImageBase64(u.avatar);
-        const totalOrdersCount = u.orders.length;
-        const lifetimeSpent = u.orders.reduce(
-          (sum, o) => sum + (parseFloat(o.finalCost || "0") || 0),
-          0,
-        );
-        const supportTicketsCount = u.supportTickets.length;
-        const lastOrderDate = u.orders[0]?.createdAt || null;
+    const customers: AdminCustomerSummary[] = rawUsers.map((u) => {
+      const resolvedAvatar = safeGetImageBase64(u.avatar);
+      const totalOrdersCount = u.orders.length;
+      const lifetimeSpent = u.orders.reduce(
+        (sum, o) => sum + (parseFloat(o.finalCost || "0") || 0),
+        0,
+      );
+      const supportTicketsCount = u.supportTickets.length;
+      const lastOrderDate = u.orders[0]?.createdAt || null;
 
-        if (totalOrdersCount > 0) activeBuyersCount++;
-        totalRevenueSum += lifetimeSpent;
-        totalInquiriesCount += supportTicketsCount;
+      if (totalOrdersCount > 0) activeBuyersCount++;
+      totalRevenueSum += lifetimeSpent;
+      totalInquiriesCount += supportTicketsCount;
 
-        return {
-          id: u.id,
-          code: u.code,
-          name: u.name,
-          email: u.email,
-          phone: u.phone,
-          avatar: resolvedAvatar || null,
-          district: u.district,
-          address: u.address,
-          role: u.role,
-          hasGoogleLinked: Boolean(u.googleId),
-          createdAt: u.createdAt,
-          totalOrdersCount,
-          lifetimeSpent,
-          supportTicketsCount,
-          lastOrderDate,
-        };
-      }),
-    );
+      return {
+        id: u.id,
+        code: u.code,
+        name: u.name,
+        email: u.email,
+        phone: u.phone,
+        avatar: resolvedAvatar || null,
+        district: u.district,
+        address: u.address,
+        role: u.role,
+        hasGoogleLinked: Boolean(u.googleId),
+        createdAt: u.createdAt,
+        totalOrdersCount,
+        lifetimeSpent,
+        supportTicketsCount,
+        lastOrderDate,
+      };
+    });
 
     const stats: AdminCustomerStats = {
       totalCustomers: customers.length,
@@ -179,7 +161,7 @@ export async function getAdminCustomerDetailsAction(
       return { success: false, message: "Customer not found." };
     }
 
-    const resolvedAvatar = await safeGetImageBase64(u.avatar);
+    const resolvedAvatar = safeGetImageBase64(u.avatar);
     const totalOrdersCount = u.orders.length;
     const lifetimeSpent = u.orders.reduce(
       (sum, o) => sum + (parseFloat(o.finalCost || "0") || 0),

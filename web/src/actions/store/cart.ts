@@ -2,7 +2,7 @@
 
 import db from "@/lib/db";
 import { getMeAction } from "@/actions/auth/get-me";
-import { getImageBase64 } from "@/lib/storage";
+import { getPublicUrl } from "@/lib/storage";
 import {
   getActiveCampaigns,
   matchProductCampaign,
@@ -75,16 +75,11 @@ export type CartData = {
   checkoutDisableReason?: string;
 };
 
-async function safeGetImageBase64(
+function resolveCartItemImage(
   key: string | null | undefined,
   fallback = "/fallback-product.png",
-): Promise<string> {
-  if (!key) return fallback;
-  try {
-    return await getImageBase64(key);
-  } catch {
-    return fallback;
-  }
+): string {
+  return getPublicUrl(key, fallback);
 }
 
 /**
@@ -589,7 +584,7 @@ export async function getCartAction(): Promise<CartData> {
         const lineOriginalTotal = (unitOriginalPrice || unitPrice) * quantity;
         const lineDiscount = Math.max(0, lineOriginalTotal - lineTotal);
 
-        const base64Image = await safeGetImageBase64(imageKey);
+        const image = resolveCartItemImage(imageKey);
 
         return {
           id: ci.id,
@@ -599,7 +594,7 @@ export async function getCartAction(): Promise<CartData> {
           comboProductId: ci.comboProductId,
           name,
           slug,
-          image: base64Image,
+          image,
           variantAttributes,
           variantTitle,
           comboBadge,

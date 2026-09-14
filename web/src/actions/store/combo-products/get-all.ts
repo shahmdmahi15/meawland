@@ -1,7 +1,7 @@
 "use server";
 
 import db from "@/lib/db";
-import { getImageBase64 } from "@/lib/storage";
+import { getPublicUrl } from "@/lib/storage";
 import {
   getActiveCampaigns,
   matchComboCampaign,
@@ -49,20 +49,11 @@ export type StoreComboFilterMeta = {
   availableCampaigns: string[];
 };
 
-async function safeGetImageBase64(
+function resolveComboImage(
   key: string | null | undefined,
   fallback = "/fallback-product.png",
-): Promise<string> {
-  if (!key) return fallback;
-  try {
-    return await getImageBase64(key);
-  } catch (error) {
-    console.warn(
-      `[GetStoreComboProducts] Failed to load S3 image for key "${key}":`,
-      error,
-    );
-    return fallback;
-  }
+): string {
+  return getPublicUrl(key, fallback);
 }
 
 /**
@@ -129,106 +120,102 @@ export async function getAllStoreComboProductsAction(): Promise<{
       };
     }
 
-    const combos: StoreComboProduct[] = await Promise.all(
-      dbCombos.map(async (combo) => {
-        // Base64 combo image
-        const comboImage = await safeGetImageBase64(combo.image);
+    const combos: StoreComboProduct[] = dbCombos.map((combo) => {
+      // S3 URL combo image
+      const comboImage = resolveComboImage(combo.image);
 
-        // Compute original items pricing sum
-        const productsPriceSum = combo.products.reduce((sum, p) => {
-          const pPrice = parseFloat(p.regularPrice || p.salePrice || "0") || 0;
-          return sum + pPrice;
-        }, 0);
+      // Compute original items pricing sum
+      const productsPriceSum = combo.products.reduce((sum, p) => {
+        const pPrice = parseFloat(p.regularPrice || p.salePrice || "0") || 0;
+        return sum + pPrice;
+      }, 0);
 
-        const variantsPriceSum = combo.variants.reduce((sum, v) => {
-          const vPrice = parseFloat(v.regularPrice || v.salePrice || "0") || 0;
-          return sum + vPrice;
-        }, 0);
+      const variantsPriceSum = combo.variants.reduce((sum, v) => {
+        const vPrice = parseFloat(v.regularPrice || v.salePrice || "0") || 0;
+        return sum + vPrice;
+      }, 0);
 
-        const totalOriginalPriceNum =
-          productsPriceSum + variantsPriceSum > 0
-            ? productsPriceSum + variantsPriceSum
-            : parseFloat(combo.regularPrice || "0") || 0;
+      const totalOriginalPriceNum =
+        productsPriceSum + variantsPriceSum > 0
+          ? productsPriceSum + variantsPriceSum
+          : parseFloat(combo.regularPrice || "0") || 0;
 
-        const effectivePriceStr = combo.salePrice || combo.regularPrice || "0";
-        const numericPrice = parseFloat(effectivePriceStr) || 0;
+      const effectivePriceStr = combo.salePrice || combo.regularPrice || "0";
+      const numericPrice = parseFloat(effectivePriceStr) || 0;
 
-        const hasDiscount =
-          totalOriginalPriceNum > numericPrice && numericPrice > 0;
-        const discountPercent = hasDiscount
-          ? Math.round(
-              ((totalOriginalPriceNum - numericPrice) / totalOriginalPriceNum) *
-                100,
-            )
-          : undefined;
+      const hasDiscount =
+        totalOriginalPriceNum > numericPrice && numericPrice > 0;
+      const discountPercent = hasDiscount
+        ? Math.round(
+            ((totalOriginalPriceNum - numericPrice) / totalOriginalPriceNum) *
+              100,
+          )
+        : undefined;
 
-        const savingsAmount = hasDiscount
-          ? Math.round(totalOriginalPriceNum - numericPrice)
-          : undefined;
+      const savingsAmount = hasDiscount
+        ? Math.round(totalOriginalPriceNum - numericPrice)
+        : undefined;
 
-        // Compute stock capacity
-        const allStocks = [
-          ...combo.products.map((p) => p.stock ?? 0),
-          ...combo.variants.map((v) => v.stock),
-        ];
-        const bundleStockCapacity =
-          allStocks.length > 0 ? Math.min(...allStocks) : 0;
-        const isAvailable = bundleStockCapacity > 0;
+      // Compute stock capacity
+      const allStocks = [
+        ...combo.products.map((p) => p.stock ?? 0),
+        ...combo.variants.map((v) => v.stock),
+      ];
+      const bundleStockCapacity =
+        allStocks.length > 0 ? Math.min(...allStocks) : 0;
+      const isAvailable = bundleStockCapacity > 0;
 
-        // Included items preview
-        const includedItems: StoreComboIncludedItem[] = [
-          ...combo.products.map((p) => ({
-            id: p.id,
-            name: p.name,
-            image: p.image,
-            isVariant: false,
-            regularPrice: p.regularPrice,
-            salePrice: p.salePrice,
-          })),
-          ...combo.variants.map((v) => ({
-            id: v.id,
-            name: `${v.product.name} (${v.sku})`,
-            image: v.image,
-            isVariant: true,
-            sku: v.sku,
-            regularPrice: v.regularPrice,
-            salePrice: v.salePrice,
-          })),
-        ];
+      // Included items preview
+      const includedItems: StoreComboIncludedItem[] = [
+        ...combo.products.map((p) => ({
+          id: p.id,
+          name: p.name,
+          image: resolveComboImage(p.image),
+          isVariant: false,
+          regularPrice: p.regularPrice,
+          salePrice: p.salePrice,
+        })),
+        ...combo.variants.map((v) => ({
+          id: v.id,
+          name: `${v.product.name} (${v.sku})`,
+          image: resolveComboImage(v.image),
+          isVariant: true,
+          sku: v.sku,
+          regularPrice: v.regularPrice,
+          salePrice: v.salePrice,
+        })),
+      ];
 
-        const campaignBadge = matchComboCampaign(combo.id, activeCampaigns);
+      const campaignBadge = matchComboCampaign(combo.id, activeCampaigns);
 
-        const gallery = await Promise.all(
-          (combo.gallery || []).map((g) => safeGetImageBase64(g)),
-        );
+      const gallery = (combo.gallery || []).map((g) => resolveComboImage(g));
 
-        return {
-          id: combo.id,
-          name: combo.name,
-          slug: combo.slug,
-          code: combo.code,
-          description: combo.shortDescription || combo.longDescription,
-          price: `৳${numericPrice.toLocaleString()}`,
-          originalPrice:
-            totalOriginalPriceNum > 0
-              ? `৳${totalOriginalPriceNum.toLocaleString()}`
-              : undefined,
-          numericPrice,
-          numericOriginalPrice:
-            totalOriginalPriceNum > 0 ? totalOriginalPriceNum : undefined,
-          discountPercent,
-          savingsAmount,
-          campaignBadge,
-          image: comboImage,
-          gallery: gallery.filter(Boolean),
-          bundleStockCapacity,
-          isAvailable,
-          itemsCount: combo.products.length + combo.variants.length,
-          includedItems,
-          createdAt: combo.createdAt.toISOString(),
-        };
-      }),
-    );
+      return {
+        id: combo.id,
+        name: combo.name,
+        slug: combo.slug,
+        code: combo.code,
+        description: combo.shortDescription || combo.longDescription,
+        price: `৳${numericPrice.toLocaleString()}`,
+        originalPrice:
+          totalOriginalPriceNum > 0
+            ? `৳${totalOriginalPriceNum.toLocaleString()}`
+            : undefined,
+        numericPrice,
+        numericOriginalPrice:
+          totalOriginalPriceNum > 0 ? totalOriginalPriceNum : undefined,
+        discountPercent,
+        savingsAmount,
+        campaignBadge,
+        image: comboImage,
+        gallery: gallery.filter(Boolean),
+        bundleStockCapacity,
+        isAvailable,
+        itemsCount: combo.products.length + combo.variants.length,
+        includedItems,
+        createdAt: combo.createdAt.toISOString(),
+      };
+    });
 
     // Compute meta stats
     const numericPrices = combos

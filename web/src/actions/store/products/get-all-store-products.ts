@@ -1,7 +1,7 @@
 "use server";
 
 import db from "@/lib/db";
-import { getImageBase64 } from "@/lib/storage";
+import { getPublicUrl } from "@/lib/storage";
 import { Category } from "@/generated/prisma/enums";
 import {
   getActiveCampaigns,
@@ -62,20 +62,11 @@ export type StoreFilterMeta = {
   maxPrice: number;
 };
 
-async function safeGetImageBase64(
+function resolveProductImage(
   key: string | null | undefined,
   fallback = "/fallback-product.png",
-): Promise<string> {
-  if (!key) return fallback;
-  try {
-    return await getImageBase64(key);
-  } catch (error) {
-    console.warn(
-      `[GetAllStoreProducts] Failed to load S3 image for key "${key}":`,
-      error,
-    );
-    return fallback;
-  }
+): string {
+  return getPublicUrl(key, fallback);
 }
 
 function formatCategoryEnumToTitle(category: Category): string {
@@ -159,101 +150,99 @@ export async function getAllStoreProductsAction(): Promise<{
     let minPrice = Infinity;
     let maxPrice = 0;
 
-    const products: FilterableStoreProduct[] = await Promise.all(
-      dbProducts.map(async (p) => {
-        const base64Image = await safeGetImageBase64(p.image);
+    const products: FilterableStoreProduct[] = dbProducts.map((p) => {
+      const image = resolveProductImage(p.image);
 
-        let price = "0 tk";
-        let originalPrice: string | undefined = undefined;
-        let numericPrice = 0;
-        let numericOriginalPrice: number | undefined = undefined;
+      let price = "0 tk";
+      let originalPrice: string | undefined = undefined;
+      let numericPrice = 0;
+      let numericOriginalPrice: number | undefined = undefined;
 
-        if (p.isVariable && p.variants.length > 0) {
-          const firstVariant = p.variants[0];
-          const hasSale =
-            firstVariant.salePrice &&
-            firstVariant.salePrice !== firstVariant.regularPrice;
+      if (p.isVariable && p.variants.length > 0) {
+        const firstVariant = p.variants[0];
+        const hasSale =
+          firstVariant.salePrice &&
+          firstVariant.salePrice !== firstVariant.regularPrice;
 
-          if (hasSale) {
-            price = `${firstVariant.salePrice} tk`;
-            originalPrice = `${firstVariant.regularPrice} tk`;
-            numericPrice = parseFloat(firstVariant.salePrice || "0");
-            numericOriginalPrice = parseFloat(firstVariant.regularPrice || "0");
-          } else if (firstVariant.regularPrice) {
-            price = `${firstVariant.regularPrice} tk`;
-            numericPrice = parseFloat(firstVariant.regularPrice || "0");
-          }
-        } else {
-          const hasSale = p.salePrice && p.salePrice !== p.regularPrice;
-
-          if (hasSale) {
-            price = `${p.salePrice} tk`;
-            numericPrice = parseFloat(p.salePrice || "0");
-            if (p.regularPrice) {
-              originalPrice = `${p.regularPrice} tk`;
-              numericOriginalPrice = parseFloat(p.regularPrice || "0");
-            }
-          } else if (p.regularPrice) {
-            price = `${p.regularPrice} tk`;
-            numericPrice = parseFloat(p.regularPrice || "0");
-          }
+        if (hasSale) {
+          price = `${firstVariant.salePrice} tk`;
+          originalPrice = `${firstVariant.regularPrice} tk`;
+          numericPrice = parseFloat(firstVariant.salePrice || "0");
+          numericOriginalPrice = parseFloat(firstVariant.regularPrice || "0");
+        } else if (firstVariant.regularPrice) {
+          price = `${firstVariant.regularPrice} tk`;
+          numericPrice = parseFloat(firstVariant.regularPrice || "0");
         }
+      } else {
+        const hasSale = p.salePrice && p.salePrice !== p.regularPrice;
 
-        if (numericPrice < minPrice) minPrice = numericPrice;
-        if (numericPrice > maxPrice) maxPrice = numericPrice;
+        if (hasSale) {
+          price = `${p.salePrice} tk`;
+          numericPrice = parseFloat(p.salePrice || "0");
+          if (p.regularPrice) {
+            originalPrice = `${p.regularPrice} tk`;
+            numericOriginalPrice = parseFloat(p.regularPrice || "0");
+          }
+        } else if (p.regularPrice) {
+          price = `${p.regularPrice} tk`;
+          numericPrice = parseFloat(p.regularPrice || "0");
+        }
+      }
 
-        const discountPercent =
-          numericOriginalPrice && numericOriginalPrice > numericPrice
-            ? Math.round(
-                ((numericOriginalPrice - numericPrice) / numericOriginalPrice) *
-                  100,
-              )
-            : undefined;
+      if (numericPrice < minPrice) minPrice = numericPrice;
+      if (numericPrice > maxPrice) maxPrice = numericPrice;
 
-        const stock = p.isVariable
-          ? p.variants.reduce((acc, v) => acc + (v.stock || 0), 0)
-          : (p.stock ?? 0);
+      const discountPercent =
+        numericOriginalPrice && numericOriginalPrice > numericPrice
+          ? Math.round(
+              ((numericOriginalPrice - numericPrice) / numericOriginalPrice) *
+                100,
+            )
+          : undefined;
 
-        const isStockOut = stock <= 0;
+      const stock = p.isVariable
+        ? p.variants.reduce((acc, v) => acc + (v.stock || 0), 0)
+        : (p.stock ?? 0);
 
-        const catEnum = p.subCategory?.category as Category | undefined;
+      const isStockOut = stock <= 0;
 
-        const campaignBadge = matchProductCampaign(
-          p.id,
-          p.variants.map((v) => v.id),
-          activeCampaigns,
-        );
+      const catEnum = p.subCategory?.category as Category | undefined;
 
-        return {
-          id: p.id,
-          name: p.name,
-          slug: p.slug,
-          code: p.code,
-          sku: p.sku,
-          shortDescription: p.shortDescription,
-          price,
-          originalPrice,
-          numericPrice,
-          numericOriginalPrice,
-          discountPercent,
-          campaignBadge,
-          image: base64Image,
-          isVariable: p.isVariable,
-          stock,
-          isStockOut,
-          categoryEnum: catEnum,
-          categoryName: catEnum ? formatCategoryEnumToTitle(catEnum) : null,
-          categorySlug: catEnum ? formatCategoryEnumToSlug(catEnum) : null,
-          subCategoryId: p.subCategoryId,
-          subCategoryName: p.subCategory?.name,
-          subCategorySlug: p.subCategory?.slug,
-          brandId: p.brandId,
-          brandName: p.brand?.name,
-          brandSlug: p.brand?.slug,
-          createdAt: p.createdAt.toISOString(),
-        };
-      }),
-    );
+      const campaignBadge = matchProductCampaign(
+        p.id,
+        p.variants.map((v) => v.id),
+        activeCampaigns,
+      );
+
+      return {
+        id: p.id,
+        name: p.name,
+        slug: p.slug,
+        code: p.code,
+        sku: p.sku,
+        shortDescription: p.shortDescription,
+        price,
+        originalPrice,
+        numericPrice,
+        numericOriginalPrice,
+        discountPercent,
+        campaignBadge,
+        image,
+        isVariable: p.isVariable,
+        stock,
+        isStockOut,
+        categoryEnum: catEnum,
+        categoryName: catEnum ? formatCategoryEnumToTitle(catEnum) : null,
+        categorySlug: catEnum ? formatCategoryEnumToSlug(catEnum) : null,
+        subCategoryId: p.subCategoryId,
+        subCategoryName: p.subCategory?.name,
+        subCategorySlug: p.subCategory?.slug,
+        brandId: p.brandId,
+        brandName: p.brand?.name,
+        brandSlug: p.brand?.slug,
+        createdAt: p.createdAt.toISOString(),
+      };
+    });
 
     // Compute Category counts
     const categoriesMap: Record<Category, number> = {

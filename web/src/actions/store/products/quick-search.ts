@@ -1,7 +1,7 @@
 "use server";
 
 import db from "@/lib/db";
-import { getImageBase64 } from "@/lib/storage";
+import { getPublicUrl } from "@/lib/storage";
 import { Category } from "@/generated/prisma/enums";
 
 export type QuickSearchResultProduct = {
@@ -29,27 +29,8 @@ export type QuickSearchResult = {
   totalMatches: number;
 };
 
-async function safeGetImageBase64(
-  imageKey: string | null | undefined,
-): Promise<string> {
-  if (!imageKey) return "/placeholder-cat.png";
-  if (
-    imageKey.startsWith("data:") ||
-    imageKey.startsWith("http://") ||
-    imageKey.startsWith("https://")
-  ) {
-    return imageKey;
-  }
-  try {
-    const base64 = await getImageBase64(imageKey);
-    return base64 || "/placeholder-cat.png";
-  } catch (error) {
-    console.warn(
-      `[quickSearchAction] Failed to load image for key ${imageKey}:`,
-      error,
-    );
-    return "/placeholder-cat.png";
-  }
+function resolveQuickSearchImage(imageKey: string | null | undefined): string {
+  return getPublicUrl(imageKey, "/placeholder-cat.png");
 }
 
 export async function quickSearchAction(
@@ -142,51 +123,49 @@ export async function quickSearchAction(
       });
     }
 
-    const products: QuickSearchResultProduct[] = await Promise.all(
-      matchingProducts.map(async (p) => {
-        const image = await safeGetImageBase64(p.image);
+    const products: QuickSearchResultProduct[] = matchingProducts.map((p) => {
+      const image = resolveQuickSearchImage(p.image);
 
-        let price = "0 tk";
-        let originalPrice: string | undefined = undefined;
+      let price = "0 tk";
+      let originalPrice: string | undefined = undefined;
 
-        if (p.isVariable && p.variants.length > 0) {
-          const firstVariant = p.variants[0];
-          const hasSale =
-            firstVariant.salePrice &&
-            firstVariant.salePrice !== firstVariant.regularPrice;
+      if (p.isVariable && p.variants.length > 0) {
+        const firstVariant = p.variants[0];
+        const hasSale =
+          firstVariant.salePrice &&
+          firstVariant.salePrice !== firstVariant.regularPrice;
 
-          if (hasSale) {
-            price = `${firstVariant.salePrice} tk`;
-            originalPrice = `${firstVariant.regularPrice} tk`;
-          } else if (firstVariant.regularPrice) {
-            price = `${firstVariant.regularPrice} tk`;
-          }
-        } else {
-          const hasSale = p.salePrice && p.salePrice !== p.regularPrice;
-          if (hasSale) {
-            price = `${p.salePrice} tk`;
-            originalPrice = `${p.regularPrice} tk`;
-          } else if (p.regularPrice) {
-            price = `${p.regularPrice} tk`;
-          }
+        if (hasSale) {
+          price = `${firstVariant.salePrice} tk`;
+          originalPrice = `${firstVariant.regularPrice} tk`;
+        } else if (firstVariant.regularPrice) {
+          price = `${firstVariant.regularPrice} tk`;
         }
+      } else {
+        const hasSale = p.salePrice && p.salePrice !== p.regularPrice;
+        if (hasSale) {
+          price = `${p.salePrice} tk`;
+          originalPrice = `${p.regularPrice} tk`;
+        } else if (p.regularPrice) {
+          price = `${p.regularPrice} tk`;
+        }
+      }
 
-        return {
-          id: p.id,
-          name: p.name,
-          slug: p.slug,
-          code: p.code,
-          sku: p.sku,
-          price,
-          originalPrice,
-          image,
-          categoryName: p.subCategory?.category
-            ? p.subCategory.category.replace(/_/g, " ")
-            : undefined,
-          brandName: p.brand?.name,
-        };
-      }),
-    );
+      return {
+        id: p.id,
+        name: p.name,
+        slug: p.slug,
+        code: p.code,
+        sku: p.sku,
+        price,
+        originalPrice,
+        image,
+        categoryName: p.subCategory?.category
+          ? p.subCategory.category.replace(/_/g, " ")
+          : undefined,
+        brandName: p.brand?.name,
+      };
+    });
 
     return {
       products,

@@ -1,7 +1,7 @@
 "use server";
 
 import db from "@/lib/db";
-import { getImageBase64 } from "@/lib/storage";
+import { getPublicUrl } from "@/lib/storage";
 import {
   getActiveCampaigns,
   matchProductCampaign,
@@ -116,16 +116,11 @@ export type ProductDetailData = {
   relatedProducts: RelatedProductItem[];
 };
 
-async function safeGetImageBase64(
+function resolveProductImage(
   key: string | null | undefined,
   fallback = "/fallback-product.png",
-): Promise<string> {
-  if (!key) return fallback;
-  try {
-    return await getImageBase64(key);
-  } catch {
-    return fallback;
-  }
+): string {
+  return getPublicUrl(key, fallback);
 }
 
 export async function getProductDetailsAction(slug: string): Promise<{
@@ -153,10 +148,10 @@ export async function getProductDetailsAction(slug: string): Promise<{
     });
 
     if (product) {
-      const [mainImage, ...galleryImages] = await Promise.all([
-        safeGetImageBase64(product.image),
-        ...(product.gallery || []).map((g) => safeGetImageBase64(g)),
-      ]);
+      const mainImage = resolveProductImage(product.image);
+      const galleryImages = (product.gallery || []).map((g) =>
+        resolveProductImage(g),
+      );
 
       const allGallery = [
         mainImage,
@@ -164,11 +159,9 @@ export async function getProductDetailsAction(slug: string): Promise<{
       ];
 
       // Process variants
-      const processedVariants: ProductDetailVariant[] = await Promise.all(
-        product.variants.map(async (v) => {
-          const varImage = v.image
-            ? await safeGetImageBase64(v.image)
-            : mainImage;
+      const processedVariants: ProductDetailVariant[] = product.variants.map(
+        (v) => {
+          const varImage = v.image ? resolveProductImage(v.image) : mainImage;
           const reg = parseFloat(v.regularPrice || "0");
           const sale =
             v.salePrice && v.salePrice !== v.regularPrice
@@ -193,7 +186,7 @@ export async function getProductDetailsAction(slug: string): Promise<{
               value: a.value,
             })),
           };
-        }),
+        },
       );
 
       // Attribute Groups (COLOR, SIZE, WEIGHT)
@@ -335,9 +328,9 @@ export async function getProductDetailsAction(slug: string): Promise<{
         relatedDbProducts = [...relatedDbProducts, ...generalProducts];
       }
 
-      const relatedProducts: RelatedProductItem[] = await Promise.all(
-        relatedDbProducts.map(async (rp) => {
-          const rpImg = await safeGetImageBase64(rp.image);
+      const relatedProducts: RelatedProductItem[] = relatedDbProducts.map(
+        (rp) => {
+          const rpImg = resolveProductImage(rp.image);
           let rpPrice = "0 tk";
           let rpOrigPrice: string | undefined = undefined;
           let rpNumPrice = 0;
@@ -404,7 +397,7 @@ export async function getProductDetailsAction(slug: string): Promise<{
             brandName: rp.brand?.name,
             subCategoryName: rp.subCategory.name,
           };
-        }),
+        },
       );
 
       const categorySlug = formatCategoryToSlug(product.subCategory.category);
@@ -475,10 +468,10 @@ export async function getProductDetailsAction(slug: string): Promise<{
     });
 
     if (combo) {
-      const [mainImage, ...galleryImages] = await Promise.all([
-        safeGetImageBase64(combo.image),
-        ...(combo.gallery || []).map((g) => safeGetImageBase64(g)),
-      ]);
+      const mainImage = resolveProductImage(combo.image);
+      const galleryImages = (combo.gallery || []).map((g) =>
+        resolveProductImage(g),
+      );
 
       const allGallery = [
         mainImage,
@@ -505,38 +498,34 @@ export async function getProductDetailsAction(slug: string): Promise<{
       const campaignBadge = matchComboCampaign(combo.id, activeCampaigns);
 
       // Process bundled items (both standalone products and specific variants)
-      const bundledProducts: ComboBundleItem[] = await Promise.all(
-        combo.products.map(async (cp) => ({
-          id: cp.id,
-          name: cp.name,
-          slug: cp.slug,
-          image: await safeGetImageBase64(cp.image),
-          regularPrice: cp.regularPrice ? `${cp.regularPrice} tk` : null,
-          salePrice: cp.salePrice ? `${cp.salePrice} tk` : null,
-          stock: cp.stock ?? 0,
-          isVariant: false,
-        })),
-      );
+      const bundledProducts: ComboBundleItem[] = combo.products.map((cp) => ({
+        id: cp.id,
+        name: cp.name,
+        slug: cp.slug,
+        image: resolveProductImage(cp.image),
+        regularPrice: cp.regularPrice ? `${cp.regularPrice} tk` : null,
+        salePrice: cp.salePrice ? `${cp.salePrice} tk` : null,
+        stock: cp.stock ?? 0,
+        isVariant: false,
+      }));
 
-      const bundledVariants: ComboBundleItem[] = await Promise.all(
-        combo.variants.map(async (cv) => {
-          const varImage = cv.image
-            ? await safeGetImageBase64(cv.image)
-            : await safeGetImageBase64(cv.product.image);
-          const attrLabel = cv.attributes.map((a) => a.name).join(" • ");
-          return {
-            id: cv.id,
-            name: `${cv.product.name}${attrLabel ? ` (${attrLabel})` : ""}`,
-            slug: cv.product.slug,
-            image: varImage,
-            regularPrice: cv.regularPrice ? `${cv.regularPrice} tk` : null,
-            salePrice: cv.salePrice ? `${cv.salePrice} tk` : null,
-            variantTitle: attrLabel || undefined,
-            stock: cv.stock ?? 0,
-            isVariant: true,
-          };
-        }),
-      );
+      const bundledVariants: ComboBundleItem[] = combo.variants.map((cv) => {
+        const varImage = cv.image
+          ? resolveProductImage(cv.image)
+          : resolveProductImage(cv.product.image);
+        const attrLabel = cv.attributes.map((a) => a.name).join(" • ");
+        return {
+          id: cv.id,
+          name: `${cv.product.name}${attrLabel ? ` (${attrLabel})` : ""}`,
+          slug: cv.product.slug,
+          image: varImage,
+          regularPrice: cv.regularPrice ? `${cv.regularPrice} tk` : null,
+          salePrice: cv.salePrice ? `${cv.salePrice} tk` : null,
+          variantTitle: attrLabel || undefined,
+          stock: cv.stock ?? 0,
+          isVariant: true,
+        };
+      });
 
       const allBundledItems = [...bundledProducts, ...bundledVariants];
 
@@ -554,9 +543,9 @@ export async function getProductDetailsAction(slug: string): Promise<{
         take: 4,
       });
 
-      const relatedComboItems: RelatedProductItem[] = await Promise.all(
-        relatedCombos.map(async (rc) => {
-          const rcImg = await safeGetImageBase64(rc.image);
+      const relatedComboItems: RelatedProductItem[] = relatedCombos.map(
+        (rc) => {
+          const rcImg = resolveProductImage(rc.image);
           const rcReg = parseFloat(rc.regularPrice || "0");
           const rcSale = rc.salePrice ? parseFloat(rc.salePrice) : undefined;
           const rcNum = rcSale || rcReg;
@@ -577,7 +566,7 @@ export async function getProductDetailsAction(slug: string): Promise<{
             isVariable: false,
             stock: 99,
           };
-        }),
+        },
       );
 
       let relatedProducts = relatedComboItems;
@@ -592,33 +581,31 @@ export async function getProductDetailsAction(slug: string): Promise<{
           orderBy: { createdAt: "desc" },
         });
 
-        const extraItems: RelatedProductItem[] = await Promise.all(
-          extraProducts.map(async (ep) => {
-            const epImg = await safeGetImageBase64(ep.image);
-            const epReg = parseFloat(ep.regularPrice || "0");
-            const epSale = ep.salePrice ? parseFloat(ep.salePrice) : undefined;
-            const epNum = epSale || epReg;
-            return {
-              id: ep.id,
-              name: ep.name,
-              slug: ep.slug,
-              code: ep.code,
-              sku: ep.sku,
-              price: `${epNum} tk`,
-              originalPrice: epSale ? `${epReg} tk` : undefined,
-              numericPrice: epNum,
-              numericOriginalPrice: epSale ? epReg : undefined,
-              discountPercent: epSale
-                ? Math.round(((epReg - epSale) / epReg) * 100)
-                : undefined,
-              image: epImg,
-              isVariable: ep.isVariable,
-              stock: ep.stock ?? 0,
-              brandName: ep.brand?.name,
-              subCategoryName: ep.subCategory?.name,
-            };
-          }),
-        );
+        const extraItems: RelatedProductItem[] = extraProducts.map((ep) => {
+          const epImg = resolveProductImage(ep.image);
+          const epReg = parseFloat(ep.regularPrice || "0");
+          const epSale = ep.salePrice ? parseFloat(ep.salePrice) : undefined;
+          const epNum = epSale || epReg;
+          return {
+            id: ep.id,
+            name: ep.name,
+            slug: ep.slug,
+            code: ep.code,
+            sku: ep.sku,
+            price: `${epNum} tk`,
+            originalPrice: epSale ? `${epReg} tk` : undefined,
+            numericPrice: epNum,
+            numericOriginalPrice: epSale ? epReg : undefined,
+            discountPercent: epSale
+              ? Math.round(((epReg - epSale) / epReg) * 100)
+              : undefined,
+            image: epImg,
+            isVariable: ep.isVariable,
+            stock: ep.stock ?? 0,
+            brandName: ep.brand?.name,
+            subCategoryName: ep.subCategory?.name,
+          };
+        });
         relatedProducts = [...relatedProducts, ...extraItems];
       }
 

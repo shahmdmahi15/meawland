@@ -1,7 +1,7 @@
 "use server";
 
 import db from "@/lib/db";
-import { getImageBase64 } from "@/lib/storage";
+import { getPublicUrl } from "@/lib/storage";
 import {
   Product,
   SubCategory,
@@ -48,16 +48,8 @@ export type GetAllProductsResult = {
   metrics?: InventoryMetrics;
 };
 
-async function safeGetImageBase64(
-  key: string | null | undefined,
-): Promise<string> {
-  if (!key) return "";
-  try {
-    return await getImageBase64(key);
-  } catch (error) {
-    console.error(`[Storage.GetBase64] Failed for key "${key}":`, error);
-    return "";
-  }
+function resolveImageUrl(key: string | null | undefined): string {
+  return getPublicUrl(key);
 }
 
 export async function getAllProductsAdminAction(): Promise<GetAllProductsResult> {
@@ -105,63 +97,57 @@ export async function getAllProductsAdminAction(): Promise<GetAllProductsResult>
     const categorySet = new Set<string>();
     const brandSet = new Set<string>();
 
-    const productsWithImages: FullProduct[] = await Promise.all(
-      products.map(async (product) => {
-        categorySet.add(product.subCategory.category);
-        if (product.brandId) brandSet.add(product.brandId);
+    const productsWithImages: FullProduct[] = products.map((product) => {
+      categorySet.add(product.subCategory.category);
+      if (product.brandId) brandSet.add(product.brandId);
 
-        let productStock = 0;
-        if (product.isVariable) {
-          variableCount++;
-          productStock = product.variants.reduce(
-            (acc, v) => acc + (v.stock || 0),
-            0,
-          );
-        } else {
-          simpleCount++;
-          productStock = product.stock ?? 0;
-        }
+      let productStock = 0;
+      if (product.isVariable) {
+        variableCount++;
+        productStock = product.variants.reduce(
+          (acc, v) => acc + (v.stock || 0),
+          0,
+        );
+      } else {
+        simpleCount++;
+        productStock = product.stock ?? 0;
+      }
 
-        totalStockUnits += productStock;
+      totalStockUnits += productStock;
 
-        if (productStock === 0) {
-          outOfStockCount++;
-        } else if (productStock <= 5) {
-          lowStockCount++;
-        }
+      if (productStock === 0) {
+        outOfStockCount++;
+      } else if (productStock <= 5) {
+        lowStockCount++;
+      }
 
-        // Resolve main image base64
-        const imageBase64 = await safeGetImageBase64(product.image);
+      // Resolve main image URL
+      const imageBase64 = resolveImageUrl(product.image);
 
-        // Resolve gallery base64
-        const galleryBase64 = product.gallery
-          ? await Promise.all(
-              product.gallery.map((gKey) => safeGetImageBase64(gKey)),
-            )
-          : [];
+      // Resolve gallery URLs
+      const galleryBase64 = (product.gallery || []).map((gKey) =>
+        resolveImageUrl(gKey),
+      );
 
-        // Resolve variants images base64
-        const variantsWithImages: ProductVariantWithAttributes[] =
-          await Promise.all(
-            product.variants.map(async (variant) => {
-              const vBase64 = await safeGetImageBase64(variant.image);
-              return {
-                ...variant,
-                imageBase64: vBase64,
-                stockEvents: variant.stockEvents ?? [],
-              };
-            }),
-          );
+      // Resolve variants images URLs
+      const variantsWithImages: ProductVariantWithAttributes[] =
+        product.variants.map((variant) => {
+          const vBase64 = resolveImageUrl(variant.image);
+          return {
+            ...variant,
+            imageBase64: vBase64,
+            stockEvents: variant.stockEvents ?? [],
+          };
+        });
 
-        return {
-          ...product,
-          imageBase64,
-          galleryBase64,
-          variants: variantsWithImages,
-          stockEvents: product.stockEvents ?? [],
-        };
-      }),
-    );
+      return {
+        ...product,
+        imageBase64,
+        galleryBase64,
+        variants: variantsWithImages,
+        stockEvents: product.stockEvents ?? [],
+      };
+    });
 
     const metrics: InventoryMetrics = {
       totalProducts: products.length,

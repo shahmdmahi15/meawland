@@ -1,7 +1,7 @@
 "use server";
 
 import db from "@/lib/db";
-import { getImageBase64 } from "@/lib/storage";
+import { getPublicUrl } from "@/lib/storage";
 import { Slider } from "@/generated/prisma/client";
 
 export async function getAllSlidersAdminAction(): Promise<{
@@ -14,20 +14,15 @@ export async function getAllSlidersAdminAction(): Promise<{
       orderBy: { createdAt: "desc" },
     });
 
-    const slidersWithImageBase64 = await Promise.all(
-      sliders.map(async (slider) => {
-        const base64 = await getImageBase64(slider.image);
-        return {
-          ...slider,
-          image: base64,
-        };
-      }),
-    );
+    const slidersWithPublicUrl = sliders.map((slider) => ({
+      ...slider,
+      image: getPublicUrl(slider.image),
+    }));
 
     return {
       success: true,
       message: "Successfully retrieved all sliders for admin",
-      sliders: slidersWithImageBase64,
+      sliders: slidersWithPublicUrl,
     };
   } catch (error) {
     console.error("[Action.Admin.Management.Sliders.GetAll]:", error);

@@ -2,7 +2,7 @@
 
 import db from "@/lib/db";
 import { getMeAction } from "@/actions/auth/get-me";
-import { getImageBase64 } from "@/lib/storage";
+import { getPublicUrl } from "@/lib/storage";
 import { isDhakaDistrict } from "@/constants/cart";
 import { OrderStatus } from "@/generated/prisma/enums";
 import {
@@ -13,24 +13,8 @@ import {
 } from "@/schemas/root/account/tracking";
 import { CustomerOrderItemSummary } from "@/schemas/root/account/orders";
 
-async function safeGetImageBase64(
-  key: string | null | undefined,
-): Promise<string> {
-  if (!key) return "";
-  if (
-    key.startsWith("data:") ||
-    key.startsWith("http://") ||
-    key.startsWith("https://") ||
-    key.startsWith("/")
-  ) {
-    return key;
-  }
-  try {
-    return await getImageBase64(key);
-  } catch (error) {
-    console.error(`[Storage.GetBase64] Failed for key "${key}":`, error);
-    return "";
-  }
+function resolveOrderItemImage(key: string | null | undefined): string {
+  return getPublicUrl(key);
 }
 
 /**
@@ -289,50 +273,48 @@ export async function trackOrderAction(query: string): Promise<{
     }
 
     // Resolve line item images
-    const items: CustomerOrderItemSummary[] = await Promise.all(
-      order.orderItems.map(async (oi) => {
-        let name = "Order Item";
-        let sku: string | null = null;
-        let imageKey: string | null = null;
-        let slug: string | null = null;
+    const items: CustomerOrderItemSummary[] = order.orderItems.map((oi) => {
+      let name = "Order Item";
+      let sku: string | null = null;
+      let imageKey: string | null = null;
+      let slug: string | null = null;
 
-        if (oi.variant) {
-          name = `${oi.variant.product.name} (${oi.variant.sku})`;
-          sku = oi.variant.sku;
-          imageKey = oi.variant.image || oi.variant.product.image;
-          slug = oi.variant.product.slug;
-        } else if (oi.product) {
-          name = oi.product.name;
-          sku = oi.product.sku;
-          imageKey = oi.product.image;
-          slug = oi.product.slug;
-        } else if (oi.comboProduct) {
-          name = oi.comboProduct.name;
-          sku = oi.comboProduct.sku;
-          imageKey = oi.comboProduct.image;
-          slug = oi.comboProduct.slug;
-        }
+      if (oi.variant) {
+        name = `${oi.variant.product.name} (${oi.variant.sku})`;
+        sku = oi.variant.sku;
+        imageKey = oi.variant.image || oi.variant.product.image;
+        slug = oi.variant.product.slug;
+      } else if (oi.product) {
+        name = oi.product.name;
+        sku = oi.product.sku;
+        imageKey = oi.product.image;
+        slug = oi.product.slug;
+      } else if (oi.comboProduct) {
+        name = oi.comboProduct.name;
+        sku = oi.comboProduct.sku;
+        imageKey = oi.comboProduct.image;
+        slug = oi.comboProduct.slug;
+      }
 
-        const image = await safeGetImageBase64(imageKey);
+      const image = resolveOrderItemImage(imageKey);
 
-        return {
-          id: oi.id,
-          name,
-          sku,
-          image,
-          quantity: oi.quanitity,
-          unitPrice: oi.unitPrice,
-          totalCost: oi.totalCost,
-          discountCost: oi.discountCost,
-          finalCost: oi.finalCost,
-          status: oi.status,
-          productId: oi.productId,
-          variantId: oi.variantId,
-          comboProductId: oi.comboProductId,
-          slug,
-        };
-      }),
-    );
+      return {
+        id: oi.id,
+        name,
+        sku,
+        image,
+        quantity: oi.quanitity,
+        unitPrice: oi.unitPrice,
+        totalCost: oi.totalCost,
+        discountCost: oi.discountCost,
+        finalCost: oi.finalCost,
+        status: oi.status,
+        productId: oi.productId,
+        variantId: oi.variantId,
+        comboProductId: oi.comboProductId,
+        slug,
+      };
+    });
 
     const estimatedDeliveryDate = getEstimatedDeliveryDateString(
       order.createdAt,

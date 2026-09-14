@@ -1,7 +1,7 @@
 "use server";
 
 import db from "@/lib/db";
-import { getImageBase64 } from "@/lib/storage";
+import { getPublicUrl } from "@/lib/storage";
 import { Brand } from "@/generated/prisma/client";
 
 export type BrandWithCount = Brand & { productCount: number };
@@ -20,21 +20,16 @@ export async function getAllBrandsAdminAction(): Promise<{
       },
     });
 
-    const brandsWithImageBase64 = await Promise.all(
-      brands.map(async (brand) => {
-        const base64 = await getImageBase64(brand.image);
-        return {
-          ...brand,
-          image: base64,
-          productCount: brand._count.products,
-        };
-      }),
-    );
+    const brandsWithPublicUrl = brands.map((brand) => ({
+      ...brand,
+      image: getPublicUrl(brand.image),
+      productCount: brand._count.products,
+    }));
 
     return {
       success: true,
       message: "Successfully retrieved all brands for admin",
-      brands: brandsWithImageBase64,
+      brands: brandsWithPublicUrl,
     };
   } catch (error) {
     console.error("[Action.Admin.Management.Brands.GetAll]:", error);

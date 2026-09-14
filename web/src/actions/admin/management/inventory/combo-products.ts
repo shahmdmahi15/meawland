@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import db from "@/lib/db";
-import { getImageBase64, uploadFile } from "@/lib/storage";
+import { getPublicUrl, uploadFile } from "@/lib/storage";
 import { generateId } from "@/lib/generate-code";
 import { ComboProduct, Product, Variant } from "@/generated/prisma/client";
 import crypto from "crypto";
@@ -77,16 +77,8 @@ export type ComboCatalogMetrics = {
   totalCatalogValue: number;
 };
 
-async function safeGetImageBase64(
-  key: string | null | undefined,
-): Promise<string> {
-  if (!key) return "";
-  try {
-    return await getImageBase64(key);
-  } catch (error) {
-    console.error(`[Storage.GetComboBase64] Failed for key "${key}":`, error);
-    return "";
-  }
+function resolveImageUrl(key: string | null | undefined): string {
+  return getPublicUrl(key);
 }
 
 function slugify(value: string) {
@@ -185,24 +177,22 @@ export async function getComboProductFormDataAction(): Promise<{
       },
     });
 
-    const products: ComboSourceProduct[] = await Promise.all(
-      rawProducts.map(async (product) => {
-        const imageBase64 = await safeGetImageBase64(product.image);
+    const products: ComboSourceProduct[] = rawProducts.map((product) => {
+      const imageBase64 = resolveImageUrl(product.image);
 
-        const variants: ComboSourceVariant[] = await Promise.all(
-          product.variants.map(async (variant) => ({
-            ...variant,
-            imageBase64: await safeGetImageBase64(variant.image),
-          })),
-        );
+      const variants: ComboSourceVariant[] = product.variants.map(
+        (variant) => ({
+          ...variant,
+          imageBase64: resolveImageUrl(variant.image),
+        }),
+      );
 
-        return {
-          ...product,
-          imageBase64,
-          variants,
-        };
-      }),
-    );
+      return {
+        ...product,
+        imageBase64,
+        variants,
+      };
+    });
 
     return {
       success: true,
@@ -332,10 +322,8 @@ export async function getAllComboProductsAdminAction(): Promise<{
           ...combo,
           products,
           variants,
-          imageBase64: await safeGetImageBase64(combo.image),
-          galleryBase64: await Promise.all(
-            (combo.gallery || []).map((g) => safeGetImageBase64(g)),
-          ),
+          imageBase64: resolveImageUrl(combo.image),
+          galleryBase64: (combo.gallery || []).map((g) => resolveImageUrl(g)),
           bundleStockCapacity,
           totalOriginalPrice,
           discountAmount,

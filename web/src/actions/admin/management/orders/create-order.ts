@@ -16,7 +16,7 @@ import {
   createAdminOrderSchema,
   type CreateAdminOrderInput,
 } from "@/schemas/admin/management/orders/order";
-import { getImageBase64 } from "@/lib/storage";
+import { getPublicUrl } from "@/lib/storage";
 import { Coupon } from "@/generated/prisma/client";
 import {
   OrderType,
@@ -103,24 +103,8 @@ export type NewOrderFormData = {
   coupons: OrderFormDataCoupon[];
 };
 
-export async function safeGetImageBase64(
-  key: string | null | undefined,
-): Promise<string> {
-  if (!key) return "";
-  if (
-    key.startsWith("data:") ||
-    key.startsWith("http://") ||
-    key.startsWith("https://") ||
-    key.startsWith("/")
-  ) {
-    return key;
-  }
-  try {
-    return await getImageBase64(key);
-  } catch (error) {
-    console.error(`[Storage.GetBase64] Failed for key "${key}":`, error);
-    return "";
-  }
+export function safeGetImageBase64(key: string | null | undefined): string {
+  return getPublicUrl(key);
 }
 
 /**
@@ -216,91 +200,85 @@ export async function getNewOrderFormDataAction(): Promise<{
       code: u.code,
     }));
 
-    const products: OrderFormDataProduct[] = await Promise.all(
-      rawProducts.map(async (p) => {
-        const mainImage = await safeGetImageBase64(p.image);
-        const variants = await Promise.all(
-          p.variants.map(async (v) => {
-            const vImage = await safeGetImageBase64(v.image || p.image);
-            return {
-              id: v.id,
-              sku: v.sku,
-              image: vImage || mainImage || "",
-              costPrice: v.costPrice,
-              regularPrice: v.regularPrice,
-              salePrice: v.salePrice,
-              stock: v.stock,
-              attributes: v.attributes.map((a) => ({
-                id: a.id,
-                type: a.type,
-                name: a.name,
-                value: a.value,
-              })),
-            };
-          }),
-        );
-
+    const products: OrderFormDataProduct[] = rawProducts.map((p) => {
+      const mainImage = safeGetImageBase64(p.image);
+      const variants = p.variants.map((v) => {
+        const vImage = safeGetImageBase64(v.image || p.image);
         return {
-          id: p.id,
-          name: p.name,
-          code: p.code,
-          sku: p.sku,
-          image: mainImage || "",
-          isVariable: p.isVariable,
-          costPrice: p.costPrice,
-          regularPrice: p.regularPrice,
-          salePrice: p.salePrice,
-          stock: p.stock,
-          category: p.subCategory.category,
-          subCategoryName: p.subCategory.name,
-          brandName: p.brand?.name || null,
-          variants,
+          id: v.id,
+          sku: v.sku,
+          image: vImage || mainImage || "",
+          costPrice: v.costPrice,
+          regularPrice: v.regularPrice,
+          salePrice: v.salePrice,
+          stock: v.stock,
+          attributes: v.attributes.map((a) => ({
+            id: a.id,
+            type: a.type,
+            name: a.name,
+            value: a.value,
+          })),
         };
-      }),
-    );
+      });
 
-    const combos: OrderFormDataCombo[] = await Promise.all(
-      rawCombos.map(async (cb) => {
-        const cbImage = await safeGetImageBase64(cb.image);
+      return {
+        id: p.id,
+        name: p.name,
+        code: p.code,
+        sku: p.sku,
+        image: mainImage || "",
+        isVariable: p.isVariable,
+        costPrice: p.costPrice,
+        regularPrice: p.regularPrice,
+        salePrice: p.salePrice,
+        stock: p.stock,
+        category: p.subCategory.category,
+        subCategoryName: p.subCategory.name,
+        brandName: p.brand?.name || null,
+        variants,
+      };
+    });
 
-        // Calculate procurement cost for combo
-        const productsCost = (cb.products || []).reduce(
-          (sum, p) => sum + (parseFloat(p.costPrice || "0") || 0),
-          0,
-        );
-        const variantsCost = (cb.variants || []).reduce(
-          (sum, v) => sum + (parseFloat(v.costPrice || "0") || 0),
-          0,
-        );
-        const costPrice = productsCost + variantsCost;
+    const combos: OrderFormDataCombo[] = rawCombos.map((cb) => {
+      const cbImage = safeGetImageBase64(cb.image);
 
-        // Available stock is min stock of all constituent items
-        let minStock = 999999;
-        if (cb.products.length === 0 && cb.variants.length === 0) {
-          minStock = 0;
-        }
-        for (const p of cb.products) {
-          minStock = Math.min(minStock, p.stock ?? 0);
-        }
-        for (const v of cb.variants) {
-          minStock = Math.min(minStock, v.stock ?? 0);
-        }
+      // Calculate procurement cost for combo
+      const productsCost = (cb.products || []).reduce(
+        (sum, p) => sum + (parseFloat(p.costPrice || "0") || 0),
+        0,
+      );
+      const variantsCost = (cb.variants || []).reduce(
+        (sum, v) => sum + (parseFloat(v.costPrice || "0") || 0),
+        0,
+      );
+      const costPrice = productsCost + variantsCost;
 
-        return {
-          id: cb.id,
-          name: cb.name,
-          code: cb.code,
-          sku: cb.sku,
-          image: cbImage || "",
-          regularPrice: cb.regularPrice,
-          salePrice: cb.salePrice,
-          costPrice,
-          availableStock: minStock === 999999 ? 0 : minStock,
-          productsCount: cb.products.length,
-          variantsCount: cb.variants.length,
-        };
-      }),
-    );
+      // Available stock is min stock of all constituent items
+      let minStock = 999999;
+      if (cb.products.length === 0 && cb.variants.length === 0) {
+        minStock = 0;
+      }
+      for (const p of cb.products) {
+        minStock = Math.min(minStock, p.stock ?? 0);
+      }
+      for (const v of cb.variants) {
+        minStock = Math.min(minStock, v.stock ?? 0);
+      }
+
+      return {
+        id: cb.id,
+        name: cb.name,
+        code: cb.code,
+        sku: cb.sku,
+        image: cbImage || "",
+        regularPrice: cb.regularPrice,
+        salePrice: cb.salePrice,
+        costPrice,
+        availableStock: minStock === 999999 ? 0 : minStock,
+        productsCount: cb.products.length,
+        variantsCount: cb.variants.length,
+      };
+    });
 
     const coupons: OrderFormDataCoupon[] = rawCoupons.map((c) => ({
       id: c.id,

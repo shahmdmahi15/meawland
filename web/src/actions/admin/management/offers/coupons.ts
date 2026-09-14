@@ -12,7 +12,7 @@ import {
   AuditSeverity,
 } from "@/generated/prisma/enums";
 import { recordAuditLog } from "@/lib/audit-logger";
-import { getImageBase64 } from "@/lib/storage";
+import { getPublicUrl } from "@/lib/storage";
 import { CATEGORY_MAP } from "@/lib/category-helpers";
 import {
   createCouponSchema,
@@ -179,16 +179,8 @@ export type CouponMetrics = {
   totalRedemptions: number;
 };
 
-async function safeGetImageBase64(
-  key: string | null | undefined,
-): Promise<string> {
-  if (!key) return "";
-  try {
-    return await getImageBase64(key);
-  } catch (error) {
-    console.error(`[Storage.GetCouponBase64] Failed for key "${key}":`, error);
-    return "";
-  }
+function safeGetImageBase64(key: string | null | undefined): string {
+  return getPublicUrl(key);
 }
 
 function computeCouponStatus(
@@ -315,54 +307,46 @@ export async function getCouponFormDataAction(): Promise<{
     );
 
     // Brands catalog
-    const brands: CouponCatalogBrand[] = await Promise.all(
-      rawBrands.map(async (b) => ({
-        id: b.id,
-        name: b.name,
-        slug: b.slug,
-        image: b.image,
-        imageBase64: await safeGetImageBase64(b.image),
-        productCount: b._count.products,
-      })),
-    );
+    const brands: CouponCatalogBrand[] = rawBrands.map((b) => ({
+      id: b.id,
+      name: b.name,
+      slug: b.slug,
+      image: b.image,
+      imageBase64: safeGetImageBase64(b.image),
+      productCount: b._count.products,
+    }));
 
     // Products catalog
-    const products: CouponCatalogProduct[] = await Promise.all(
-      rawProducts.map(async (p) => {
-        const imageBase64 = await safeGetImageBase64(p.image);
-        const variantsWithImages = await Promise.all(
-          p.variants.map(async (v) => ({
-            ...v,
-            imageBase64: await safeGetImageBase64(v.image || p.image),
-          })),
-        );
+    const products: CouponCatalogProduct[] = rawProducts.map((p) => {
+      const imageBase64 = safeGetImageBase64(p.image);
+      const variantsWithImages = p.variants.map((v) => ({
+        ...v,
+        imageBase64: safeGetImageBase64(v.image || p.image),
+      }));
 
-        return {
-          id: p.id,
-          name: p.name,
-          code: p.code,
-          sku: p.sku,
-          image: p.image,
-          imageBase64,
-          isVariable: p.isVariable,
-          regularPrice: p.regularPrice,
-          salePrice: p.salePrice,
-          categoryName: p.subCategory?.name,
-          subCategoryId: p.subCategory?.id,
-          categoryEnum: p.subCategory?.category,
-          brandId: p.brand?.id,
-          brandName: p.brand?.name,
-          variants: variantsWithImages,
-        };
-      }),
-    );
+      return {
+        id: p.id,
+        name: p.name,
+        code: p.code,
+        sku: p.sku,
+        image: p.image,
+        imageBase64,
+        isVariable: p.isVariable,
+        regularPrice: p.regularPrice,
+        salePrice: p.salePrice,
+        categoryName: p.subCategory?.name,
+        subCategoryId: p.subCategory?.id,
+        categoryEnum: p.subCategory?.category,
+        brandId: p.brand?.id,
+        brandName: p.brand?.name,
+        variants: variantsWithImages,
+      };
+    });
 
-    const combos: CouponCatalogCombo[] = await Promise.all(
-      rawCombos.map(async (c) => ({
-        ...c,
-        imageBase64: await safeGetImageBase64(c.image),
-      })),
-    );
+    const combos: CouponCatalogCombo[] = rawCombos.map((c) => ({
+      ...c,
+      imageBase64: safeGetImageBase64(c.image),
+    }));
 
     return {
       success: true,

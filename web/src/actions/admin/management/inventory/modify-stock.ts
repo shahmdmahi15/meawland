@@ -2,7 +2,7 @@
 
 import db from "@/lib/db";
 import { revalidatePath } from "next/cache";
-import { getImageBase64 } from "@/lib/storage";
+import { getPublicUrl } from "@/lib/storage";
 import {
   StockEventType,
   AuditAction,
@@ -72,16 +72,8 @@ export type ModifyStockMetrics = {
   categoriesCount: number;
 };
 
-async function safeGetImageBase64(
-  key: string | null | undefined,
-): Promise<string> {
-  if (!key) return "";
-  try {
-    return await getImageBase64(key);
-  } catch (error) {
-    console.error(`[Storage.GetBase64] Failed for key "${key}":`, error);
-    return "";
-  }
+function resolveImageUrl(key: string | null | undefined): string {
+  return getPublicUrl(key);
 }
 
 /**
@@ -164,9 +156,7 @@ export async function searchStockInventoryAction(params: {
           continue;
         if (params.stockFilter === "in_stock" && currentStock <= 5) continue;
 
-        const imageBase64 = prod.image
-          ? await safeGetImageBase64(prod.image)
-          : "";
+        const imageBase64 = prod.image ? resolveImageUrl(prod.image) : "";
 
         rows.push({
           id: `prod_${prod.id}`,
@@ -213,9 +203,9 @@ export async function searchStockInventoryAction(params: {
           if (params.stockFilter === "in_stock" && currentStock <= 5) continue;
 
           const imageBase64 = variant.image
-            ? await safeGetImageBase64(variant.image)
+            ? resolveImageUrl(variant.image)
             : prod.image
-              ? await safeGetImageBase64(prod.image)
+              ? resolveImageUrl(prod.image)
               : "";
 
           rows.push({
@@ -544,34 +534,32 @@ export async function getRecentStockEventsAction(params?: {
       take: limit,
     });
 
-    const rows: StockEventAuditRow[] = await Promise.all(
-      events.map(async (event) => {
-        const imageKey = event.variant?.image || event.product?.image;
-        const imageBase64 = imageKey ? await safeGetImageBase64(imageKey) : "";
+    const rows: StockEventAuditRow[] = events.map((event) => {
+      const imageKey = event.variant?.image || event.product?.image;
+      const imageBase64 = imageKey ? resolveImageUrl(imageKey) : "";
 
-        return {
-          id: event.id,
-          type: event.type,
-          quantity: event.quantity,
-          previousStock: event.previousStock ?? 0,
-          newStock: event.newStock ?? 0,
-          reason: event.reason,
-          note: event.note,
-          createdAt: event.createdAt.toISOString(),
-          productName: event.product?.name || "Deleted Product",
-          productCode: event.product?.code || "N/A",
-          productSku: event.product?.sku || "N/A",
-          targetType: event.variantId ? "VARIANT" : "PRODUCT",
-          variantSku: event.variant?.sku || null,
-          variantAttributes: event.variant?.attributes.map((a) => ({
-            type: a.type,
-            name: a.name,
-            value: a.value,
-          })),
-          imageBase64,
-        };
-      }),
-    );
+      return {
+        id: event.id,
+        type: event.type,
+        quantity: event.quantity,
+        previousStock: event.previousStock ?? 0,
+        newStock: event.newStock ?? 0,
+        reason: event.reason,
+        note: event.note,
+        createdAt: event.createdAt.toISOString(),
+        productName: event.product?.name || "Deleted Product",
+        productCode: event.product?.code || "N/A",
+        productSku: event.product?.sku || "N/A",
+        targetType: event.variantId ? "VARIANT" : "PRODUCT",
+        variantSku: event.variant?.sku || null,
+        variantAttributes: event.variant?.attributes.map((a) => ({
+          type: a.type,
+          name: a.name,
+          value: a.value,
+        })),
+        imageBase64,
+      };
+    });
 
     return {
       success: true,
